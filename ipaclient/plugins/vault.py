@@ -33,6 +33,21 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric import padding
+try:
+    # cryptography >= 50.0.0
+    from cryptography.hazmat.primitives.asymmetric.mlkem import (
+        MLKEM768PublicKey, MLKEM768PrivateKey,
+        MLKEM1024PublicKey, MLKEM1024PrivateKey,
+    )
+    from cryptography.hazmat.primitives.keywrap import (
+        aes_key_wrap_with_padding, aes_key_unwrap_with_padding)
+    MLKEM_PUBLIC_KEY_TYPES = (
+        MLKEM768PublicKey, MLKEM1024PublicKey)
+    MLKEM_PRIVATE_KEY_TYPES = (
+        MLKEM768PrivateKey, MLKEM1024PrivateKey)
+except ImportError:
+    MLKEM_PUBLIC_KEY_TYPES = ()
+    MLKEM_PRIVATE_KEY_TYPES = ()
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 try:
     # cryptography>=43.0.0
@@ -109,6 +124,10 @@ def generate_symmetric_key(password, salt):
 def encrypt(data, symmetric_key=None, public_key=None):
     """
     Encrypts data with symmetric key or public key.
+
+    For ML-KEM public keys, returns (kem_ciphertext, wrapped_data) tuple.
+    For RSA public keys, returns encrypted data bytes.
+    For symmetric keys, returns Fernet-encrypted data bytes.
     """
     if symmetric_key is not None:
         if public_key is not None:
@@ -123,6 +142,10 @@ def encrypt(data, symmetric_key=None, public_key=None):
             data=public_key,
             backend=default_backend()
         )
+        if isinstance(public_key_obj, MLKEM_PUBLIC_KEY_TYPES):
+            shared_key, kem_ciphertext = public_key_obj.encapsulate()
+            wrapped_data = aes_key_wrap_with_padding(shared_key, data)
+            return kem_ciphertext, wrapped_data
         return public_key_obj.encrypt(
             data,
             padding.OAEP(
@@ -135,9 +158,12 @@ def encrypt(data, symmetric_key=None, public_key=None):
         raise ValueError("Either a symmetric or a public key is required.")
 
 
-def decrypt(data, symmetric_key=None, private_key=None):
+def decrypt(data, symmetric_key=None, private_key=None,
+            kem_ciphertext=None):
     """
-    Decrypts data with symmetric key or public key.
+    Decrypts data with symmetric key or private key.
+
+    For ML-KEM private keys, kem_ciphertext must be provided.
     """
     if symmetric_key is not None:
         if private_key is not None:
@@ -158,6 +184,16 @@ def decrypt(data, symmetric_key=None, private_key=None):
                 password=None,
                 backend=default_backend()
             )
+            if isinstance(private_key_obj, MLKEM_PRIVATE_KEY_TYPES):
+                if kem_ciphertext is None:
+                    raise ValueError(
+                        "kem_ciphertext is required for ML-KEM "
+                        "decryption"
+                    )
+                shared_key = private_key_obj.decapsulate(
+                    kem_ciphertext
+                )
+                return aes_key_unwrap_with_padding(shared_key, data)
             return private_key_obj.decrypt(
                 data,
                 padding.OAEP(
@@ -341,7 +377,6 @@ class vault_add(Local):
                     name='ipavaultpublickey',
                     error=_('Invalid or unsupported vault public key: %s') % e,
                 )
-
         # create vault
         response = self.api.Command.vault_add_internal(*args, **options)
 
@@ -534,6 +569,20 @@ class vault_mod(Local):
                         name='ipavaultpublickey',
                         error=_('Missing new vault public key'))
 
+                try:
+                    load_pem_public_key(
+                        data=new_public_key,
+                        backend=default_backend()
+                    )
+                except ValueError as e:
+                    raise errors.ValidationError(
+                        name='ipavaultpublickey',
+                        error=_(
+                            'Invalid or unsupported vault '
+                            'public key: %s'
+                        ) % e,
+                    )
+
                 opts['ipavaultsalt'] = None
                 opts['ipavaultpublickey'] = new_public_key
 
@@ -709,16 +758,133 @@ class ModVaultData(Local):
                 )
         return transport_cert, wrapping_algo
 
+    def _wrap_data(self, algo, json_vault_data):
+        """Encrypt vault data with session key."""
+        nonce = os.urandom(algo.block_size // 8)
+
+        padder = PKCS7(algo.block_size).padder()
+        padded_data = padder.update(json_vault_data)
+        padded_data += padder.finalize()
+
+        cipher = Cipher(
+            algo, modes.CBC(nonce), backend=default_backend()
+        )
+        encryptor = cipher.encryptor()
+        wrapped_vault_data = (
+            encryptor.update(padded_data)
+            + encryptor.finalize()
+        )
+
+        return nonce, wrapped_vault_data
+
+    def _unwrap_response(self, algo, nonce, vault_data):
+        """Decrypt vault data with session key."""
+        cipher = Cipher(
+            algo, modes.CBC(nonce), backend=default_backend()
+        )
+        decryptor = cipher.decryptor()
+        padded_data = decryptor.update(vault_data)
+        padded_data += decryptor.finalize()
+
+        unpadder = PKCS7(algo.block_size).unpadder()
+        json_vault_data = unpadder.update(padded_data)
+        json_vault_data += unpadder.finalize()
+
+        return json.loads(json_vault_data.decode('utf-8'))
+
+    def _mlkem_call_internal(self, transport_cert, json_data,
+                             *args, **options):
+        """ML-KEM transport: encapsulate, wrap data, call server.
+
+        The KEM ciphertext is sent as the trans_wrapped_session_key.
+        The KRA decapsulates it to recover the shared secret.
+
+        Dogtag compatibility: Dogtag's CryptoUtil.decapsulateMLKEM
+        truncates the shared secret to
+        payloadEncryptionAlgorithm.getKeyStrength() bytes (16 for
+        AES_128_CBC_PAD).  We must truncate identically so that
+        both ipacta and Dogtag KRA derive the same session key.
+
+        json_data is the vault data to wrap (archive) or None
+        (retrieve — only session_key is sent).
+
+        Returns (response, algo) on success.
+        """
+        pk = transport_cert.public_key()
+        if not isinstance(pk, MLKEM_PUBLIC_KEY_TYPES):
+            raise TypeError(
+                "Transport certificate is not ML-KEM"
+            )
+        shared_key, kem_ct = pk.encapsulate()
+        # Dogtag's KeyClient and EncryptionUnit.unwrap_session_key
+        # both derive only payloadEncryptionAlgorithm.getKeyStrength()
+        # bytes from the ML-KEM shared secret (16 for AES-128-CBC).
+        # Python's cryptography returns the full 32-byte secret;
+        # truncate to match.
+        shared_key = shared_key[:16]
+        algo = algorithms.AES(shared_key)
+        if json_data is not None:
+            nonce, wrapped = self._wrap_data(algo, json_data)
+            options.update(nonce=nonce, vault_data=wrapped)
+        options['session_key'] = kem_ct
+        options['wrapping_algo'] = constants.VAULT_WRAPPING_AES128_CBC
+        name = self.name + '_internal'
+        return self.api.Command[name](*args, **options), algo
+
+    def _mlkem_archive(self, transport_cert, json_vault_data,
+                       *args, **options):
+        try:
+            result, _algo = self._mlkem_call_internal(
+                transport_cert, json_vault_data,
+                *args, **options
+            )
+            return result
+        except (errors.InternalError,
+                errors.ExecutionError,
+                errors.GenericError):
+            _kra_config_cache.remove(self.api.env.domain)
+        transport_cert = self._get_vaultconfig(
+            force_refresh=True
+        )[0]
+        result, _algo = self._mlkem_call_internal(
+            transport_cert, json_vault_data,
+            *args, **options
+        )
+        return result
+
+    def _mlkem_retrieve(self, transport_cert, *args, **options):
+        try:
+            response, algo = self._mlkem_call_internal(
+                transport_cert, None,
+                *args, **options
+            )
+        except (errors.InternalError,
+                errors.ExecutionError,
+                errors.GenericError):
+            _kra_config_cache.remove(self.api.env.domain)
+            transport_cert = self._get_vaultconfig(
+                force_refresh=True
+            )[0]
+            response, algo = self._mlkem_call_internal(
+                transport_cert, None,
+                *args, **options
+            )
+        vault_data = self._unwrap_response(
+            algo,
+            response['result']['nonce'],
+            response['result']['vault_data']
+        )
+        return vault_data, response
+
     def _do_internal(self, algo, transport_cert, raise_unexpected,
                      use_oaep=False, *args, **options):
         public_key = transport_cert.public_key()
 
-        # wrap session key with transport certificate
-        # KRA may be configured using either the default PKCS1v15 or RSA-OAEP.
-        # there is no way to query this info using the REST interface.
         if not use_oaep:
-            # PKCS1v15() causes an OpenSSL exception when FIPS is enabled
-            # if so, we fallback to RSA-OAEP
+            # wrap session key with transport certificate
+            # KRA may be configured using either PKCS1v15 or RSA-OAEP.
+            # PKCS1v15() causes an OpenSSL exception when FIPS is
+            # enabled — fall back to RSA-OAEP in that case.
             try:
                 wrapped_session_key = public_key.encrypt(
                     algo.key,
@@ -759,7 +925,8 @@ class ModVaultData(Local):
 
     def internal(self, algo, transport_cert, *args, **options):
         """
-        Calls the internal counterpart of the command.
+        Calls the internal counterpart of the command (RSA only).
+        ML-KEM transport is handled by _mlkem_archive/_mlkem_retrieve.
         """
         # try call with cached transport certificate
         try:
@@ -858,26 +1025,6 @@ class vault_archive(ModVaultData):
     def _iter_output(self):
         return self.api.Command.vault_archive_internal.output()
 
-    def _wrap_data(self, algo, json_vault_data):
-        """Encrypt data with wrapped session key and transport cert
-
-        :param algo: wrapping algorithm instance
-        :param bytes json_vault_data: dumped vault data
-        :return:
-        """
-        nonce = os.urandom(algo.block_size // 8)
-
-        # wrap vault_data with session key
-        padder = PKCS7(algo.block_size).padder()
-        padded_data = padder.update(json_vault_data)
-        padded_data += padder.finalize()
-
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
-        encryptor = cipher.encryptor()
-        wrapped_vault_data = encryptor.update(padded_data) + encryptor.finalize()
-
-        return nonce, wrapped_vault_data
-
     def forward(self, *args, **options):
         data = options.get('data')
         input_file = options.get('in')
@@ -938,6 +1085,8 @@ class vault_archive(ModVaultData):
 
         vault_type = vault['ipavaulttype'][0]
 
+        kem_ciphertext = None
+
         if vault_type == u'standard':
 
             encrypted_key = None
@@ -996,25 +1145,44 @@ class vault_archive(ModVaultData):
             data = encrypt(data, symmetric_key=encryption_key)
 
             # encrypt encryption key with public key
-            encrypted_key = encrypt(encryption_key, public_key=public_key)
+            encrypted_result = encrypt(
+                encryption_key, public_key=public_key
+            )
+            if isinstance(encrypted_result, tuple):
+                kem_ciphertext, encrypted_key = encrypted_result
+            else:
+                kem_ciphertext = None
+                encrypted_key = encrypted_result
 
         else:
             raise errors.ValidationError(
                 name='vault_type',
                 error=_('Invalid vault type'))
 
-
         vault_data = {
             'data': base64.b64encode(data).decode('utf-8')
         }
         if encrypted_key:
-            vault_data[u'encrypted_key'] = base64.b64encode(encrypted_key)\
-                .decode('utf-8')
+            vault_data[u'encrypted_key'] = base64.b64encode(
+                encrypted_key
+            ).decode('utf-8')
+        if kem_ciphertext is not None:
+            vault_data[u'kem_ciphertext'] = base64.b64encode(
+                kem_ciphertext
+            ).decode('utf-8')
 
         json_vault_data = json.dumps(vault_data).encode('utf-8')
 
         # get config
         transport_cert, wrapping_algo = self._get_vaultconfig()
+        transport_pk = transport_cert.public_key()
+
+        if isinstance(transport_pk, MLKEM_PUBLIC_KEY_TYPES):
+            return self._mlkem_archive(
+                transport_cert, json_vault_data,
+                *args, **options
+            )
+
         # let options override wrapping algo
         # For backwards compatibility do not send old legacy wrapping algo
         # to server. Only send the option when non-3DES is used.
@@ -1096,7 +1264,8 @@ class vault_retrieve(ModVaultData):
 
     def get_options(self):
         for option in self.api.Command.vault_retrieve_internal.options():
-            if option.name not in ('session_key', 'version', 'wrapping_algo'):
+            if option.name not in ('session_key', 'version',
+                                   'wrapping_algo'):
                 yield option
         for option in super(vault_retrieve, self).get_options():
             yield option
@@ -1109,19 +1278,6 @@ class vault_retrieve(ModVaultData):
 
     def _iter_output(self):
         return self.api.Command.vault_retrieve_internal.output()
-
-    def _unwrap_response(self, algo, nonce, vault_data):
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
-        # decrypt
-        decryptor = cipher.decryptor()
-        padded_data = decryptor.update(vault_data)
-        padded_data += decryptor.finalize()
-        # remove padding
-        unpadder = PKCS7(algo.block_size).unpadder()
-        json_vault_data = unpadder.update(padded_data)
-        json_vault_data += unpadder.finalize()
-        # load JSON
-        return json.loads(json_vault_data.decode('utf-8'))
 
     def forward(self, *args, **options):
         output_file = options.get('out')
@@ -1156,31 +1312,48 @@ class vault_retrieve(ModVaultData):
 
         # get config
         transport_cert, wrapping_algo = self._get_vaultconfig()
-        # let options override wrapping algo
-        # For backwards compatibility do not send old legacy wrapping algo
-        # to server. Only send the option when non-3DES is used.
-        wrapping_algo = options.pop('wrapping_algo', wrapping_algo)
-        if wrapping_algo != constants.VAULT_WRAPPING_3DES:
-            options['wrapping_algo'] = wrapping_algo
+        transport_pk = transport_cert.public_key()
 
-        # generate session key
-        algo = self._generate_session_key(wrapping_algo)
-        # send retrieval request to server
-        response = self.internal(algo, transport_cert, *args, **options)
-        # unwrap data with session key
-        vault_data = self._unwrap_response(
-            algo,
-            response['result']['nonce'],
-            response['result']['vault_data']
-        )
-        del algo
+        if isinstance(transport_pk, MLKEM_PUBLIC_KEY_TYPES):
+            vault_data, response = self._mlkem_retrieve(
+                transport_cert, *args, **options
+            )
+        else:
+            # let options override wrapping algo
+            # For backwards compatibility do not send old legacy
+            # wrapping algo to server. Only send the option when
+            # non-3DES is used.
+            wrapping_algo = options.pop(
+                'wrapping_algo', wrapping_algo
+            )
+            if wrapping_algo != constants.VAULT_WRAPPING_3DES:
+                options['wrapping_algo'] = wrapping_algo
+
+            # generate session key
+            algo = self._generate_session_key(wrapping_algo)
+            # send retrieval request to server
+            response = self.internal(
+                algo, transport_cert, *args, **options
+            )
+            # unwrap data with session key
+            vault_data = self._unwrap_response(
+                algo,
+                response['result']['nonce'],
+                response['result']['vault_data']
+            )
+            del algo
 
         data = base64.b64decode(vault_data[u'data'].encode('utf-8'))
         encrypted_key = None
+        kem_ciphertext = None
 
         if 'encrypted_key' in vault_data:
             encrypted_key = base64.b64decode(vault_data[u'encrypted_key']
                                              .encode('utf-8'))
+        if 'kem_ciphertext' in vault_data:
+            kem_ciphertext = base64.b64decode(
+                vault_data[u'kem_ciphertext'].encode('utf-8')
+            )
 
         if vault_type == u'standard':
 
@@ -1235,7 +1408,10 @@ class vault_retrieve(ModVaultData):
                     error=_('Missing vault private key'))
 
             # decrypt encryption key with private key
-            encryption_key = decrypt(encrypted_key, private_key=private_key)
+            encryption_key = decrypt(
+                encrypted_key, private_key=private_key,
+                kem_ciphertext=kem_ciphertext
+            )
 
             # decrypt data with encryption key
             data = decrypt(data, symmetric_key=encryption_key)
