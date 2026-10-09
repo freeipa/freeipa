@@ -22,9 +22,9 @@ default.conf \- IPA configuration file
 .SH "SYNOPSIS"
 /etc/ipa/default.conf, ~/.ipa/default.conf, /etc/ipa/server.conf, /etc/ipa/cli.conf, /etc/ipa/installer.conf, /etc/ipa/cli_installer.conf
 .SH "DESCRIPTION"
-The \fIdefault.conf \fRconfiguration file is used to set system\-wide defaults to be applied when running IPA clients and servers.
+The \fIdefault.conf\fR configuration file is used to set system\-wide defaults to be applied when running IPA clients and servers.
 
-Users may create an optional configuration file in \fI~/.ipa/default.conf\fR which will be merged into the system\-wide defaults file.
+Users may create an optional configuration file i.e. default.conf in \fI~/.ipa/\fR directory which will be merged into the system\-wide defaults file.
 
 The following files are read, in order:
 .nf
@@ -75,13 +75,13 @@ Specifies the hostname of the dogtag CA server. The default is the hostname of t
 Specifies the insecure CA end user port. The default is 8080.
 .TP
 .B certmonger_wait_timeout <seconds>
-The time to wait for a certmonger request to complete during installation. The default value is 300 seconds. To tune create/add to /etc/ipa/installer.conf.
+The time to wait for a certmonger request to complete during installation. The default value is 300 seconds. To tune this value, add it to /etc/ipa/installer.conf.
 .TP
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli, server and dns. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
 .TP
 .B debug <boolean>
-When True provides detailed information. Specifically this set the global log level to "debug". Default is False.
+When True, provides detailed information. Specifically this sets the global log level to "debug". Default is False.
 .TP
 .B dogtag_version <version>
 Stores the version of Dogtag. Value 9 is assumed if not specified otherwise.
@@ -117,15 +117,15 @@ Controls the lifetime of ticket obtained by users authenticating to the WebGUI u
 Enable a per-request LDAP cache. The default is True.
 .TP
 .B ldap_cache_size <integer>
-The maximum number of entries cached if ldap_cache is True. Since this cache is per-request it is not expected to be very large. The default is 100. Setting the value < 1 effectively disables the cache regardless of the ldap_cache setting
+The maximum number of entries cached if ldap_cache is True. Since this cache is per-request it is not expected to be very large. The default is 100. Setting the value < 1 effectively disables the cache regardless of the ldap_cache setting.
 .TP
 .B ldap_cache_debug <boolean>
 Log details on hits, misses, etc. for the LDAP cache if the cache is enabled.
 .TP
 .B ldap_uri <URI>
-Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
+Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket.
 .TP
-.B log_logger_XXX <comma separated list of regexps>
+.B log_logger_level_XXX <comma separated list of regexps>
 loggers matching regexp will be assigned XXX level.
 .IP
 Logger levels can be explicitly specified for specific loggers as
@@ -140,9 +140,9 @@ followed by a symbolic or numeric log level, for example:
   log_logger_level_35 = ipalib\\.plugins\\.dogtag
 .IP
 The first line says any logger belonging to the ipalib.dn module
-will have it's level configured to debug.
+will have its level configured to debug.
 .IP
-The second line say the ipa.plugins.dogtag logger will be
+The second line says the ipa.plugins.dogtag logger will be
 configured to level 35.
 .IP
 This config item is useful when you only want to see the log output from
@@ -158,10 +158,10 @@ will usually need to escape the dot in the logger names by
 preceding it with a backslash.
 .TP
 .B mode <mode>
-Specifies the mode the server is running in. The currently support values are \fBproduction\fR and \fBdeveloper\fR. When running in production mode some self\-tests are skipped to improve performance.
+Specifies the mode the server is running in. The currently supported values are \fBproduction\fR and \fBdeveloper\fR. When running in production mode some self\-tests are skipped to improve performance.
 .TP
 .B mount_ipa <URI>
-Specifies the mount point that the development server will register. The default is /ipa/
+Specifies the mount point that the development server will register. The default is /ipa/.
 .TP
 .B oidc_child_debug_level <debuglevel>
 Specifies the debug level of \fBoidc_child\fR, a helper process used by \fBipa-otpd\fR for OIDC/OAuth2 authentication. Level can be between 0 and 10, the higher the more details. If the level is 6 or higher HTTP debug output is added as well.
@@ -188,7 +188,7 @@ The number of seconds for the ipa tool to cache the IPA API and help schema. Red
 Specifies the IPA Server hostname.
 .TP
 .B skip_version_check <boolean>
-Skip client vs. server API version checking. Can lead to errors/strange behavior when newer clients talk to older servers. Use with caution.
+Skip client vs. server API version checking. This can lead to errors/strange behavior when newer clients talk to older servers. Use with caution.
 .TP
 .B startup_timeout <time in seconds>
 Controls the amount of time waited when starting a service. The default value is 90 seconds, the same as the default systemd startup timeout. If configuring a CA the startup_timeout value will be added as an override for TimeoutStartSec in systemd. If installation times out when starting the CA create /etc/ipa/installer.conf with this value set.
@@ -200,7 +200,7 @@ If the IPA server fails to start and this value is True the server will attempt 
 Used internally in the IPA source package to verify that the API has not changed. This is used to prevent regressions. If it is true then some errors are ignored so enough of the IPA framework can be loaded to verify all of the API, even if optional components are not installed. The default is False.
 .TP
 .B verbose <boolean>
-When True provides more information. Specifically this sets the global log level to "info".
+When True, provides more information. Specifically this sets the global log level to "info".
 .TP
 .B wait_for_dns <number of attempts>
 Controls whether the IPA commands dnsrecord\-{add,mod,del} work synchronously or not. The DNS commands will repeat DNS queries up to the specified number of attempts until the DNS server returns an up-to-date answer to a query for modified records. Delay between retries is one second.
@@ -217,13 +217,13 @@ Specifies the URI of the XML\-RPC server for a client. This may be used by IPA, 
 .B jsonrpc_uri <URI>
 Specifies the URI of the JSON server for a client. This is used by IPA. If not given, it is derived from xmlrpc_uri. Example: https://ipa.example.com/ipa/json
 .TP
-.B rpc_protocol <URI>
+.B rpc_protocol <protocol>
 Specifies the type of RPC calls IPA makes: 'jsonrpc' or 'xmlrpc'. Defaults to 'jsonrpc'.
 .TP
 .B key_type_size TYPE:SIZE
 Specifies the type and size of private keys for the Apache, LDAP, PKINIT and RA (if configuring the CA) certificates. The CA/KRA certificate sizes need to be specified using a pki-config-override file provided to the installer. Currently only supports the RSA key type. Valid type values are: rsa. This only applies during initial server installation. The value is stored in the IPA config. Changing it there will not change existing certificates. It will only apply when a new replica is added. The default is: rsa:2048.
 .TP
-The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
+The following entries define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts
   container_applications: cn=applications,cn=configs,cn=policies
   container_automount: cn=automount
