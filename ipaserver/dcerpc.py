@@ -46,7 +46,6 @@ import os
 import struct
 import random
 
-# pylint: disable=import-error
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
@@ -54,7 +53,6 @@ from samba.ndr import ndr_pack, ndr_print
 from samba import net
 from samba import ntstatus
 import samba
-# pylint: enable=import-error
 
 try:
     from samba.lsa_utils import CreateTrustedDomainRelax

@@ -843,10 +843,8 @@ class vault_del(LDAPDelete):
         assert isinstance(dn, DN)
 
         with self.api.Backend.kra.get_client() as kra_client:
-            # pylint: disable=used-before-assignment
             kra_account = pki.account.AccountClient(kra_client.connection,
                                                     subsystem='kra')
-            # pylint: enable=used-before-assignment
             kra_account.login()
 
             client_key_id = self.obj.get_key_id(dn)
