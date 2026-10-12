@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a Kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-v\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB-W\fR ] [ \fB\-P\fR|\fB\-\-password\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-H|\-\-ldapuri \fIURI\fR ] [ \fB\-Y|\-\-mech \fIGSSAPI|EXTERNAL\fR ] [ \fB\-r\fR ]
+ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-v\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB-W\fR ] [ \fB\-P\fR|\fB\-\-password\fR ] [ \fB\-\-salt \fISALT\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-H|\-\-ldapuri \fIURI\fR ] [ \fB\-Y|\-\-mech \fIGSSAPI|EXTERNAL\fR ] [ \fB\-r\fR ]
 
 .SH "DESCRIPTION"
 Retrieves a Kerberos \fIkeytab\fR.
@@ -126,6 +126,17 @@ Retrieve mode. Retrieve an existing key from the server instead of generating a
 new one. This is incompatible with the \-\-password option, and will work only
 against an IPA server more recent than version 3.3. The user requesting the
 keytab must have access to the keys for this operation to succeed.
+.TP
+\fB\-\-salt\fR
+Derive new keys for the principal using the salt that would be computed
+from the given fully\-qualified principal name, instead of the salt derived
+from the target principal's own name. This is needed when the keys of a
+principal must match the keys of a different name, for example the
+trusted domain account of an AD trust where the domain NetBIOS name equals
+the Kerberos realm. This option only applies when generating new keys and
+is incompatible with \fB\-r\fR. It requires an IPA server more recent than
+4.6. The derived salt is stored together with the keys so that later key
+rotations derive the same keys.
 .SH "EXAMPLES"
 Add and retrieve a keytab for the NFS service principal on
 the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the aes256\-sha2 key.
@@ -166,6 +177,14 @@ Add and retrieve a keytab for a clustered HTTP service deployed on client1.examp
 .nf
    # kinit -k
    # ipa-getkeytab -r -p HTTP/client-frontend.example.com -k /tmp/http.keytab
+.fi
+
+Generate keys for a principal whose keys must be derived from a specific
+salt, for example the NetBIOS\-style trust principal of an AD trust where
+the domain flat name equals the realm:
+.nf
+   # ipa\-getkeytab \-p krbtgt/EXAMPLE$@EXAMPLE.COM \-\-salt 'krbtgt/EXAMPLE@EXAMPLE.COM' \-k /tmp/ad.keytab
+.fi
 .fi
 
 .SH "EXIT STATUS"
