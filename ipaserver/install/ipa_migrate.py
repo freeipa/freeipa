@@ -833,7 +833,7 @@ class IPAMigrate():
                 IOError
             ) as e:
                 self.handle_error(
-                    f"Failed to connect to remote server: {str(e)}"
+                    f"Failed to connect to remote server: {e}"
                 )
         else:
             # LDAP (insecure)
@@ -848,7 +848,7 @@ class IPAMigrate():
             errors.ACIError,
             errors.DatabaseError
         ) as e:
-            self.handle_error(f"Failed to bind to remote server: {str(e)}")
+            self.handle_error(f"Failed to bind to remote server: {e}")
 
         # All set, stash the remote connection
         self.bindpw = None
@@ -869,7 +869,7 @@ class IPAMigrate():
                 "Local server is not running, or is unreachable.")
         except (errors.ACIError, errors.DatabaseError) as e:
             self.handle_error(
-                f"Failed to bind to local server: {str(e)}")
+                f"Failed to bind to local server: {e}")
 
         # All set, stash the local conn
         self.local_conn = ds_conn
@@ -920,7 +920,7 @@ class IPAMigrate():
                         f.close()
                 except EnvironmentError as e:
                     self.handle_error(
-                        "Failed to open password file: " + str(e))
+                        f"Failed to open password file: {e}")
             else:
                 # Prompt for password
                 while self.bindpw is None or self.bindpw == "":
@@ -989,13 +989,13 @@ class IPAMigrate():
                             return DN(suffix)
                         except (IndexError, KeyError) as e:
                             self.handle_error(
-                                "Failed to find naming context: " + str(e))
+                                f"Failed to find naming context: {e}")
                 # If we got here there is no userroot
                 self.handle_error(
                     "Failed to get database base DN as it does not exist")
         except errors.DatabaseError as e:
             self.handle_error(
-                "Failed to search Root DSE on remote server: " + str(e))
+                f"Failed to search Root DSE on remote server: {e}")
 
         return None
 
@@ -1646,7 +1646,7 @@ class IPAMigrate():
                 pass
             except (errors.NetworkError, errors.DatabaseError) as e:
                 self.log_error('Failed to find a local matching entry for '
-                               f'"{local_dn}" error: {str(e)}')
+                               f'"{local_dn}" error: {e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1685,10 +1685,10 @@ class IPAMigrate():
             except errors.MidairCollision as e:
                 # Typically means no such attribute, ok to ignore
                 self.log_debug(f'Failed to update "{local_dn}" error: '
-                               f'{str(e)} - ok to ignore')
+                               f'{e} - ok to ignore')
             except errors.ExecutionError as e:
                 self.log_error(f'Failed to update "{local_dn}" error: '
-                               f'{str(e)}')
+                               f'{e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1715,7 +1715,7 @@ class IPAMigrate():
                     DB_OBJECTS[entry_type]['count'] += 1
                 self.log_debug(f"Added entry: {local_dn}")
             except errors.ExecutionError as e:
-                self.log_error(f'Failed to add "{local_dn}" error: {str(e)}')
+                self.log_error(f'Failed to add "{local_dn}" error: {e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1767,7 +1767,7 @@ class IPAMigrate():
             errors.LimitsExceeded,
             errors.ACIError
         ) as e:
-            self.handle_error(f"Failed to get remote entries: {str(e)}")
+            self.handle_error(f"Failed to get remote entries: {e}")
 
     def processDBOnline(self):
         """
@@ -1887,7 +1887,7 @@ class IPAMigrate():
                     if self.args.force:
                         self.log_debug(
                             "Skipping schema value that triggered an "
-                            f"error: '{attr_val}' - {str(e)}")
+                            f"error: '{attr_val}' - {e}")
                         if schema_type[1] == "attributeTypes":
                             stats['schema_attrs_skipped'] += 1
                         else:
@@ -1895,7 +1895,7 @@ class IPAMigrate():
                         stats['ignored_errors'] += 1
                     else:
                         self.handle_error("Failed to add schema value: "
-                                          f"'{attr_val}' - {str(e)}")
+                                          f"'{attr_val}' - {e}")
 
         # Flush the schema cache
         self.local_conn._flush_schema()
@@ -1997,10 +1997,10 @@ class IPAMigrate():
                     except Exception as e:
                         if not self.args.force:
                             self.handle_error(
-                                f"Error updating local entry: {str(e)}")
+                                f"Error updating local entry: {e}")
                         else:
                             self.log_error(
-                                f"Error updating local entry: {str(e)}")
+                                f"Error updating local entry: {e}")
                             stats['ignored_errors'] += 1
 
                 self.write_update_to_ldif(local_entry)
@@ -2202,7 +2202,7 @@ class IPAMigrate():
                                         capture_output=True, text=True)
                 self.log_debug("SIDGEN task:\n" + result.stdout)
             except subprocess.CalledProcessError as e:
-                self.log_error("SIDGEN task failed: " + str(e))
+                self.log_error(f"SIDGEN task failed: {e}")
                 self.post_notes.append("SIDGEN task failed, "
                                        "needs investigation.")
 
@@ -2249,7 +2249,7 @@ class IPAMigrate():
         try:
             api.finalize()
         except Exception as e:
-            self.handle_error(f'Problem with IPA installation: {str(e)}',
+            self.handle_error(f'Problem with IPA installation: {e}',
                               err=2)
 
         print("Connecting to local server ...")
