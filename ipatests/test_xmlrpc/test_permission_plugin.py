@@ -3217,17 +3217,17 @@ class test_permission_bindtype(Declarative):
             ),
             expected=errors.ValidationError(
                 name='ipapermbindruletype',
-                error=u'the "anonymous" bind type cannot be combined with '
-                      u'write, add or delete rights'),
+                error='the "anonymous" bind type cannot be combined with '
+                      'write, add or delete rights'),
         ),
 
         dict(
             desc='Create anonymous %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                    type=u'user',
-                    ipapermright=u'read',
-                    ipapermbindruletype=u'anonymous',
+                    type='user',
+                    ipapermright='read',
+                    ipapermbindruletype='anonymous',
                 )
             ),
             expected=dict(

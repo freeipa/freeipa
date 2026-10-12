@@ -88,7 +88,7 @@ class test_login_password(XMLRPC_test, Unauthorized_HTTP_test):
         assert response.getheader('X-IPA-Rejection-Reason') is None
 
     def test_success_realm_principal(self):
-        principal = u'%s@%s' % (testuser, api.env.realm)
+        principal = '%s@%s' % (testuser, api.env.realm)
         response = self._login(principal, password)
 
         assert_equal(response.status, 200)

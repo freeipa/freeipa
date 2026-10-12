@@ -189,11 +189,11 @@ class test_trustconfig(Declarative):
     ]
 
 
-FETCH_DOMAINS_NORMAL_USER = u'test-trust-fetch-user'
-FETCH_DOMAINS_NORMAL_USER_PASSWORD = u'Secret123'
+FETCH_DOMAINS_NORMAL_USER = 'test-trust-fetch-user'
+FETCH_DOMAINS_NORMAL_USER_PASSWORD = 'Secret123'
 
-fetch_domains_test_trust_cn = u'fetchdomainstest.test'
-fetch_domains_test_trust_sid = u'S-1-5-21-1111111111-2222222222-3333333333'
+fetch_domains_test_trust_cn = 'fetchdomainstest.test'
+fetch_domains_test_trust_sid = 'S-1-5-21-1111111111-2222222222-3333333333'
 fetch_domains_test_trust_dn = get_trust_dn(fetch_domains_test_trust_cn)
 
 
@@ -214,14 +214,14 @@ class TestTrustFetchDomainsPermissions(XMLRPC_test):
     @pytest.fixture(autouse=True, scope="class")
     def trust_fetch_domains_setup(self, request, xmlrpc_setup):
         try:
-            api.Command['trustconfig_show'](trust_type=u'ad')
+            api.Command['trustconfig_show'](trust_type='ad')
         except errors.NotFound:
             pytest.skip('Trusts are not configured')
 
         api.Command.user_add(
             FETCH_DOMAINS_NORMAL_USER,
-            givenname=u'Normal',
-            sn=u'User',
+            givenname='Normal',
+            sn='User',
             userpassword=FETCH_DOMAINS_NORMAL_USER_PASSWORD,
         )
         unlock_principal_password(

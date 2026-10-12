@@ -758,7 +758,7 @@ ipa idrange-del before retrying the command with the desired range type.
 
     def execute(self, *keys, **options):
         # the user must have the Replication Administrators privilege
-        privilege = u'Replication Administrators'
+        privilege = 'Replication Administrators'
         op_account = getattr(context, 'principal', None)
         if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(
@@ -1847,7 +1847,7 @@ class trust_fetch_domains(LDAPRetrieve):
         # not a sufficient gate here: we must verify possession of the
         # Replication Administrators privilege up front, before invoking
         # the helper -- exactly as trust-add and trust-enable-agent do.
-        privilege = u'Replication Administrators'
+        privilege = 'Replication Administrators'
         op_account = getattr(context, 'principal', None)
         if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(

@@ -770,7 +770,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
 
         # Try to change the pwd of enrolled host with --setattr userpassword
         command = host.make_update_command(updates=dict(
-            setattr=u'userpassword=pass_123'))
+            setattr='userpassword=pass_123'))
         with pytest.raises(errors.ValidationError):
             command()
 

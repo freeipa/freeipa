@@ -46,8 +46,8 @@ def default_ca(request):
 
 @pytest.fixture(scope='module')
 def default_ca_uppercase(request):
-    name = u'ipa'.upper()
-    desc = u'IPA CA'
+    name = 'ipa'.upper()
+    desc = 'IPA CA'
     tracker = CATracker(name, fuzzy_issuer, desc=desc)
     tracker.track_create()
     return tracker

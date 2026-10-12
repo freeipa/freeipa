@@ -1751,7 +1751,7 @@ Search for existing certificates.
         the LDAP-backed, ACI-enforced ``_ldap_search``.
         """
         try:
-            check_operation_access(self.api, u"retrieve certificate")
+            check_operation_access(self.api, "retrieve certificate")
         except errors.ACIError:
             return False
         return True

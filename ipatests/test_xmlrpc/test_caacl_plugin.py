@@ -38,11 +38,11 @@ def default_acl(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def default_acl_uppercase(request, xmlrpc_setup):
-    name = u'hosts_services_caIPAserviceCert'.upper()
-    tracker = CAACLTracker(name, service_category=u'all', host_category=u'all')
+    name = 'hosts_services_caIPAserviceCert'.upper()
+    tracker = CAACLTracker(name, service_category='all', host_category='all')
     tracker.track_create()
     tracker.attrs.update(
-        {u'ipamembercertprofile_certprofile': [u'caIPAserviceCert']})
+        {'ipamembercertprofile_certprofile': ['caIPAserviceCert']})
     return tracker
 
 

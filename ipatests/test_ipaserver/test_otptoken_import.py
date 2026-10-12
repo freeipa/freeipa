@@ -155,9 +155,9 @@ class test_otptoken_import:
 
     def test_invalid_tokens(self):
         """The conversion defaults to sha1 on unknown hashing"""
-        assert convertHashName('something-sha256') == u'sha1'
-        assert convertHashName('') == u'sha1'
-        assert convertHashName(None) == u'sha1'
+        assert convertHashName('something-sha256') == 'sha1'
+        assert convertHashName('') == 'sha1'
+        assert convertHashName(None) == 'sha1'
 
     def test_entity(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-entity.xml"))

@@ -71,7 +71,7 @@ def ensure_ca_administrator(error):
     rights on the (unrelated) CA entry attributes.
     """
     op_account = getattr(context, 'principal', None)
-    if not principal_has_privilege(api, op_account, u'CA Administrator'):
+    if not principal_has_privilege(api, op_account, 'CA Administrator'):
         raise errors.ACIError(info=error)
 
 

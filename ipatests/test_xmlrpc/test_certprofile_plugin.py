@@ -51,7 +51,7 @@ def default_profile(request, xmlrpc_setup):
 @pytest.fixture(scope='class')
 def def_profile_uppercase(request, xmlrpc_setup):
     name = 'caIPAserviceCert'.upper()
-    desc = u'Standard profile for network services'
+    desc = 'Standard profile for network services'
     tracker = CertprofileTracker(name, store=True, desc=desc)
     tracker.track_create()
     return tracker

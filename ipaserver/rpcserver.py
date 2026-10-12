@@ -1249,13 +1249,13 @@ class change_password(Backend, HTTP_Status):
             lookup = user
             uid = user
         elif (principal.realm is None
-                or unicode(principal.realm).upper() == self.api.env.realm):
+                or str(principal.realm).upper() == self.api.env.realm):
             uid = principal.username
-            lookup = unicode(
+            lookup = str(
                 kerberos.Principal(uid, realm=self.api.env.realm))
         else:
             uid = principal.username
-            lookup = unicode(principal)
+            lookup = str(principal)
 
         search = None
         try:
