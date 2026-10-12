@@ -36,7 +36,8 @@ done:
 }
 
 bool ipaasn1_enc_getkt(bool newkt, const char *princ, const char *pwd,
-                       long *etypes, int numtypes, void **buf, size_t *len)
+                       const char *salt, long *etypes, int numtypes,
+                       void **buf, size_t *len)
 {
     GetKeytabControl_t gkctrl = { 0 };
     bool ret = false;
@@ -58,6 +59,12 @@ bool ipaasn1_enc_getkt(bool newkt, const char *princ, const char *pwd,
             gkctrl.choice.newkeys.password =
                 OCTET_STRING_new_fromBuf(&asn_DEF_OCTET_STRING, pwd, -1);
             if (!gkctrl.choice.newkeys.password) goto done;
+        }
+
+        if (salt) {
+            gkctrl.choice.newkeys.salt =
+                OCTET_STRING_new_fromBuf(&asn_DEF_OCTET_STRING, salt, -1);
+            if (!gkctrl.choice.newkeys.salt) goto done;
         }
     } else {
         gkctrl.present = GetKeytabControl_PR_curkeys;
@@ -138,7 +145,8 @@ static GetKeytabControl_t *decode_GetKeytabControl(void *buf, size_t len)
 }
 
 bool ipaasn1_dec_getkt(void *buf, size_t len, bool *newkt,
-                       char **princ, char **pwd, long **etypes, int *numtypes)
+                       char **princ, char **pwd, char **salt,
+                       long **etypes, int *numtypes)
 {
     GetKeytabControl_t *gkctrl;
     bool ret = false;
@@ -167,6 +175,12 @@ bool ipaasn1_dec_getkt(void *buf, size_t len, bool *newkt,
             *pwd = strndup((char *)gkctrl->choice.newkeys.password->buf,
                            gkctrl->choice.newkeys.password->size);
             if (!*pwd) goto done;
+        }
+
+        if (gkctrl->choice.newkeys.salt) {
+            *salt = strndup((char *)gkctrl->choice.newkeys.salt->buf,
+                            gkctrl->choice.newkeys.salt->size);
+            if (!*salt) goto done;
         }
         break;
     case GetKeytabControl_PR_curkeys:

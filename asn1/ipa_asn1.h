@@ -9,6 +9,8 @@
  * @param princ     The principal the keys belong to (this is required)
  * @param pwd       Optional, only for New Key reqs, the password to use to
  *                  create the new keys
+ * @param salt      Optional, only for New Key reqs, an explicit salt to
+ *                  derive the keys from, overriding the principal-name salt
  * @param etypes    Optional, only for New Key reqs, list of desired
  *                  enctypes
  * @param numtypes  Optional, Number of desired enctypes in etypes
@@ -19,7 +21,8 @@
  * @return          True on success or False on failure
  */
 bool ipaasn1_enc_getkt(bool newkt, const char *princ, const char *pwd,
-                       long *etypes, int numtypes, void **buf, size_t *len);
+                       const char *salt, long *etypes, int numtypes,
+                       void **buf, size_t *len);
 
 /**
  * @brief Encodes a Get Keytab Reply Control
@@ -43,17 +46,18 @@ bool ipaasn1_enc_getktreply(int kvno, struct keys_container *keys,
  * @param newkt     Returns whether this is a New Key or Current Key request
  * @param princ     Returns the principal the keys belong to.
  * @param pwd       Optional: The password to use to create keys
+ * @param salt      Optional: An explicit salt to derive the keys from
  * @param etypes    Optional: The desired enctypes
  * @param numtypes  Optional: Number of desired enctypes in etypes
  *
  * @return          True on success or False on failure
  *
- * NOTE: princ, pwd, etypes and numtypes should be zeroed before being
+ * NOTE: princ, pwd, salt, etypes and numtypes should be zeroed before being
  *       passed in input, and the caller may need to free them even in
  *       case of failure.
  */
 bool ipaasn1_dec_getkt(void *buf, size_t len, bool *newkt,
-                       char **princ, char **pwd,
+                       char **princ, char **pwd, char **salt,
                        long **etypes, int *numtypes);
 
 /**
