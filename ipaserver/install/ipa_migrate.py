@@ -326,20 +326,21 @@ class IPAMigrate():
     remote_realm = None
     dryrun = False
     dryrun_record = None
-    post_notes = [
-        'You will have to manually migrate IDM related configuration files.  '
-        'Here are some, but not all, of the configuration files to look into:'
-        '\n    - /etc/ipa/*'
-        '\n    - /etc/sssd/sssd.conf'
-        '\n    - /etc/named.conf'
-        '\n    - /etc/named/*'
-        '\n    - ...',
-        'SSSD should be restarted after a successful migration',
-    ]
 
     def __init__(self):
         self._case_insensitive_attrs = set()
         self._case_sensitive_attrs = set()
+        self.post_notes = [
+            'You will have to manually migrate IDM related configuration '
+            'files.  Here are some, but not all, of the configuration files '
+            'to look into:'
+            '\n    - /etc/ipa/*'
+            '\n    - /etc/sssd/sssd.conf'
+            '\n    - /etc/named.conf'
+            '\n    - /etc/named/*'
+            '\n    - ...',
+            'SSSD should be restarted after a successful migration',
+        ]
 
     #
     # Argument Options (will be impacted by AdminTool)
