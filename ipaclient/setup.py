@@ -46,7 +46,6 @@ if __name__ == '__main__':
             "ipalib",
             "ipapython",
             "qrcode",
-            "six",
         ],
         entry_points={
             'console_scripts': [
