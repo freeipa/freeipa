@@ -105,6 +105,7 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
                                         char *preferred_principal,
+                                        const char *salt,
                                         int num_encsalts,
                                         krb5_key_salt_tuple *encsalts,
                                         char **errMesg)
@@ -171,10 +172,38 @@ Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     kvno += 1;
     kset->mkvno = krbcfg->mkvno;
 
-    krberr = ipa_krb5_generate_key_data(krbctx, princ,
-                                        pwd, kvno, krbcfg->kmkey,
-                                        num_encsalts, encsalts,
-                                        &kset->num_keys, &kset->keys);
+    if (salt != NULL) {
+        /* The explicit salt is given as the name whose normal salt must
+         * be used for key derivation, so that the derived keys match the
+         * ones generated for a principal actually carrying that name. */
+        krb5_principal salt_princ = NULL;
+        krb5_data salt_data = { 0 };
+
+        krberr = krb5_parse_name(krbctx, salt, &salt_princ);
+        if (krberr != 0) {
+            LOG("krb5_parse_name failed for salt [%s]\n", salt);
+            *errMesg = "invalid salt principal name\n";
+            goto enc_error;
+        }
+        krberr = krb5_principal2salt(krbctx, salt_princ, &salt_data);
+        krb5_free_principal(krbctx, salt_princ);
+        if (krberr != 0) {
+            LOG("krb5_principal2salt failed for salt [%s]\n", salt);
+            *errMesg = "cannot derive salt from the salt principal name\n";
+            goto enc_error;
+        }
+        krberr = ipa_krb5_generate_key_data_with_salt(krbctx, princ,
+                                                      &salt_data,
+                                                      pwd, kvno, krbcfg->kmkey,
+                                                      num_encsalts, encsalts,
+                                                      &kset->num_keys, &kset->keys);
+        krb5_free_data_contents(krbctx, &salt_data);
+    } else {
+        krberr = ipa_krb5_generate_key_data(krbctx, princ,
+                                            pwd, kvno, krbcfg->kmkey,
+                                            num_encsalts, encsalts,
+                                            &kset->num_keys, &kset->keys);
+    }
     if (krberr != 0) {
         LOG_FATAL("generating kerberos keys failed [%s]\n",
                   krb5_get_error_message(krbctx, krberr));
@@ -225,7 +254,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
     if (is_krb) {
 
-        *svals = ipapwd_encrypt_encode_key(krbcfg, data, NULL,
+        *svals = ipapwd_encrypt_encode_key(krbcfg, data, NULL, NULL,
                                            krbcfg->num_pref_encsalts,
                                            krbcfg->pref_encsalts,
                                            errMesg);
