@@ -1,12 +1,16 @@
 # Copyright (C) 2019 FreeIPA Contributors see COPYING for license
 
 from __future__ import absolute_import
-
 import re
 import textwrap
 import time
 import functools
 import pytest
+
+try:
+    from cryptography.hazmat.asn1 import asn1 as pyca_asn1
+except ImportError:
+    pyca_asn1 = None
 
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
@@ -1552,3 +1556,151 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
                  "https://github.com/SSSD/sssd/issues/7169"):
                 assert "10047(testgroup@{0})".format(
                     self.ad_domain) in result.stdout_text
+
+
+class TestTrustNetbiosRealmCollision(BaseTestTrust):
+    """
+    Trust to an AD domain whose NetBIOS name equals its Kerberos realm.
+
+    The TDO principal krbtgt/<FLAT>@<REALM> collides with the cross-realm
+    TGT principal of the same name in that case. The TDO account must be
+    stored under the <FLAT>$ name with keys derived from an explicit salt,
+    while the cross-realm TGT keeps its own name and keys.
+
+    Requires a topology with a single-label AD domain, so that the NetBIOS
+    name derived from the domain name equals the realm; skipped otherwise.
+    """
+    topology = 'line'
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+
+    ad_test_user = 'collisionuser'
+    ad_test_user_password = 'Secret123456'
+
+    @classmethod
+    def install(cls, mh):
+        super(TestTrustNetbiosRealmCollision, cls).install(mh)
+        if cls.ad.netbios.lower() != cls.ad.domain.name.lower():
+            raise pytest.skip(
+                "Test requires an AD DC whose NetBIOS name equals its "
+                "domain name; use a topology with a single-label AD domain"
+            )
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @property
+    def ipa_realm(self):
+        return self.master.domain.realm
+
+    @property
+    def ad_realm(self):
+        return self.ad_domain.upper()
+
+    @property
+    def tgt_principal(self):
+        return 'krbtgt/{}@{}'.format(self.ad_realm, self.ipa_realm)
+
+    @property
+    def tdo_principal(self):
+        return '{}$@{}'.format(self.ad.netbios, self.ipa_realm)
+
+    @property
+    def colliding_name(self):
+        # the name both roles would need: krbtgt/<FLAT>@<IPA REALM>
+        return 'krbtgt/{}@{}'.format(self.ad.netbios, self.ipa_realm)
+
+    @property
+    def expected_salt(self):
+        # the salt krb5_principal2salt() computes for the colliding name
+        return '{}krbtgt{}'.format(self.ipa_realm, self.ad.netbios)
+
+    def _trusts_base(self):
+        return DN(('cn', 'ad'), ('cn', 'trusts'), self.master.domain.basedn)
+
+    def _search_principal_entries(self, principal):
+        """Return LDAP entries carrying krbprincipalname=principal."""
+        return tasks.find_principal_entries(
+            self.master, principal, self._trusts_base())
+
+    def _get_key_salts(self, principal):
+        """Return the salts stored with the keys of 'principal'."""
+        if pyca_asn1 is None:
+            pytest.skip("cryptography with hazmat.asn1 is required")
+        return [salt for _, salt, _ in tasks.get_principal_key_data(
+            self.master, principal, self._trusts_base())]
+
+    def test_trust_established(self):
+        """Trust to a domain with colliding NetBIOS name was established"""
+        result = self.master.run_command(['ipa', 'trust-show', self.ad_domain,
+                                         '--all', '--raw'])
+        assert 'ipantflatname: {}'.format(self.ad.netbios) in \
+            result.stdout_text
+
+    def test_collision_principal_layout(self):
+        """
+        The cross-realm TGT entry does not carry the colliding alias and
+        the TDO account is a separate entry with the <FLAT>$ name as its
+        canonical name.
+        """
+        tgt_entries = self._search_principal_entries(self.tgt_principal)
+        assert len(tgt_entries) == 1, \
+            'expected exactly one entry for {}'.format(self.tgt_principal)
+        names = [n.decode('utf-8').lower()
+                 for n in tgt_entries[0]['krbprincipalname']]
+        assert names == [self.tgt_principal.lower()], \
+            'colliding alias left on the cross-realm TGT entry'
+
+        tdo_entries = self._search_principal_entries(self.tdo_principal)
+        assert len(tdo_entries) == 1, \
+            'expected exactly one entry for {}'.format(self.tdo_principal)
+        canonical = [c.decode('utf-8').lower()
+                     for c in tdo_entries[0]['krbcanonicalname']]
+        assert canonical == [self.tdo_principal.lower()]
+
+    def test_keys_derived_from_explicit_salt(self):
+        """
+        Keys of both principals are derived with the salt of the colliding
+        krbtgt/<FLAT>@<IPA REALM> name: for the TGT entry that is its own
+        name, for the TDO entry it is the explicit salt carried through
+        the getkeytab extended operation. Without it the TDO keys would
+        use the salt of its own <FLAT>$ name and AD could not use them.
+        """
+        for principal in [self.tgt_principal, self.tdo_principal]:
+            salts = self._get_key_salts(principal)
+            assert salts, 'no keys found for {}'.format(principal)
+            assert all(s == self.expected_salt for s in salts), \
+                'unexpected salts stored for {}'.format(principal)
+
+    def test_ad_user_authentication(self):
+        """
+        AD user authenticates against the IPA KDC through the trust. This
+        exercises both directions: IPA Samba binds to the AD DC using the
+        inbound trust principals and the KDC issues cross-realm tickets
+        through the krbtgt/<AD REALM>@<IPA REALM> principal.
+        """
+        self._ad_user_add(self.ad_test_user, self.ad_test_user_password)
+        try:
+            tasks.wait_for_sssd_domain_status_online(self.clients[0])
+            ad_upn = self._ad_principal(self.ad_test_user, self.ad_domain,
+                                        realm=True)
+            tasks.kinit_as_user(self.clients[0], ad_upn,
+                                self.ad_test_user_password)
+        finally:
+            tasks.kdestroy_all(self.clients[0])
+            self._ad_user_del(self.ad_test_user)
+
+    def test_rotation_preserves_salt(self):
+        """
+        Re-keying the TDO principal through the KDB (kadmin.local
+        change_password, the ipadb_change_pwd path) must keep deriving
+        its keys from the salt stored in the existing key data.
+        """
+        new_password = 'Rotated123456'
+        self.master.run_command(
+            ['kadmin.local', '-q',
+             'change_password -pw {} {}'.format(new_password,
+                                                self.tdo_principal)])
+        salts = self._get_key_salts(self.tdo_principal)
+        assert salts, 'no keys found for {}'.format(self.tdo_principal)
+        assert all(s == self.expected_salt for s in salts), \
+            'stored salt did not survive the key rotation'
