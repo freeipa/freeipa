@@ -119,6 +119,16 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
                                            int *_num_keys,
                                            krb5_key_data **_keys);
 
+krb5_error_code ipa_krb5_generate_key_data_with_salt(krb5_context krbctx,
+                                                     krb5_principal principal,
+                                                     const krb5_data *salt_override,
+                                                     krb5_data pwd, int kvno,
+                                                     krb5_keyblock *kmkey,
+                                                     int num_encsalts,
+                                                     krb5_key_salt_tuple *encsalts,
+                                                     int *_num_keys,
+                                                     krb5_key_data **_keys);
+
 void ipa_krb5_free_key_data(krb5_key_data *keys, int num_keys);
 
 int ber_encode_krb5_key_data(krb5_key_data *data,
