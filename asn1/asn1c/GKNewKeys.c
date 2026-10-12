@@ -71,7 +71,7 @@ static asn_TYPE_member_t asn_MBR_GKNewKeys_1[] = {
 		0,
 		"enctypes"
 		},
-	{ ATF_POINTER, 1, offsetof(struct GKNewKeys, password),
+	{ ATF_POINTER, 2, offsetof(struct GKNewKeys, password),
 		(ASN_TAG_CLASS_CONTEXT | (2 << 2)),
 		+1,	/* EXPLICIT tag at current level */
 		&asn_DEF_OCTET_STRING,
@@ -80,6 +80,15 @@ static asn_TYPE_member_t asn_MBR_GKNewKeys_1[] = {
 		0,
 		"password"
 		},
+	{ ATF_POINTER, 1, offsetof(struct GKNewKeys, salt),
+		(ASN_TAG_CLASS_CONTEXT | (3 << 2)),
+		+1,	/* EXPLICIT tag at current level */
+		&asn_DEF_OCTET_STRING,
+		0,	/* Defer constraints checking to the member type */
+		0,	/* PER is not compiled, use -gen-PER */
+		0,
+		"salt"
+		},
 };
 static const ber_tlv_tag_t asn_DEF_GKNewKeys_tags_1[] = {
 	(ASN_TAG_CLASS_UNIVERSAL | (16 << 2))
@@ -87,13 +96,14 @@ static const ber_tlv_tag_t asn_DEF_GKNewKeys_tags_1[] = {
 static const asn_TYPE_tag2member_t asn_MAP_GKNewKeys_tag2el_1[] = {
     { (ASN_TAG_CLASS_CONTEXT | (0 << 2)), 0, 0, 0 }, /* serviceIdentity */
     { (ASN_TAG_CLASS_CONTEXT | (1 << 2)), 1, 0, 0 }, /* enctypes */
-    { (ASN_TAG_CLASS_CONTEXT | (2 << 2)), 2, 0, 0 } /* password */
+    { (ASN_TAG_CLASS_CONTEXT | (2 << 2)), 2, 0, 0 }, /* password */
+    { (ASN_TAG_CLASS_CONTEXT | (3 << 2)), 3, 0, 0 } /* salt */
 };
 static asn_SEQUENCE_specifics_t asn_SPC_GKNewKeys_specs_1 = {
 	sizeof(struct GKNewKeys),
 	offsetof(struct GKNewKeys, _asn_ctx),
 	asn_MAP_GKNewKeys_tag2el_1,
-	3,	/* Count of tags in the map */
+	4,	/* Count of tags in the map */
 	0, 0, 0,	/* Optional elements (not needed) */
 	-1,	/* Start extensions */
 	-1	/* Stop extensions */
@@ -118,7 +128,7 @@ asn_TYPE_descriptor_t asn_DEF_GKNewKeys = {
 		/sizeof(asn_DEF_GKNewKeys_tags_1[0]), /* 1 */
 	0,	/* No PER visible constraints */
 	asn_MBR_GKNewKeys_1,
-	3,	/* Elements count */
+	4,	/* Elements count */
 	&asn_SPC_GKNewKeys_specs_1	/* Additional specs */
 };
 

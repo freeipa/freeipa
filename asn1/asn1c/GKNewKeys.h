@@ -32,6 +32,7 @@ typedef struct GKNewKeys {
 		asn_struct_ctx_t _asn_ctx;
 	} enctypes;
 	OCTET_STRING_t	*password	/* OPTIONAL */;
+	OCTET_STRING_t	*salt	/* OPTIONAL */;
 	
 	/* Context for parsing across buffer boundaries */
 	asn_struct_ctx_t _asn_ctx;
