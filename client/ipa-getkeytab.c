@@ -616,6 +616,7 @@ error_out:
 /* use asn1c generated code to fill up control */
 static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
                                                const char *password,
+                                               const char *salt,
                                                struct krb_key_salt *encsalts,
                                                int num_encsalts)
 {
@@ -632,7 +633,7 @@ static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
         }
     }
     ret = ipaasn1_enc_getkt(gen, svc_princ,
-                            password, ets, num_encsalts,
+                            password, salt, ets, num_encsalts,
                             &buffer, &buflen);
     if (!ret) goto done;
 
@@ -656,6 +657,7 @@ done:
 #define GKREP_SALT_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
 
 static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
+                           const char *salt,
                            const char *enctypes, const char *ldap_uri,
                            const char *svc_princ, krb5_principal bind_princ,
                            const char *bind_dn, const char *bind_pw,
@@ -684,7 +686,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
     }
 
     control = create_getkeytab_control(svc_princ, generate,
-                                       password, es, num_es);
+                                       password, salt, es, num_es);
     if (!control) {
         *err_msg = _("Failed to create control!\n");
         ret = LDAP_OPERATIONS_ERROR;
@@ -928,6 +930,7 @@ int main(int argc, const char *argv[])
 	static const char *enctypes_string = NULL;
 	static const char *binddn = NULL;
 	static const char *bindpw = NULL;
+	static const char *salt = NULL;
 	char *ldap_uri = NULL;
 	static const char *sasl_mech = NULL;
 	static const char *ca_cert_file = NULL;
@@ -976,6 +979,10 @@ int main(int argc, const char *argv[])
               _("GSSAPI|EXTERNAL") },
 	    { "retrieve", 'r', POPT_ARG_NONE, &retrieve, 0,
               _("Retrieve current keys without changing them"), NULL },
+            { "salt", 0, POPT_ARG_STRING, &salt, 0,
+              _("Derive new keys using the salt of the given principal "
+                "name instead of the target principal name"),
+              _("Salt string") },
             POPT_AUTOHELP
             POPT_TABLEEND
 	};
@@ -1169,6 +1176,11 @@ int main(int argc, const char *argv[])
         exit(2);
     }
 
+    if (salt && retrieve) {
+        fprintf(stderr, _("Incompatible options provided (-r and --salt)\n"));
+        exit(2);
+    }
+
         if (askpass) {
 		password = ask_password(krbctx, _("New Principal Password"),
                	                _("Verify Principal Password"), true);
@@ -1219,7 +1231,8 @@ int main(int argc, const char *argv[])
 	}
 
     kvno = -1;
-    ret = ldap_get_keytab(krbctx, (retrieve == 0), password, enctypes_string,
+    ret = ldap_get_keytab(krbctx, (retrieve == 0), password, salt,
+                          enctypes_string,
                           ldap_uri, principal, uprinc, binddn, bindpw,
                           sasl_mech, ca_cert_file,
                           &keys, &kvno, &err_msg);
