@@ -2121,11 +2121,11 @@ class IPAMigrate():
         # Make sure local IPA server is in migration mode
         if not self.dryrun:
             config_dn = f"cn=ipaconfig,cn=etc,{self.local_suffix}"
-            ldap = api.Backend.ldap2
-            config = ldap.get_entry(DN(config_dn), ['ipaMigrationEnabled'])
+            conn = api.Backend.ldap2
+            config = conn.get_entry(DN(config_dn), ['ipaMigrationEnabled'])
             if not config['ipaMigrationEnabled'][0]:
                 config['ipaMigrationEnabled'] = ["TRUE"]
-                ldap.update_entry(config)
+                conn.update_entry(config)
                 self.post_notes.append("The local server has been put into "
                                        "migration mode. Once all migration "
                                        "tasks are done you will have to take "
