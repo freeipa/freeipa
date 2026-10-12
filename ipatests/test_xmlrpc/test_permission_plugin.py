@@ -2863,7 +2863,11 @@ class test_permission_targetfilter(Declarative):
                 {option_name: value, 'all': True}
             ),
             expected=dict(
-                summary='1 permission matched' if should_find else '0 permissions matched',
+                summary=(
+                    '1 permission matched'
+                    if should_find
+                    else '0 permissions matched'
+                ),
                 truncated=False,
                 count=1 if should_find else 0,
                 result=[dict(
@@ -3142,8 +3146,12 @@ class test_permission_flags(Declarative):
     tests = [
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(
+                    description='privilege desc. 1',
+                ),
             ),
             expected=dict(
                 value=privilege1,
@@ -3267,8 +3275,12 @@ class test_permission_bindtype(Declarative):
 
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(
+                    description='privilege desc. 1',
+                ),
             ),
             expected=dict(
                 value=privilege1,
@@ -4326,12 +4338,12 @@ class test_permission_filters(Declarative):
         verify_permission_aci(
             permission1, users_dn,
             '(targetfilter = "(&'
-                '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn) +
-                '(objectclass=posixaccount)' +
-                '(uid=abc)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            + '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn)
+            + '(objectclass=posixaccount)'
+            + '(uid=abc)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
