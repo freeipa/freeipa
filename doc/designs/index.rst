@@ -10,6 +10,7 @@ FreeIPA design documentation
    adtrust/admin-ipa-as-trusted-user.md
    adtrust/sudorules-with-ad-objects.md
    adtrust/auto-private-groups.md
+   adtrust/tdo-netbios-realm-collision.md
    adtrust/sidconfig.md
    adtrust/forest-trust-namespace-collisions.md
    edns.md
