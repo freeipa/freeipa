@@ -1898,7 +1898,8 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
         # instead of replica-manage
         self.replicas[0].run_command(['ipa-server-install',
                                       '--uninstall',
-                                      '--force',
+                                      '--ignore-topology-disconnect',
+                                      '--ignore-last-of-role',
                                       '-U'])
         tasks.start_ipa_server(self.master)
 
