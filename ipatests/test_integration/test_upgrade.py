@@ -11,6 +11,12 @@ import os
 import io
 import textwrap
 from subprocess import CalledProcessError
+import uuid
+
+try:
+    from cryptography.hazmat.asn1 import asn1 as pyca_asn1
+except ImportError:
+    pyca_asn1 = None
 
 from cryptography.hazmat.primitives import serialization
 import pytest
@@ -540,3 +546,182 @@ class TestUpgrade(IntegrationTest):
         result = tasks.ldapsearch_dm(self.master, str(dn),
                                      ["ipaKrbAuthzData"])
         assert 'ipaKrbAuthzData: MS-PAC' in result.stdout_text
+
+
+class TestUpgradeTdoNetbiosRealmCollision(IntegrationTest):
+    """
+    Conversion of a colliding trust layout by ipa-server-upgrade.
+
+    A trust to a domain whose NetBIOS name equals its domain name was
+    stored by older FreeIPA versions in a single entry: the cross-realm
+    TGT krbtgt/<FLAT>@<REALM> carrying the TDO alias <FLAT>$@<REALM>.
+    Both roles need distinct keys, so the upgrade plugin must strip the
+    alias, re-key the TGT entry from ipaNTTrustAuthOutgoing and create
+    a separate TDO principal whose keys are derived from an explicit
+    salt.
+    """
+
+    flat_name = 'COLLIDE'
+    trust_secret_incoming = 'IncomingTrustSecret1'
+    trust_secret_outgoing = 'OutgoingTrustSecret2'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master)
+        tasks.install_adtrust(cls.master)
+
+    @property
+    def ipa_realm(self):
+        return self.master.domain.realm
+
+    @property
+    def tgt_principal(self):
+        return 'krbtgt/{}@{}'.format(self.flat_name, self.ipa_realm)
+
+    @property
+    def tdo_principal(self):
+        return '{}$@{}'.format(self.flat_name, self.ipa_realm)
+
+    @property
+    def expected_salt(self):
+        # the salt krb5_principal2salt() computes for the colliding name
+        return '{}krbtgt{}'.format(self.ipa_realm, self.flat_name)
+
+    def _trusts_base(self):
+        return DN(('cn', 'ad'), ('cn', 'trusts'), self.master.domain.basedn)
+
+    def _pack_trust_secret(self, password):
+        """Base64 trustAuthInOutBlob carrying 'password' in clear."""
+        script = textwrap.dedent("""
+            import base64
+            import sys
+            import samba
+            from samba.ndr import ndr_pack
+            from samba.dcerpc import drsblobs, lsa
+
+            secret = sys.argv[1].encode('utf-8')
+            clear = drsblobs.AuthInfoClear()
+            clear.size = len(secret)
+            clear.password = list(secret)
+            authinfo = drsblobs.AuthenticationInformation()
+            authinfo.LastUpdateTime = samba.unix2nttime(0)
+            authinfo.AuthType = lsa.TRUST_AUTH_TYPE_CLEAR
+            authinfo.AuthInfo = clear
+            array = drsblobs.AuthenticationInformationArray()
+            array.count = 1
+            array.array = [authinfo]
+            blob = drsblobs.trustAuthInOutBlob()
+            blob.count = 1
+            blob.current = array
+            sys.stdout.write(base64.b64encode(ndr_pack(blob)).decode())
+        """)
+        result = self.master.run_command(['python3', '-c', script, password])
+        return result.stdout_text.strip()
+
+    def _seed_broken_collision_trust(self):
+        """Add a trust stored in the pre-4.7 colliding layout."""
+        base = str(self.master.domain.basedn)
+        incoming = self._pack_trust_secret(self.trust_secret_incoming)
+        outgoing = self._pack_trust_secret(self.trust_secret_outgoing)
+        trust_ldif = textwrap.dedent("""
+            dn: cn={flat},cn=ad,cn=trusts,{base}
+            changetype: add
+            objectclass: top
+            objectclass: ipaObject
+            objectclass: ipaNTTrustedDomain
+            objectclass: ipaIDobject
+            cn: {flat}
+            ipaUniqueID: {uid}
+            ipaNTFlatName: {flat}
+            ipaNTTrustPartner: {flat}
+            ipaNTTrustType: 2
+            ipaNTTrustAttributes: 15
+            ipaNTTrustDirection: 3
+            ipaNTTrustAuthIncoming:: {incoming}
+            ipaNTTrustAuthOutgoing:: {outgoing}
+            ipaNTTrustedDomainSID: S-1-5-21-123456789-123456789-123456789-1000
+
+            dn: krbprincipalname={tgt},cn={flat},cn=ad,cn=trusts,{base}
+            changetype: add
+            objectclass: top
+            objectclass: krbPrincipal
+            objectclass: krbPrincipalAux
+            objectclass: krbTicketPolicyAux
+            krbcanonicalname: {tgt}
+            krbprincipalname: {tgt}
+            krbprincipalname: {tdo}
+        """).format(flat=self.flat_name, base=base, uid=str(uuid.uuid4()),
+                    incoming=incoming, outgoing=outgoing,
+                    tgt=self.tgt_principal, tdo=self.tdo_principal)
+        tasks.ldapadd_dm(self.master, trust_ldif)
+
+        # The single entry served both roles, so its keys were derived
+        # from the incoming trust password with the name as salt.
+        self.master.run_command(['kadmin.local', '-q',
+                                 'change_password -pw {} {}'.format(
+                                     self.trust_secret_incoming,
+                                     self.tgt_principal)])
+
+    def _principal_names(self, principal):
+        entries = tasks.find_principal_entries(
+            self.master, principal, self._trusts_base())
+        assert len(entries) == 1, \
+            'expected exactly one entry for {}'.format(principal)
+        return sorted(n.decode('utf-8').lower()
+                      for n in entries[0]['krbprincipalname'])
+
+    def test_upgrade_splits_colliding_trust(self):
+        self._seed_broken_collision_trust()
+
+        # the fixture reproduces the broken layout: one entry carrying
+        # both the cross-realm TGT name and the TDO alias
+        assert self._principal_names(self.tgt_principal) == sorted(
+            [self.tgt_principal.lower(), self.tdo_principal.lower()])
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa-server-upgrade'])
+
+        # the cross-realm TGT entry keeps only its own name
+        assert self._principal_names(self.tgt_principal) == \
+            [self.tgt_principal.lower()]
+
+        # the TDO account is a separate entry with its own canonical name
+        assert self._principal_names(self.tdo_principal) == \
+            [self.tdo_principal.lower()]
+        tdo_entries = tasks.find_principal_entries(
+            self.master, self.tdo_principal, self._trusts_base(),
+            attrs_list=['ipaAllowedToPerform;read_keys'])
+        canonical = [c.decode('utf-8').lower()
+                     for c in tdo_entries[0]['krbcanonicalname']]
+        assert canonical == [self.tdo_principal.lower()]
+        assert tdo_entries[0]['ipaAllowedToPerform;read_keys'], \
+            'the TDO entry lacks the read-keys permissions'
+
+        if pyca_asn1 is None:
+            pytest.skip('cryptography with hazmat.asn1 is required')
+
+        base = self._trusts_base()
+        tdo_keys = tasks.get_principal_key_data(
+            self.master, self.tdo_principal, base)
+        assert tdo_keys, 'no keys stored for {}'.format(self.tdo_principal)
+        assert all(salt == self.expected_salt for _, salt, _ in tdo_keys), \
+            'TDO keys were not derived from the explicit salt'
+
+        tgt_keys = tasks.get_principal_key_data(
+            self.master, self.tgt_principal, base)
+        assert all(salt == self.expected_salt for _, salt, _ in tgt_keys), \
+            'unexpected salts stored for {}'.format(self.tgt_principal)
+        kvno = max(k for k, _, _ in tgt_keys)
+        assert kvno > 1, \
+            'the cross-realm TGT was not re-keyed from trustAuthOutgoing'
+
+        # a second upgrade must not touch the converted layout again
+        self.master.run_command(['ipa-server-upgrade'])
+        assert self._principal_names(self.tgt_principal) == \
+            [self.tgt_principal.lower()]
+        assert self._principal_names(self.tdo_principal) == \
+            [self.tdo_principal.lower()]
+        tgt_keys = tasks.get_principal_key_data(
+            self.master, self.tgt_principal, base)
+        assert max(k for k, _, _ in tgt_keys) == kvno, \
+            'the second upgrade re-keyed the cross-realm TGT'
