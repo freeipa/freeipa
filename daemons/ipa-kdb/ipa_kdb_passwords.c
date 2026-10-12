@@ -147,6 +147,8 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     int n_fks;
     krb5_key_data *keys = NULL;
     int n_keys;
+    krb5_data *salt_override = NULL;
+    krb5_data stored_salt;
     krb5_key_data *tdata;
     int t_keys;
     int old_kvno;
@@ -219,9 +221,28 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
         return kerr;
     }
 
-    kerr = ipa_krb5_generate_key_data(context, db_entry->princ,
-                                      pwd, new_kvno, master_key,
-                                      n_fks, fks, &n_keys, &keys);
+    /* If the existing keys carry an explicit salt, reuse it so that the
+     * new keys are derived exactly like the old ones. Trust TDO accounts
+     * whose keys are derived from a name different from their own (AD
+     * trusts where the domain NetBIOS name equals the realm) must keep
+     * that salt across rotations. */
+    for (i = 0; salt_override == NULL && i < db_entry->n_key_data; i++) {
+        if (db_entry->key_data[i].key_data_ver == 2
+            && db_entry->key_data[i].key_data_type[1]
+                == KRB5_KDB_SALTTYPE_NORMAL
+            && db_entry->key_data[i].key_data_length[1] > 0
+            && db_entry->key_data[i].key_data_contents[1] != NULL) {
+            stored_salt.data = (char *)db_entry->key_data[i]
+                                   .key_data_contents[1];
+            stored_salt.length = db_entry->key_data[i].key_data_length[1];
+            salt_override = &stored_salt;
+        }
+    }
+
+    kerr = ipa_krb5_generate_key_data_with_salt(context, db_entry->princ,
+                                                salt_override,
+                                                pwd, new_kvno, master_key,
+                                                n_fks, fks, &n_keys, &keys);
     free(fks);
     if (kerr) {
         return kerr;
