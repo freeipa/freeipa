@@ -1893,7 +1893,8 @@ long default_enctypes[DEF_ENCTYPE_NUM] = {
 
 static int set_cross_realm_pw(struct ipasam_private *ipasam_state,
 			      const char *princ,
-			      const char *pwd)
+			      const char *pwd,
+			      const char *salt)
 {
 	int ret;
         size_t buflen;
@@ -1907,7 +1908,7 @@ static int set_cross_realm_pw(struct ipasam_private *ipasam_state,
 		DEBUG(1, ("FIPS mode enabled: TDO account credentials will not have RC4-HMAC!\n"));
                 enctypes_num = DEF_ENCTYPE_NUM - 1;
         }
-        ret = ipaasn1_enc_getkt(true, princ, pwd,
+        ret = ipaasn1_enc_getkt(true, princ, pwd, salt,
                                 default_enctypes, enctypes_num,
                                 &buffer, &buflen);
         if (!ret) goto done;
@@ -1944,6 +1945,7 @@ static bool set_krb_princ(struct ipasam_private *ipasam_state,
 			  TALLOC_CTX *mem_ctx,
 			  const char *princ, const char *alias,
 			  const char *pwd,
+			  const char *salt,
 			  const char *base_dn,
 			  uint32_t   create_flags)
 {
@@ -2044,7 +2046,7 @@ static bool set_krb_princ(struct ipasam_private *ipasam_state,
 		return false;
 	}
 
-	ret = set_cross_realm_pw(ipasam_state, princ, pwd);
+	ret = set_cross_realm_pw(ipasam_state, princ, pwd, salt);
 	if (ret != 0) {
 		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
@@ -2101,6 +2103,8 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
         int failed = 0;
 	TALLOC_CTX *tmp_ctx;
 	const char *r_tdo_alias, *l_tdo_alias;
+	bool l_tdo_collision;
+	bool r_tdo_collision;
 
 	tmp_ctx = talloc_new(NULL);
 	if (tmp_ctx == NULL) {
@@ -2137,6 +2141,15 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 		goto done;
 	}
 
+	/* When the trusted domain's NetBIOS name equals its Kerberos realm
+	 * (case-insensitively) the TDO principal krbtgt/<FLAT>@<REALM>
+	 * collides with the cross-realm TGT principal of the same name.
+	 * In that case the TDO account is stored under its <FLAT>$ name
+	 * and its keys are derived from an explicit salt instead. */
+	l_tdo_collision = (strcasecmp(flat_name, remote_realm) == 0);
+	r_tdo_collision = (strcasecmp(ipasam_state->flat_name,
+				     ipasam_state->realm) == 0);
+
 	switch (mod) {
 		case SET_PRINC:
 			/* We must use two sets by two principals here because
@@ -2149,7 +2162,7 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				/* First: krbtgt/<OUR REALM>@<REMOTE REALM>, enabled by default
 				 * in case of the inboud trust */
 				failed += !set_krb_princ(ipasam_state, tmp_ctx, princ_r, NULL,
-							 pwd_outgoing, trusted_dn,
+							 pwd_outgoing, NULL, trusted_dn,
 							 KRB_PRINC_CREATE_DEFAULT);
 
 				/* Second: krbtgt/<OUR FLATNAME>@<REMOTE REALM>
@@ -2162,12 +2175,29 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				 *
 				 * *disable* use of this principal on our side as it is
 				 * only used to retrieve trusted domain credentials by
-				 * AD Trust Agents across the IPA topology */
-				failed += !set_krb_princ(ipasam_state, tmp_ctx,
-							 princ_r_tdo, r_tdo_alias,
-							 pwd_incoming, trusted_dn,
-							 (KRB_PRINC_CREATE_DISABLED |
-							  KRB_PRINC_CREATE_AGENT_PERMISSION));
+				 * AD Trust Agents across the IPA topology.
+				 *
+				 * If <OUR FLATNAME> equals <OUR REALM>, the
+				 * krbtgt/<OUR FLATNAME>@<REMOTE REALM> name
+				 * collides with the cross-realm TGT above; use
+				 * <OUR FLATNAME$>@<REMOTE REALM> as the
+				 * canonical name and derive the keys from the
+				 * explicit salt krbtgt/<OUR FLATNAME>@<REMOTE
+				 * REALM> instead. */
+				if (r_tdo_collision) {
+					failed += !set_krb_princ(ipasam_state, tmp_ctx,
+								r_tdo_alias, NULL,
+								pwd_incoming, princ_r_tdo,
+								trusted_dn,
+								(KRB_PRINC_CREATE_DISABLED |
+								 KRB_PRINC_CREATE_AGENT_PERMISSION));
+				} else {
+					failed += !set_krb_princ(ipasam_state, tmp_ctx,
+								princ_r_tdo, r_tdo_alias,
+								pwd_incoming, NULL, trusted_dn,
+								(KRB_PRINC_CREATE_DISABLED |
+								 KRB_PRINC_CREATE_AGENT_PERMISSION));
+				}
 
 	                        ok = (failed == 0);
 				if (!ok) {
@@ -2181,7 +2211,7 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				/* First: krbtgt/<REMOTE REALM>@<OUR REALM>, enabled by default */
 				failed += !set_krb_princ(ipasam_state, tmp_ctx,
 							 princ_l, NULL,
-							 pwd_outgoing, trusted_dn,
+							 pwd_outgoing, NULL, trusted_dn,
 							 KRB_PRINC_CREATE_DEFAULT);
 
 				/* Second: <krbtgt/REMOTE FLAT NAME>@<OUR REALM>, enabled by default
@@ -2190,11 +2220,27 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				 *
 				 * A local account for the outbound trust must have
 				 * POSIX and SMB identities associated with our domain but we associate
-				 * them with the trust domain object itself */
-				failed += !set_krb_princ(ipasam_state, tmp_ctx,
-							 princ_l_tdo, l_tdo_alias,
-							 pwd_incoming, trusted_dn,
-							 KRB_PRINC_CREATE_DEFAULT);
+				 * them with the trust domain object itself.
+				 *
+				 * If the remote NetBIOS name equals the remote
+				 * realm, the krbtgt/<REMOTE FLAT NAME>@<OUR REALM>
+				 * name collides with the cross-realm TGT above;
+				 * use <REMOTE FLAT NAME$>@<OUR REALM> as the
+				 * canonical name and derive the keys from the
+				 * explicit salt krbtgt/<REMOTE FLAT NAME>@<OUR
+				 * REALM> instead. */
+				if (l_tdo_collision) {
+					failed += !set_krb_princ(ipasam_state, tmp_ctx,
+								l_tdo_alias, NULL,
+								pwd_incoming, princ_l_tdo,
+								trusted_dn,
+								KRB_PRINC_CREATE_DEFAULT);
+				} else {
+					failed += !set_krb_princ(ipasam_state, tmp_ctx,
+								princ_l_tdo, l_tdo_alias,
+								pwd_incoming, NULL, trusted_dn,
+								KRB_PRINC_CREATE_DEFAULT);
+				}
 
 	                        ok = (failed == 0);
 				if (!ok) {
@@ -2206,7 +2252,10 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 			failed = 0;
 			if ((trust_direction & LSA_TRUST_DIRECTION_INBOUND) != 0) {
 				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_r, trusted_dn);
-				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_r_tdo, trusted_dn);
+				failed += !del_krb_princ(ipasam_state, tmp_ctx,
+						       r_tdo_collision ? r_tdo_alias
+								       : princ_r_tdo,
+						       trusted_dn);
 
 	                        ok = (failed == 0);
 				if (!ok) {
@@ -2217,7 +2266,10 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 			failed = 0;
 			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
 				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_l, trusted_dn);
-				failed += !del_krb_princ(ipasam_state, tmp_ctx, princ_l_tdo, trusted_dn);
+				failed += !del_krb_princ(ipasam_state, tmp_ctx,
+						       l_tdo_collision ? l_tdo_alias
+								       : princ_l_tdo,
+						       trusted_dn);
 
 	                        ok = (failed == 0);
 				if (!ok) {
