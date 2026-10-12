@@ -1,6 +1,8 @@
 # Copyright (C) 2012-2019  FreeIPA Contributors see COPYING for license
 
 import logging
+import os
+import tempfile
 from collections import namedtuple
 from textwrap import dedent
 
@@ -8,6 +10,7 @@ from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython import ipautil
+from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
@@ -465,6 +468,17 @@ class update_tdo_to_new_layout(Updater):
        as a Kerberos principal alias. This is due to how Kerberos
        key salt is derived for cross-realm principals on AD side
 
+       If the trusted domain NetBIOS name equals its domain name (Kerberos
+       realm), the alias name would collide with the cross-realm TGT
+       principal. In that case the TDO account is stored under the
+       <REMOTE FLATNAME$> name only, without the colliding alias, and its
+       keys are derived from the trust password with the explicit salt
+       krbtgt/<REMOTE FLATNAME>@<OUR REALM> through the getkeytab extended
+       operation. The colliding alias is stripped from the cross-realm TGT
+       entry and its keys are re-derived from trustAuthOutgoing, because
+       the entry used to serve both roles. The same applies to the inbound
+       direction when the IPA NetBIOS name equals the IPA realm.
+
     Finally, Samba requires <REMOTE FLATNAME$> account to also possess POSIX
     and SMB identities. We ensure this by making the trusted domain object to
     be this account with 'uid' and 'cn' attributes being '<REMOTE FLATNAME$>'
@@ -515,7 +529,8 @@ class update_tdo_to_new_layout(Updater):
 
         return ''.join(map(chr, clear_value))
 
-    def set_krb_principal(self, principals, password, trustdn, flags=None):
+    def set_krb_principal(self, principals, password, trustdn, flags=None,
+                          salt=None):
 
         ldap = self.api.Backend.ldap2
 
@@ -525,6 +540,24 @@ class update_tdo_to_new_layout(Updater):
         else:
             trust_principal = principals
             alias = None
+
+        stale_read_keys = None
+        if salt is not None:
+            # The keys of this principal must be derived from an explicit
+            # salt instead of from its own name. Any entry already present
+            # carries keys derived the other way (pre-4.7 layout) and must
+            # be re-created.
+            try:
+                stale = ldap.get_entry(
+                    DN(('krbprincipalname', trust_principal), trustdn))
+                stale_read_keys = stale.get(
+                    'ipaAllowedToPerform;read_keys', [])
+                ldap.delete_entry(stale.dn)
+                logger.debug("Removed stale Kerberos principal %s to be "
+                             "re-created with an explicit salt",
+                             trust_principal)
+            except errors.NotFound:
+                pass
 
         entry = None
         en = None
@@ -575,6 +608,12 @@ class update_tdo_to_new_layout(Updater):
 
         if flags & self.KRB_PRINC_CREATE_AGENT_PERMISSION:
             entry_data['objectclass'].extend(['ipaAllowedOperations'])
+            if salt is not None:
+                # the entry was re-created, restore read-keys permissions
+                read_keys = stale_read_keys or list(map(
+                    lambda x: x.format(basedn=self.api.env.basedn),
+                    trust_read_keys_template))
+                entry_data['ipaAllowedToPerform;read_keys'] = read_keys
 
         if alias:
             entry_data['krbprincipalname'].extend([alias])
@@ -607,7 +646,18 @@ class update_tdo_to_new_layout(Updater):
                          trust_principal)
             return
 
-        # Now that entry is updated, set its Kerberos keys.
+        if salt is not None:
+            # kadmin.local always derives the salt from the principal
+            # name, so the keys must be set through the getkeytab
+            # extended operation instead.
+            self.set_keys_with_getkeytab(trust_principal, password, salt)
+            return
+
+        self.rekey_principal(trust_principal, password)
+
+    def rekey_principal(self, principal, password):
+        # Derive the keys of 'principal' from 'password' with the salt
+        # computed from the principal name itself.
         #
         # It would be a complication to use ipa-getkeytab LDAP extended control
         # here because we would need to encode the request in ASN.1 sequence
@@ -619,17 +669,68 @@ class update_tdo_to_new_layout(Updater):
         # Since we don't want to record the output, make also a redacted log
         change_password = self.change_password_template.format(
             password=password,
-            principal=trust_principal)
+            principal=principal)
 
         redacted = self.change_password_template.format(
             password='<REDACTED OUT>',
-            principal=trust_principal)
+            principal=principal)
         logger.debug("Updating Kerberos keys for %s with the following "
-                     "kadmin command:\n\t%s", trust_principal, redacted)
+                     "kadmin command:\n\t%s", principal, redacted)
 
         ipautil.run([paths.KADMIN_LOCAL, "-x",
                     "ipa-setup-override-restrictions"],
                     stdin=change_password, skip_output=True)
+
+    def set_keys_with_getkeytab(self, principal, password, salt):
+        # Derive the keys of 'principal' from 'password' using the salt
+        # computed for the 'salt' principal name, through the getkeytab
+        # extended operation. Run ipa-getkeytab against the local
+        # directory over ldapi so the bind is privileged without exposing
+        # credentials; the password is fed to the -P prompts on stdin.
+        fd, keytab = tempfile.mkstemp(prefix='ipa-adtrust-',
+                                      suffix='.keytab')
+        os.close(fd)
+        try:
+            ipautil.run([paths.IPA_GETKEYTAB,
+                         '-H', ipaldap.realm_to_ldapi_uri(self.api.env.realm),
+                         '-Y', 'EXTERNAL', '-q',
+                         '-p', principal,
+                         '-e', 'aes256-cts-hmac-sha1-96,'
+                               'aes128-cts-hmac-sha1-96',
+                         '--salt', salt, '-P',
+                         '-k', keytab],
+                        stdin=password + '\n' + password + '\n',
+                        umask=0o077, nolog_output=True)
+        finally:
+            try:
+                os.unlink(keytab)
+            except OSError:
+                pass
+
+    def strip_principal_alias(self, principal, alias, trustdn):
+        # Drop 'alias' from the krbPrincipalName values of the entry of
+        # 'principal' so that the alias name can become the canonical
+        # name of the TDO principal entry instead. Return True when the
+        # alias was actually removed: the entry used to serve both the
+        # cross-realm TGT and the TDO role and its keys must be
+        # re-derived from the trust password of the TGT role.
+        ldap = self.api.Backend.ldap2
+        try:
+            entry = ldap.get_entry(
+                DN(('krbprincipalname', principal), trustdn),
+                ['krbprincipalname'])
+        except errors.NotFound:
+            return False
+        names = entry.get('krbprincipalname', [])
+        keep = [n for n in names if n.lower() != alias.lower()]
+        if len(keep) == len(names):
+            return False
+        entry.update({'krbprincipalname': keep})
+        try:
+            ldap.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+        return True
 
     def execute(self, **options):
         # First, see if trusts are enabled on the server
@@ -702,11 +803,33 @@ class update_tdo_to_new_layout(Updater):
                     nbt=nbt_name, realm=self.api.env.realm)
                 tgt_principal = self.tgt_principal_template.format(
                     remote=nbt_name, local=self.api.env.realm)
-                self.set_krb_principal([tgt_principal, nbt_principal],
-                                       passwd_incoming,
-                                       t_dn,
-                                       flags=self.KRB_PRINC_CREATE_DEFAULT
-                                       | self.KRB_PRINC_CREATE_AGENT_PERMISSION)
+                if nbt_name.lower() == t_realm.lower():
+                    # krbtgt/<REMOTE FLATNAME>@<OUR REALM> would collide
+                    # with the cross-realm TGT created in step 1. Keep the
+                    # TDO account under the <REMOTE FLATNAME$> name only,
+                    # without the colliding alias, and derive its keys from
+                    # the trust password with the explicit salt.
+                    if self.strip_principal_alias(trust_principal,
+                                                  nbt_principal, t_dn):
+                        # The entry used to serve both roles, so its keys
+                        # may carry the incoming trust password. Re-derive
+                        # them from the outgoing password, as required by
+                        # the cross-realm TGT role.
+                        self.rekey_principal(trust_principal, passwd_outgoing)
+                    self.set_krb_principal(
+                        nbt_principal,
+                        passwd_incoming,
+                        t_dn,
+                        flags=self.KRB_PRINC_CREATE_DEFAULT
+                        | self.KRB_PRINC_CREATE_AGENT_PERMISSION,
+                        salt=tgt_principal)
+                else:
+                    self.set_krb_principal(
+                        [tgt_principal, nbt_principal],
+                        passwd_incoming,
+                        t_dn,
+                        flags=self.KRB_PRINC_CREATE_DEFAULT
+                        | self.KRB_PRINC_CREATE_AGENT_PERMISSION)
 
             # 3. INBOUND: krbtgt/<OUR REALM>@<REMOTE REALM> must exist
             trust_principal = self.tgt_principal_template.format(
@@ -729,12 +852,33 @@ class update_tdo_to_new_layout(Updater):
                 nbt=our_nbt_name, realm=t_realm)
             tgt_principal = self.tgt_principal_template.format(
                 remote=our_nbt_name, local=t_realm)
-            self.set_krb_principal([tgt_principal, nbt_principal],
-                                   passwd_incoming,
-                                   t_dn,
-                                   flags=self.KRB_PRINC_CREATE_DEFAULT |
-                                   self.KRB_PRINC_CREATE_AGENT_PERMISSION |
-                                   self.KRB_PRINC_CREATE_DISABLED)
+            if our_nbt_name.lower() == self.api.env.realm.lower():
+                # krbtgt/<OUR FLATNAME>@<REMOTE REALM> would collide with
+                # the inbound cross-realm TGT from step 3; use only the
+                # <OUR FLATNAME$> name with the explicit salt.
+                if self.strip_principal_alias(trust_principal,
+                                              nbt_principal, t_dn):
+                    # The entry used to serve both roles, so its keys may
+                    # carry the incoming trust password. Re-derive them
+                    # from the outgoing password, as required by the
+                    # cross-realm TGT role.
+                    self.rekey_principal(trust_principal, passwd_outgoing)
+                self.set_krb_principal(
+                    nbt_principal,
+                    passwd_incoming,
+                    t_dn,
+                    flags=self.KRB_PRINC_CREATE_DEFAULT
+                    | self.KRB_PRINC_CREATE_AGENT_PERMISSION
+                    | self.KRB_PRINC_CREATE_DISABLED,
+                    salt=tgt_principal)
+            else:
+                self.set_krb_principal(
+                    [tgt_principal, nbt_principal],
+                    passwd_incoming,
+                    t_dn,
+                    flags=self.KRB_PRINC_CREATE_DEFAULT
+                    | self.KRB_PRINC_CREATE_AGENT_PERMISSION
+                    | self.KRB_PRINC_CREATE_DISABLED)
 
         return False, []
 
@@ -835,7 +979,9 @@ class update_host_cifs_keytabs(Updater):
 @register()
 class update_tdo_default_read_keys_permissions(Updater):
     trust_filter = \
-        "(&(objectClass=krbPrincipal)(krbPrincipalName=krbtgt/{nbt}@*))"
+        "(&(objectClass=krbPrincipal)" \
+        "(|(krbPrincipalName=krbtgt/{nbt}@*)" \
+        "(krbPrincipalName={nbt}$@*)))"
 
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
