@@ -870,7 +870,7 @@ class IPAMigrate():
         except errors.NetworkError:
             self.handle_error(
                 "Local server is not running, or is unreachable.")
-        except errors.DatabaseError as e:
+        except (errors.ACIError, errors.DatabaseError) as e:
             self.handle_error(
                 f"Failed to bind to local server: {str(e)}")
 
