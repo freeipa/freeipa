@@ -83,8 +83,6 @@ try:
 except ImportError:
     from ldap.controls import LDAPControl
 
-long = int
-
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
 
@@ -1169,7 +1167,7 @@ class TrustDomainInstance:
         # List of entries for unsolved conflicts
         result = []
 
-        trust_timestamp = long(time.time()*1e7+116444736000000000)
+        trust_timestamp = int(time.time() * 1e7 + 116444736000000000)
 
         # Collision information contains entries for specific trusted domains
         # we collide with. Look into TLN collisions and add a TLN exclusion
@@ -1791,7 +1789,7 @@ class TrustDomainJoins:
         entry = self.api.Backend.ldap2.get_entry(
                     realm_domains['dn'], ['modifyTimestamp'])
         # Convert the timestamp to Windows 64-bit timestamp format
-        trust_timestamp = long(
+        trust_timestamp = int(
                 time.mktime(
                      entry.single_value.get('modifytimestamp').timetuple()
                 )*1e7+116444736000000000)
