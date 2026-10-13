@@ -36,10 +36,27 @@ TEST_KEYTAB = "/tmp/ipajoin.test.keytab"
 # Error messages
 ERR_SASL_BIND_FAILED = "SASL Bind failed"
 ERR_UNAUTHENTICATED_BIND = "Unauthenticated binds are not allowed"
-ERR_COULD_NOT_RESOLVE = "JSON-RPC call failed: Could not resolve hostname"
 ERR_UNABLE_ROOT_DN = "Unable to determine root DN"
 ERR_NO_CONFIG = "Unable to determine IPA server from /etc/ipa/default.conf"
 ERR_PREAUTH_FAILED = "Generic preauthentication failure"
+
+
+def _assert_could_not_resolve(result):
+    """Assert that stderr contains the 'could not resolve' error.
+
+    The exact wording depends on the libcurl version:
+      Old curl (RHEL 9): "Couldn't resolve host name"
+      New curl (Fedora / curl >= 8.9): "Could not resolve hostname"
+    """
+    stderr_lower = result.stderr_text.lower()
+    assert (
+        "could not resolve hostname" in stderr_lower
+        or "couldn't resolve host name" in stderr_lower
+    ), (
+        "Expected 'could not resolve hostname' or "
+        "'couldn't resolve host name' in stderr, "
+        "got: %s" % result.stderr_text
+    )
 
 # Exit codes
 EXIT_SUCCESS = 0
@@ -206,7 +223,7 @@ class TestIPAJoin(IntegrationTest):
             )
 
             assert result.returncode == EXIT_RESOLVE_ERROR
-            assert ERR_COULD_NOT_RESOLVE in result.stderr_text
+            _assert_could_not_resolve(result)
         finally:
             self.clients[0].run_command(['kdestroy', '-A'], raiseonerr=False)
 
@@ -237,7 +254,7 @@ class TestIPAJoin(IntegrationTest):
             )
 
             assert result.returncode == EXIT_RESOLVE_ERROR
-            assert ERR_COULD_NOT_RESOLVE in result.stderr_text
+            _assert_could_not_resolve(result)
         finally:
             self.clients[0].run_command(['kdestroy', '-A'], raiseonerr=False)
 
@@ -419,7 +436,7 @@ class TestIPAJoin(IntegrationTest):
             )
 
             assert result.returncode == EXIT_RESOLVE_ERROR
-            assert ERR_COULD_NOT_RESOLVE in result.stderr_text
+            _assert_could_not_resolve(result)
         finally:
             self.clients[0].run_command(['kdestroy', '-A'], raiseonerr=False)
 
@@ -448,7 +465,7 @@ class TestIPAJoin(IntegrationTest):
             )
 
             assert result.returncode == EXIT_RESOLVE_ERROR
-            assert ERR_COULD_NOT_RESOLVE in result.stderr_text
+            _assert_could_not_resolve(result)
         finally:
             self.clients[0].run_command(['kdestroy', '-A'], raiseonerr=False)
 
