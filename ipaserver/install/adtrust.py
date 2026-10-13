@@ -370,7 +370,7 @@ def add_new_adtrust_agents(api, options):
                 client.connect()
                 result = client.forward(
                     'trust_enable_agent',
-                    ipautil.fsdecode(agent),
+                    os.fsdecode(agent),
                     **kwargs)
             except errors.CommandError as e:
                 logger.debug(

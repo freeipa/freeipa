@@ -22,7 +22,6 @@ from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
 from ipapython import ipautil
-from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
@@ -407,7 +406,7 @@ class Schema:
         fps = []
         if not ignore_cache:
             try:
-                fps = [fsdecode(f) for f in os.listdir(self._dir)]
+                fps = [os.fsdecode(f) for f in os.listdir(self._dir)]
             except EnvironmentError:
                 pass
 

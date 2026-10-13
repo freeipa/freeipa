@@ -459,7 +459,7 @@ def configure_automount():
             # Use the RPC directly so older servers are supported
             api.Backend.rpcclient.forward(
                 'automountlocation_show',
-                ipautil.fsdecode(options.location),
+                os.fsdecode(options.location),
                 version='2.0',
             )
         except errors.VersionError as e:

@@ -1493,9 +1493,6 @@ def private_krb5_config(realm, server, dir="/run/ipa"):
             os.remove(tcfg)
 
 
-fsdecode = os.fsdecode
-
-
 def unescape_seq(seq, *args):
     """
     unescape (remove '\\') all occurences of sequence in input strings.
