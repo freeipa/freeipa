@@ -67,9 +67,6 @@ KRA_STORAGE_PROFILE = 'caStorageCert'
 KRA_TRANSPORT_PROFILE = 'caTransportCert'
 
 
-gzip_decompress = gzip.decompress
-
-
 def error_from_xml(doc, message_template):
     try:
         item_node = doc.getElementsByTagName("Error")
@@ -277,7 +274,7 @@ def _httplib_request(
 
     encoding = res.getheader('Content-Encoding')
     if encoding == 'gzip':
-        http_body = gzip_decompress(http_body)
+        http_body = gzip.decompress(http_body)
     elif encoding == 'deflate':
         http_body = zlib.decompress(http_body)
 
