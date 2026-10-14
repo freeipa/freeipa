@@ -130,6 +130,7 @@ class CALessBase(IntegrationTest):
     # In order that the uninstall code finds the attribute a class attribute
     # is added.
     cert_dir = None
+    key_type_size = 'rsa:2048'
 
     @classmethod
     def install(cls, mh):
@@ -156,6 +157,9 @@ class CALessBase(IntegrationTest):
         create_caless_pki.client = unicode(client_hostname)
         create_caless_pki.password = unicode(cls.master.config.dirman_password)
         create_caless_pki.cert_dir = unicode(cls.cert_dir)
+        (create_caless_pki.key_type,
+         create_caless_pki.key_size) = create_caless_pki.parse_key_type_size(
+            cls.key_type_size)
 
         # here we generate our certificates (not yet converted to .p12)
         logger.info('Generating certificates to %s', cls.cert_dir)
@@ -364,8 +368,9 @@ class CALessBase(IntegrationTest):
 
         ipautil.run([paths.OPENSSL, "pkcs12", "-export", "-out", filename,
                      "-inkey", key_fname, "-in", certchain_fname, "-passin",
-                     "pass:" + cls.cert_password, "-passout", "pass:" +
-                     password, "-name", nickname], cwd=cls.cert_dir)
+                     "pass:" + cls.cert_password, "-passout",
+                     "pass:" + password, "-name", nickname],
+                    cwd=cls.cert_dir)
 
     @classmethod
     def prepare_cacert(cls, nickname, filename=None):
@@ -1694,3 +1699,42 @@ class TestServerCALessToExternalCA(CALessBase):
         # Continue with ipa-ca-install
         ca_master_post = tasks.install_ca(self.master, cert_files=cert_files)
         assert ca_master_post.returncode == 0
+
+
+class TestServerInstallMLDSA(CALessBase):
+    num_replicas = 0
+    key_type_size = 'mldsa:65'
+
+    @classmethod
+    def install(cls, mh):
+        try:
+            from cryptography.hazmat.primitives.asymmetric import mldsa
+            mldsa.MLDSA65PrivateKey.generate()
+        except Exception as e:
+            pytest.skip(
+                'ML-DSA unsupported or error in python-cryptography: %s' % e
+            )
+        super(TestServerInstallMLDSA, cls).install(mh)
+
+    @server_install_teardown
+    def test_valid_certs(self):
+        "IPA server install with valid ML-DSA certificates"
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        result = self.install_server()
+        assert result.returncode == 0
+        self.verify_installation()
+
+        # Confirm OpenSSL HTTP import left an ML-DSA cert and usable key
+        result = self.master.run_command(
+            ['openssl', 'x509', '-text', '-noout', '-in',
+             paths.HTTPD_CERT_FILE])
+        assert 'ML-DSA-65' in result.stdout_text
+        passwd = paths.HTTPD_PASSWD_FILE_FMT.format(
+            host=self.master.hostname)
+        self.master.run_command([
+            'openssl', 'pkey', '-in', paths.HTTPD_KEY_FILE,
+            '-passin', 'file:' + passwd, '-noout',
+        ])
