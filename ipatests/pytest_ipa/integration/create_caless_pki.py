@@ -45,8 +45,21 @@ server2 = None
 client = None
 password = None
 cert_dir = None
+key_type = 'rsa'
+key_size = 2048
 
 CertInfo = collections.namedtuple('CertInfo', 'nick key cert counter')
+
+
+def parse_key_type_size(key_type_size):
+    """Return (key_type, key_size) from a 'type:size' string."""
+    parts = key_type_size.lower().split(':')
+    key_type = parts[0]
+    if len(parts) > 1:
+        key_size = int(parts[1])
+    else:
+        key_size = 65 if key_type == 'mldsa' else 2048
+    return key_type, key_size
 
 
 class PrincipalName(univ.Sequence):
@@ -328,11 +341,15 @@ def profile_kdc(builder, ca_nick, ca,
 
 
 def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend(),
-    )
+    if key_type == 'mldsa':
+        from cryptography.hazmat.primitives.asymmetric import mldsa
+        key = getattr(mldsa, 'MLDSA%dPrivateKey' % key_size).generate()
+    else:
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=key_size,
+            backend=default_backend(),
+        )
     public_key = key.public_key()
 
     counter = itertools.count(1)
@@ -358,7 +375,7 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
 
     cert = builder.sign(
         private_key=ca_key,
-        algorithm=hashes.SHA256(),
+        algorithm=None if key_type == 'mldsa' else hashes.SHA256(),
         backend=default_backend(),
     )
 
@@ -413,7 +430,7 @@ def revoke_cert(ca, serial):
 
     crl = crl_builder.sign(
         private_key=ca.key,
-        algorithm=hashes.SHA256(),
+        algorithm=None if key_type == 'mldsa' else hashes.SHA256(),
         backend=default_backend(),
     )
 
@@ -571,7 +588,6 @@ def gen_subtree(nick_base, org, ca=None):
 
 
 def create_pki():
-
     gen_cert(profile_server, u'server-selfsign',
              x509.Name([
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Self-signed'),

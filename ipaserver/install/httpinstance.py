@@ -302,38 +302,18 @@ class HTTPInstance(service.Service):
         key_passwd_file = paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
         with open(key_passwd_file, 'wb') as f:
             os.fchmod(f.fileno(), 0o600)
-            pkey_passwd = ipautil.ipa_generate_password().encode('utf-8')
-            f.write(pkey_passwd)
+            f.write(ipautil.ipa_generate_password().encode('utf-8'))
 
         if self.pkcs12_info:
-            p12_certs, p12_priv_keys = certs.pkcs12_to_certkeys(
-                *self.pkcs12_info)
-            keys_dict = {
-                k.public_key().public_numbers(): k
-                for k in p12_priv_keys
-            }
-            certs_keys = [
-                (c, keys_dict.get(c.public_key().public_numbers()))
-                for c in p12_certs
-            ]
-            server_certs_keys = [
-                (c, k) for c, k in certs_keys if k is not None
-            ]
-
-            if not server_certs_keys:
-                raise RuntimeError(
-                    "Could not find a suitable server cert in import in %s"
-                    % self.pkcs12_info[0]
-                )
-
-            # We only handle one server cert
-            self.cert = server_certs_keys[0][0]
-            x509.write_certificate(self.cert, paths.HTTPD_CERT_FILE)
-            x509.write_pem_private_key(
-                server_certs_keys[0][1],
+            # Use OpenSSL to extract key
+            certs.install_pem_from_p12(
+                self.pkcs12_info[0], self.pkcs12_info[1],
+                paths.HTTPD_CERT_FILE)
+            certs.install_key_from_p12(
+                self.pkcs12_info[0], self.pkcs12_info[1],
                 paths.HTTPD_KEY_FILE,
-                passwd=pkey_passwd
-            )
+                out_passwd_fname=key_passwd_file)
+            self.cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
 
             if self.ca_is_configured:
                 self.start_tracking_certificates()
