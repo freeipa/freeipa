@@ -157,6 +157,8 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
             next->tl_data_length = vals[i]->bv_len - 2;
             next->tl_data_contents = malloc(next->tl_data_length);
             if (!next->tl_data_contents) {
+                /* Not linked yet, so the list walk in done will not see it. */
+                free(next);
                 ret = ENOMEM;
                 goto done;
             }
@@ -179,17 +181,17 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
 
 done:
     if (ret) {
-        free(next);
-        if (*result) {
-            prev = *result;
-            while (prev) {
-                next = prev->tl_data_next;
-                free(prev);
-                prev = next;
-            }
+        prev = *result;
+        while (prev) {
+            next = prev->tl_data_next;
+            free(prev->tl_data_contents);
+            free(prev);
+            prev = next;
         }
         *result = NULL;
         *num = 0;
+
+        ldap_value_free_len(vals);
     }
     return ret;
 }
