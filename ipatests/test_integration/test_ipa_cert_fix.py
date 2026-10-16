@@ -549,3 +549,100 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test that ipa-cert-fix does not break an established AD trust."""
+
+    num_ad_domains = 1
+    ad_user_password = 'Secret123'
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        if not cls.master.transport.file_exists('/usr/bin/sshpass'):
+            raise pytest.skip("Package sshpass not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @pytest.fixture
+    def advance_clocks(self):
+        """Advance IPA and AD clocks together to expire IPA certs.
+
+        The clocks stay in the future. ipa-cert-fix reissues the server
+        certificates with a notBefore at that future date, so they are
+        not valid if the clocks return to the original time.
+        """
+        # The jump is longer than the AD maximum password age. Without
+        # this, SSH as testuser stops at a password-change prompt.
+        self.ad.run_command(
+            ['powershell', '-c',
+             '$ProgressPreference = "SilentlyContinue"; '
+             'Set-ADUser -Identity "testuser" '
+             '-PasswordNeverExpires $true'],
+            set_env=False,
+        )
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Stop-Service W32Time -Force; '
+             'Set-Date (Get-Date).AddYears(3).AddDays(1)'],
+            set_env=False,
+        )
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+    def test_cert_fix_preserves_trust(self, advance_clocks):
+        """Test AD trust works after ipa-cert-fix renews expired certs.
+
+        The IPA and AD clocks are left at the future date. The renewed
+        certificates are not valid at the original time.
+        """
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        self.master.run_command(['ipactl', 'restart'])
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
+        # The clock jump expires the admin TGT and password. Renew the
+        # ticket, changing the password when Kerberos requires it,
+        # before trust-find.
+        klist = self.master.run_command(['klist'], raiseonerr=False)
+        valid = self.master.run_command(['klist', '-s'], raiseonerr=False)
+        admin_principal = 'admin@%s' % self.master.domain.realm
+        if (valid.returncode != 0
+                or admin_principal not in klist.stdout_text):
+            password = self.master.config.admin_password
+            self.master.run_command(
+                ['kinit', 'admin'],
+                stdin_text='%s\n%s\n%s\n' % (password, password, password),
+            )
+
+        result = self.master.run_command(['ipa', 'trust-find'])
+        assert self.ad_domain in result.stdout_text
+
+        testuser = 'testuser@%s' % self.ad_domain
+        tasks.clear_sssd_cache(self.master)
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        self.master.run_command(['id', testuser])
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(self.master, testuser, self.ad_user_password)
+        result = self.master.run_command([
+            'ssh', '-o', 'StrictHostKeyChecking=no',
+            '-o', 'GSSAPIAuthentication=yes',
+            '-l', testuser, self.master.hostname, 'id'
+        ])
+        assert testuser in result.stdout_text
+
