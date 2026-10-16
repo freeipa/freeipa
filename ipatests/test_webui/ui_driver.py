@@ -50,6 +50,7 @@ try:
     from selenium.webdriver.support.expected_conditions import alert_is_present
     from selenium.webdriver.support.wait import WebDriverWait
     from selenium.webdriver.support.ui import Select
+    from selenium.webdriver.support import expected_conditions as EC
     NO_SELENIUM = False
 except ImportError:
     NO_SELENIUM = True
@@ -2379,9 +2380,12 @@ class UI_driver:
 
         notification_type = 'div.notification-area .alert-{}'.format(type)
         # wait for a half sec for notification to appear
-        self.wait(0.5)
-        is_present = self.find(notification_type, By.CSS_SELECTOR, many=True)
-        assert is_present, "Notification not present"
+        is_present = WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, notification_type),
+            ),
+            'Notification is not displayed: %s' % notification_type,
+        )
         if assert_text:
             assert any(map(lambda x: assert_text in x.text, is_present))
 
