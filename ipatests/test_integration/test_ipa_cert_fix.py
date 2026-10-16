@@ -323,6 +323,93 @@ class TestIpaCertFix(IntegrationTest):
         assert result.returncode == 1
         assert err_msg in result.stderr_text
 
+    def test_user_abort_on_prompt(self, expire_cert_critical):
+        """Test ipa-cert-fix aborts cleanly when user declines the prompt
+
+        When expired certs are detected but the user answers anything other
+        than 'yes' at the confirmation prompt, the tool must exit without
+        modifying any certificate or NSS database.
+
+        """
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        # 'no' = explicit decline, '\n' = empty Enter
+        for response in ('no\n', '\n'):
+            result = self.master.run_command(
+                ['ipa-cert-fix', '-v'],
+                stdin_text=response,
+            )
+            assert "Not proceeding" in result.stdout_text
+
+        # Certs must remain unreachable: nothing was changed
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+    def test_certupdate_after_cert_fix(self, expire_cert_critical):
+        """Test ipa-certupdate succeeds and IPA services work after cert fix
+
+        After renewing expired certs with ipa-cert-fix, the documented
+        next step is to run ipa-certupdate to propagate the new certs to
+        all system services. IPA commands must work afterwards.
+        """
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(
+            ['ipa-cert-fix', '-v'], stdin_text='yes\n'
+        )
+        check_status(self.master, 9, "MONITORING")
+
+        # Propagate renewed certs to all system services
+        self.master.run_command(['ipa-certupdate'])
+
+        # Restart to verify services come up cleanly with new certs
+        self.master.run_command(['ipactl', 'restart'])
+
+        stdin = (
+            f"{self.master.config.admin_password}\n"
+            f"{self.master.config.admin_password}\n"
+            f"{self.master.config.admin_password}\n"
+        )
+        self.master.run_command(['kinit', 'admin'], stdin_text=stdin)
+
+        # Verify all services are running
+        result = self.master.run_command(['ipactl', 'status'])
+        result = self.master.run_command(
+            ['ipa', 'user-find', 'admin']
+        )
+        assert 'User login: admin' in result.stdout_text
+
+    def test_cert_fix_ds_not_running(self, expire_cert_critical):
+        """Test ipa-cert-fix fails when Directory Server is stopped.
+
+        A common maintenance pattern is stopping dirsrv and then running
+        ipa-cert-fix without restarting it first.  The tool needs LDAP to
+        read the current cert state; a stopped DS must produce a clear
+        "cannot connect" error.
+        """
+        error_msg = 'The LDAP server is not running; cannot proceed'
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        instance = realm_to_serverid(self.master.domain.realm)
+        self.master.run_command(
+            ['systemctl', 'stop', 'dirsrv@%s' % instance]
+        )
+        try:
+            result = self.master.run_command(
+                ['ipa-cert-fix', '-v'],
+                stdin_text='yes\n',
+                raiseonerr=False,
+            )
+            assert result.returncode == 1
+            assert error_msg in result.stdout_text
+        finally:
+            # Always restart DS so fixture teardown can uninstall cleanly
+            self.master.run_command(
+                ['systemctl', 'start', 'dirsrv@%s' % instance]
+            )
+
 
 class TestIpaCertFixThirdParty(CALessBase):
     """
@@ -549,3 +636,14 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+        # Verify RA agent can authenticate to Dogtag on the replica
+        # after cert renewal. A disk vs LDAP serial mismatch would
+        # cause "Failed to authenticate to CA REST API".
+        stdin = (f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n")
+        self.replicas[0].run_command(
+            ['kinit', 'admin'], stdin_text=stdin
+        )
+        self.replicas[0].run_command(['ipa', 'cert-show', '1'])
