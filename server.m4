@@ -58,11 +58,17 @@ if test "x$ac_cv_have_decl_sss_nss_getpwnam_timeout" = xyes ; then
     AC_DEFINE(USE_SSS_NSS_TIMEOUT,1,[Use extended NSS API provided by SSSD])
 fi
 
-dnl --- if sss_nss_idmap provides sss_nss_getorigbyusername_timeout and
-dnl --- sss_nss_getorigbygroupname_timeout , use it
+dnl --- sss_nss_idmap must provide sss_nss_getorigbyusername_timeout and
+dnl --- sss_nss_getorigbygroupname_timeout
 bck_cflags="$CFLAGS"
 CFLAGS="$CFLAGS -DIPA_389DS_PLUGIN_HELPER_CALLS"
-AC_CHECK_DECLS([sss_nss_getorigbyusername_timeout, sss_nss_getorigbygroupname_timeout], [], [], [[#include <sss_nss_idmap.h>]])
+AC_CHECK_DECLS([sss_nss_getorigbyusername_timeout], [], [AC_MSG_ERROR([sss_nss_getorigbyusername_timeout is not available, sssd-nss-idmap 2.7 or later is required])], [[#include <sss_nss_idmap.h>]])
+AC_CHECK_DECLS([sss_nss_getorigbygroupname_timeout], [], [AC_MSG_ERROR([sss_nss_getorigbygroupname_timeout is not available, sssd-nss-idmap 2.7 or later is required])], [[#include <sss_nss_idmap.h>]])
+dnl --- sss_nss_getorigbyusername_with_groups_timeout() is optional; when
+dnl --- available the extdom plugin fetches a user's group memberships together
+dnl --- with the original data in a single call instead of an extra getgrouplist
+dnl --- plus a getgrgid per group
+AC_CHECK_DECLS([sss_nss_getorigbyusername_with_groups_timeout], [], [], [[#include <sss_nss_idmap.h>]])
 CFLAGS="$bck_cflags"
 
 dnl -- sss_certmap and certauth.h are needed by the IPA KDB certauth plugin --
