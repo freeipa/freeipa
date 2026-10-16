@@ -38,8 +38,8 @@ except ImportError:
 
 
 _osrelease_line = re.compile(
-    u"^(?!#)(?P<name>[a-zA-Z0-9_]+)="
-    u"(?P<quote>[\"\']?)(?P<value>.+)(?P=quote)$"
+    "^(?!#)(?P<name>[a-zA-Z0-9_]+)="
+    "(?P<quote>[\"\']?)(?P<value>.+)(?P=quote)$"
 )
 
 

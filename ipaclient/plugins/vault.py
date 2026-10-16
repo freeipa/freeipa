@@ -260,13 +260,13 @@ class vault_add(Local):
         if 'public_key_file' in options:
             del options['public_key_file']
 
-        if vault_type != u'symmetric' and (password or password_file):
+        if vault_type != 'symmetric' and (password or password_file):
             raise errors.MutuallyExclusiveError(
                 reason=_('Password can be specified only for '
                          'symmetric vault')
             )
 
-        if vault_type != u'asymmetric' and (public_key or public_key_file):
+        if vault_type != 'asymmetric' and (public_key or public_key_file):
             raise errors.MutuallyExclusiveError(
                 reason=_('Public key can be specified only for '
                          'asymmetric vault')
@@ -279,11 +279,11 @@ class vault_add(Local):
         if not backend.isconnected():
             backend.connect()
 
-        if vault_type == u'standard':
+        if vault_type == 'standard':
 
             pass
 
-        elif vault_type == u'symmetric':
+        elif vault_type == 'symmetric':
 
             # get password
             if password and password_file:
@@ -306,7 +306,7 @@ class vault_add(Local):
             # generate vault salt
             options['ipavaultsalt'] = os.urandom(16)
 
-        elif vault_type == u'asymmetric':
+        elif vault_type == 'asymmetric':
 
             # get new vault public key
             if public_key and public_key_file:
@@ -352,11 +352,11 @@ class vault_add(Local):
         if 'ipavaulttype' in opts:
             del opts['ipavaulttype']
 
-        if vault_type == u'symmetric':
+        if vault_type == 'symmetric':
             opts['password'] = password
             del opts['ipavaultsalt']
 
-        elif vault_type == u'asymmetric':
+        elif vault_type == 'asymmetric':
             del opts['ipavaultpublickey']
 
         # archive blank data
@@ -478,10 +478,10 @@ class vault_mod(Local):
             pass
 
         elif change_password or new_password or new_password_file or salt:
-            vault_type = u'symmetric'
+            vault_type = 'symmetric'
 
         elif new_public_key or new_public_key_file:
-            vault_type = u'asymmetric'
+            vault_type = 'asymmetric'
 
         # if vault type is specified, retrieve existing secret
         if vault_type:
@@ -502,11 +502,11 @@ class vault_mod(Local):
         if vault_type:
             opts['ipavaulttype'] = vault_type
 
-            if vault_type == u'standard':
+            if vault_type == 'standard':
                 opts['ipavaultsalt'] = None
                 opts['ipavaultpublickey'] = None
 
-            elif vault_type == u'symmetric':
+            elif vault_type == 'symmetric':
                 if salt:
                     opts['ipavaultsalt'] = salt
                 else:
@@ -514,7 +514,7 @@ class vault_mod(Local):
 
                 opts['ipavaultpublickey'] = None
 
-            elif vault_type == u'asymmetric':
+            elif vault_type == 'asymmetric':
 
                 # get new vault public key
                 if new_public_key and new_public_key_file:
@@ -938,11 +938,11 @@ class vault_archive(ModVaultData):
 
         vault_type = vault['ipavaulttype'][0]
 
-        if vault_type == u'standard':
+        if vault_type == 'standard':
 
             encrypted_key = None
 
-        elif vault_type == u'symmetric':
+        elif vault_type == 'symmetric':
 
             # get password
             if password and password_file:
@@ -985,7 +985,7 @@ class vault_archive(ModVaultData):
 
             encrypted_key = None
 
-        elif vault_type == u'asymmetric':
+        elif vault_type == 'asymmetric':
 
             public_key = vault['ipavaultpublickey'][0]
 
@@ -1008,7 +1008,7 @@ class vault_archive(ModVaultData):
             'data': base64.b64encode(data).decode('utf-8')
         }
         if encrypted_key:
-            vault_data[u'encrypted_key'] = base64.b64encode(encrypted_key)\
+            vault_data['encrypted_key'] = base64.b64encode(encrypted_key)\
                 .decode('utf-8')
 
         json_vault_data = json.dumps(vault_data).encode('utf-8')
@@ -1175,18 +1175,18 @@ class vault_retrieve(ModVaultData):
         )
         del algo
 
-        data = base64.b64decode(vault_data[u'data'].encode('utf-8'))
+        data = base64.b64decode(vault_data['data'].encode('utf-8'))
         encrypted_key = None
 
         if 'encrypted_key' in vault_data:
-            encrypted_key = base64.b64decode(vault_data[u'encrypted_key']
+            encrypted_key = base64.b64decode(vault_data['encrypted_key']
                                              .encode('utf-8'))
 
-        if vault_type == u'standard':
+        if vault_type == 'standard':
 
             pass
 
-        elif vault_type == u'symmetric':
+        elif vault_type == 'symmetric':
 
             salt = vault['ipavaultsalt'][0]
 
@@ -1214,7 +1214,7 @@ class vault_retrieve(ModVaultData):
             # decrypt data with encryption key
             data = decrypt(data, symmetric_key=encryption_key)
 
-        elif vault_type == u'asymmetric':
+        elif vault_type == 'asymmetric':
 
             # get encryption key with vault private key
             if private_key and private_key_file:

@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Flag
@@ -39,9 +38,6 @@ from .baseldap import (
 from ipalib import _, ngettext
 from .hbacrule import is_all
 from ipapython.dn import DN
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Netgroups
@@ -197,7 +193,8 @@ class netgroup(LDAPObject):
     label_singular = _('Netgroup')
 
     takes_params = (
-        Str('cn',
+        Str(
+            'cn',
             pattern=NETGROUP_PATTERN,
             pattern_errmsg=NETGROUP_PATTERN_ERRMSG,
             cli_name='name',
@@ -205,34 +202,39 @@ class netgroup(LDAPObject):
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
-        Str('description?',
+        Str(
+            'description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('Netgroup description'),
         ),
-        Str('nisdomainname?',
+        Str(
+            'nisdomainname?',
             pattern=NISDOMAIN_PATTERN,
             pattern_errmsg=NISDOMAIN_PATTERN_ERRMSG,
             cli_name='nisdomain',
             label=_('NIS domain name'),
         ),
-        Str('ipauniqueid?',
+        Str(
+            'ipauniqueid?',
             cli_name='uuid',
             label='IPA unique ID',
             doc=_('IPA unique ID'),
             flags=['no_create', 'no_update'],
         ),
-        StrEnum('usercategory?',
+        StrEnum(
+            'usercategory?',
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('hostcategory?',
+        StrEnum(
+            'hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
         external_host_param,
     )
@@ -240,11 +242,11 @@ class netgroup(LDAPObject):
     def get_primary_key_from_dn(self, dn):
         assert isinstance(dn, DN)
         if not dn.rdns:
-            return u''
+            return ''
 
         first_ava = dn.rdns[0][0]
         if first_ava[0] == self.primary_key.name:
-            return unicode(first_ava[1])
+            return str(first_ava[1])
 
         try:
             entry_attrs = self.backend.get_entry(
@@ -253,9 +255,9 @@ class netgroup(LDAPObject):
             try:
                 return entry_attrs[self.primary_key.name][0]
             except (KeyError, IndexError):
-                return u''
+                return ''
         except errors.NotFound:
-            return unicode(dn)
+            return str(dn)
 
 
 @register()
@@ -265,8 +267,10 @@ class netgroup_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
     msg_summary = _('Added netgroup "%(value)s"')
 
-    msg_collision = _(u'hostgroup with name "%s" already exists. ' \
-                      u'Hostgroups and netgroups share a common namespace')
+    msg_collision = _(
+        'hostgroup with name "%s" already exists. '
+        'Hostgroups and netgroups share a common namespace'
+    )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -276,7 +280,9 @@ class netgroup_add(LDAPCreate):
             test_dn = self.obj.get_dn(keys[-1])
             netgroup = ldap.get_entry(test_dn, ['objectclass'])
             if 'mepManagedEntry' in netgroup.get('objectclass', []):
-                raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
+                raise errors.DuplicateEntry(
+                    message=str(self.msg_collision % keys[-1])
+                )
             else:
                 self.obj.handle_duplicate_entry(*keys)
         except errors.NotFound:
@@ -287,7 +293,9 @@ class netgroup_add(LDAPCreate):
             # make sure that we don't create a collision if the plugin is
             # (temporarily) disabled
             api.Object['hostgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
+            raise errors.DuplicateEntry(
+                message=str(self.msg_collision % keys[-1])
+            )
         except errors.NotFound:
             pass
 

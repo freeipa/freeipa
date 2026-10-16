@@ -27,7 +27,7 @@ import pytest
 pytestmark = pytest.mark.tier0
 
 TEST_KEY = 'ipa_test'
-TEST_UNICODEKEY = u'ipa_unicode'
+TEST_UNICODEKEY = 'ipa_unicode'
 TEST_VALUE = b'abc123'
 UPDATE_VALUE = b'123abc'
 

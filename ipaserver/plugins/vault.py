@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib.frontend import Command, Object
 from ipalib import api, errors
@@ -51,8 +50,6 @@ else:
     AES_128_CBC_OID = "{2 16 840 1 101 3 4 1 2}"
     PKIException = Exception
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Vaults
@@ -369,7 +366,7 @@ class vaultcontainer(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -438,7 +435,7 @@ class vaultcontainer_del(LDAPDelete):
         return dn
 
     def execute(self, *keys, **options):
-        keys = keys + (u'',)
+        keys = keys + ('',)
         return super(vaultcontainer_del, self).execute(*keys, **options)
 
 
@@ -602,8 +599,8 @@ class vault(LDAPObject):
             cli_name='type',
             label=_('Type'),
             doc=_('Vault type'),
-            values=(u'standard', u'symmetric', u'asymmetric', ),
-            default=u'symmetric',
+            values=('standard', 'symmetric', 'asymmetric', ),
+            default='symmetric',
             autofill=True,
         ),
         Bytes(
@@ -699,7 +696,7 @@ class vault(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -765,10 +762,10 @@ class vault(LDAPObject):
             raise ValueError('Invalid vault DN: %s' % dn)
 
         # construct the vault ID from the bottom up
-        id = u''
+        id = ''
         for rdn in dn[:-len(container_dn)]:
             name = rdn['cn']
-            id = u'/' + name + id
+            id = '/' + name + id
 
         return 'ipa:' + id
 
@@ -804,7 +801,7 @@ class vault_add_internal(LDAPCreate):
 
         principal = kerberos.Principal(getattr(context, 'principal'))
         if principal.is_service:
-            owner_dn = self.api.Object.service.get_dn(unicode(principal))
+            owner_dn = self.api.Object.service.get_dn(str(principal))
         else:
             owner_dn = self.api.Object.user.get_dn(principal.username)
 
@@ -846,10 +843,8 @@ class vault_del(LDAPDelete):
         assert isinstance(dn, DN)
 
         with self.api.Backend.kra.get_client() as kra_client:
-            # pylint: disable=used-before-assignment
             kra_account = pki.account.AccountClient(kra_client.connection,
                                                     subsystem='kra')
-            # pylint: enable=used-before-assignment
             kra_account.login()
 
             client_key_id = self.obj.get_key_id(dn)

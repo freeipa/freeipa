@@ -192,7 +192,7 @@ class DsInstance(service.Service):
             "dirsrv",
             service_desc="directory server",
             fstore=fstore,
-            service_prefix=u'ldap',
+            service_prefix='ldap',
             keytab=paths.DS_KEYTAB,
             service_user=DS_USER,
             realm_name=realm_name

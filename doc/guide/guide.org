@@ -259,11 +259,11 @@ provide list of strings separated by a separator, default to ','. Also, the /Lis
 parameter skips spaces before the next item in the list unless property /skipspace/ is set to False:
 #+BEGIN_SRC python
 names = List('names', separator=',', skipspace=True)
-names_list = names(u'John Doe, John Lee, Brad Moe')
-# names_list is (u'John Doe', u'John Lee', u'Brad Moe')
+names_list = names('John Doe, John Lee, Brad Moe')
+# names_list is ('John Doe', 'John Lee', 'Brad Moe')
 names = List('names', separator=',', skipspace=False)
-names_list = names(u'John Doe, John Lee, Brad Moe')
-# names_list is (u'John Doe', u' John Lee', u' Brad Moe')
+names_list = names('John Doe, John Lee, Brad Moe')
+# names_list is ('John Doe', ' John Lee', ' Brad Moe')
 #+END_SRC
 
 ** Objects
@@ -292,11 +292,11 @@ its dimensions and specifying which fish is living there.
 from ipalib import api, Object
 class tank(Object):
     takes_params = (
-        StrEnum('species*', label=u'Species', doc=u'Fish species',
-                 values=(u'Angelfish', u'Betta', u'Cichlid', u'Firemouth')),
-        Decimal('height', label=u'Height', doc=u'height in mm', default='400.0'),
-        Decimal('width', label=u'Width', doc=u'width in mm', default='400.0'),
-        Decimal('depth', label=u'Depth', doc=u'Depth in mm', default='300.0')
+        StrEnum('species*', label='Species', doc='Fish species',
+                 values=('Angelfish', 'Betta', 'Cichlid', 'Firemouth')),
+        Decimal('height', label='Height', doc='height in mm', default='400.0'),
+        Decimal('width', label='Width', doc='width in mm', default='400.0'),
+        Decimal('depth', label='Depth', doc='Depth in mm', default='300.0')
     )
 
 api.register(tank) (ref:register)
@@ -481,7 +481,7 @@ def override_default_shell_cb(self, ldap, dn.
     if 'loginshell' in entry_attrs:
         default_shell = [self.api.Object.user.params['loginshell'].default]
         if entry_attrs['loginshell'] == default_shell:
-            entry_attrs['loginshell'] = [u'/dev/null']
+            entry_attrs['loginshell'] = ['/dev/null']
 
 user_add.register_pre_callback(override_default_shell_cb)
   #+END_SRC
@@ -531,7 +531,7 @@ def override_default_shell_cb(self, ldap, dn.
     if 'loginshell' in entry_attrs:
         default_shell = [self.api.Object.user.params['loginshell'].default]
         if entry_attrs['loginshell'] == default_shell:
-            entry_attrs['loginshell'] = [u'/dev/null']
+            entry_attrs['loginshell'] = ['/dev/null']
 
 user_add.register_pre_callback(override_default_shell_cb)
 #+END_SRC
@@ -776,7 +776,7 @@ the module itself:
               returned complex values so that they can be easily understood by a human
               being.
    #+BEGIN_EXAMPLE
->>> entry = {'name' : u'Test example', 'age' : u'100'}
+>>> entry = {'name' : 'Test example', 'age' : '100'}
 >>> api.Backend.textui.print_entry(entry)
   age: 100
   name: Test example
@@ -785,7 +785,7 @@ the module itself:
 - ~help~ :: generates help for every command and method of FreeIPA and structures it into
             sections according to the registered FreeIPA objects.
    #+BEGIN_EXAMPLE
->>> api.Command.help(u'user-show')
+>>> api.Command.help('user-show')
 Purpose: Display information about a user.
 Usage: ipa [global-options] user-show LOGIN [options]
 

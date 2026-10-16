@@ -186,7 +186,7 @@ class AbstractHSM:
     def _filter_zone_keys(self, all_keys):
         zone_keys = {}
         for key_id, key in all_keys.items():
-            if key['ipk11label'] == u'dnssec-master' \
+            if key['ipk11label'] == 'dnssec-master' \
                 or key['ipk11label'].startswith('dnssec-replica:'):
                 continue
             zone_keys[key_id] = key

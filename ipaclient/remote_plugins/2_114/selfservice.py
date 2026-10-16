@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Self-service Permissions
@@ -53,20 +45,20 @@ class selfservice(Object):
         parameters.Str(
             'aciname',
             primary_key=True,
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Attributes to which the permission applies.'),
+            label=_('Attributes'),
+            doc=_('Attributes to which the permission applies.'),
         ),
     )
 
@@ -79,7 +71,7 @@ class selfservice_add(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
     )
     takes_options = (
@@ -87,26 +79,32 @@ class selfservice_add(Method):
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Attributes to which the permission applies.'),
+            label=_('Attributes'),
+            doc=_('Attributes to which the permission applies.'),
             no_convert=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -115,15 +113,15 @@ class selfservice_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -136,7 +134,7 @@ class selfservice_del(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
     )
     takes_options = (
@@ -144,17 +142,17 @@ class selfservice_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -167,7 +165,7 @@ class selfservice_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -175,41 +173,47 @@ class selfservice_find(Method):
             'aciname',
             required=False,
             cli_name='name',
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Attributes to which the permission applies.'),
+            label=_('Attributes'),
+            doc=_('Attributes to which the permission applies.'),
             no_convert=True,
         ),
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -218,8 +222,8 @@ class selfservice_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -227,12 +231,12 @@ class selfservice_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -245,7 +249,7 @@ class selfservice_mod(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
     )
     takes_options = (
@@ -253,27 +257,33 @@ class selfservice_mod(Method):
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Attributes to which the permission applies.'),
+            label=_('Attributes'),
+            doc=_('Attributes to which the permission applies.'),
             no_convert=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -282,15 +292,15 @@ class selfservice_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -303,20 +313,26 @@ class selfservice_show(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Self-service name'),
+            label=_('Self-service name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -325,14 +341,14 @@ class selfservice_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

@@ -26,8 +26,8 @@ from ipatests.util import unlock_principal_password, change_principal
 
 # Shared values for the mocked trusted domain
 TRUSTED_DOMAIN_MOCK = dict(
-    name=u'trusted.domain.net',
-    sid=u'S-1-5-21-2997650941-1802118864-3094776726'
+    name='trusted.domain.net',
+    sid='S-1-5-21-2997650941-1802118864-3094776726'
 )
 TRUSTED_DOMAIN_MOCK['dn'] = get_trust_dn(TRUSTED_DOMAIN_MOCK['name'])
 TRUSTED_DOMAIN_MOCK['ldif'] = get_trusted_dom_dict(
@@ -35,14 +35,14 @@ TRUSTED_DOMAIN_MOCK['ldif'] = get_trusted_dom_dict(
 )
 
 ADD_REMOVE_TEST_DATA = [
-    u'testuser-alias',
-    u'testhost-alias',
-    u'teststageuser-alias',
+    'testuser-alias',
+    'testhost-alias',
+    'teststageuser-alias',
 ]
 TRACKER_INIT_DATA = [
-    (UserTracker, (u'krbalias_user', u'krbalias', u'test',), {},),
-    (HostTracker, (u'testhost-krb',), {},),
-    (StageUserTracker, (u'krbalias_stageuser', u'krbalias', u'test',), {},),
+    (UserTracker, ('krbalias_user', 'krbalias', 'test',), {},),
+    (HostTracker, ('testhost-krb',), {},),
+    (StageUserTracker, ('krbalias_stageuser', 'krbalias', 'test',), {},),
 ]
 TRACKER_DATA = [
     (ADD_REMOVE_TEST_DATA[i],) + TRACKER_INIT_DATA[i]
@@ -91,21 +91,21 @@ def trusted_domain_with_suffix():
 
 @pytest.fixture(scope='function')
 def krbalias_user(request):
-    tracker = UserTracker(u'krbalias_user', u'krbalias', u'test')
+    tracker = UserTracker('krbalias_user', 'krbalias', 'test')
 
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='function')
 def krbalias_user_c(request):
-    tracker = UserTracker(u'krbalias_user_conflict', u'krbalias', u'test')
+    tracker = UserTracker('krbalias_user_conflict', 'krbalias', 'test')
 
     return tracker.make_fixture(request)
 
 
 @pytest.fixture
 def krb_service_host(request):
-    tracker = HostTracker(u'krb-srv-host')
+    tracker = HostTracker('krb-srv-host')
 
     return tracker.make_fixture(request)
 
@@ -114,7 +114,7 @@ def krb_service_host(request):
 def krbalias_service(request, krb_service_host):
     krb_service_host.ensure_exists()
 
-    tracker = ServiceTracker(name=u'SRV1', host_fqdn=krb_service_host.name)
+    tracker = ServiceTracker(name='SRV1', host_fqdn=krb_service_host.name)
 
     return tracker.make_fixture(request)
 
@@ -128,7 +128,7 @@ def krbalias(request, tracker_cls, tracker_args, tracker_kwargs):
 @pytest.fixture
 def ldapservice(request):
     tracker = ServiceTracker(
-        name=u'ldap', host_fqdn=api.env.host, options={'has_keytab': True})
+        name='ldap', host_fqdn=api.env.host, options={'has_keytab': True})
 
     tracker.track_create()
     return tracker
@@ -153,16 +153,16 @@ class TestKerberosAliasManipulation(XMLRPC_test):
     def test_add_service_principal_alias(self, krbalias_service):
         krbalias_service.ensure_exists()
         krbalias_service.add_principal(
-            [u'SRV2/{}'.format(krbalias_service.host_fqdn)])
+            ['SRV2/{}'.format(krbalias_service.host_fqdn)])
         krbalias_service.retrieve()
 
     def test_remove_service_principal_alias(self, krbalias_service):
         krbalias_service.ensure_exists()
         krbalias_service.add_principal(
-            [u'SRV2/{}'.format(krbalias_service.host_fqdn)])
+            ['SRV2/{}'.format(krbalias_service.host_fqdn)])
         krbalias_service.retrieve()
         krbalias_service.remove_principal(
-            [u'SRV2/{}'.format(krbalias_service.host_fqdn)])
+            ['SRV2/{}'.format(krbalias_service.host_fqdn)])
         krbalias_service.retrieve()
 
     def test_adding_alias_adds_canonical_name(self, krbalias_user):
@@ -179,7 +179,7 @@ class TestKerberosAliasManipulation(XMLRPC_test):
             ldapconn.mod_entry(dn, modlist)
 
         # add new user principal alias
-        krbalias_user.add_principal(u'krbalias_principal_canonical')
+        krbalias_user.add_principal('krbalias_principal_canonical')
 
         # verify that the previous principal name is now krbcanonicalname
         cmd = krbalias_user.make_retrieve_command()
@@ -188,7 +188,7 @@ class TestKerberosAliasManipulation(XMLRPC_test):
         assert new_canonical_name == user_krb_principal
 
     def test_authenticate_against_aliased_service(self, ldapservice):
-        alias = u'ldap/{newname}.{host}'.format(
+        alias = 'ldap/{newname}.{host}'.format(
             newname='krbalias', host=api.env.host)
         ldapservice.add_principal(alias)
 
@@ -201,11 +201,11 @@ class TestKerberosAliasManipulation(XMLRPC_test):
     def test_authenticate_with_user_alias(self, krbalias_user):
         krbalias_user.ensure_exists()
 
-        alias = u"{name}-alias".format(name=krbalias_user.name)
+        alias = "{name}-alias".format(name=krbalias_user.name)
 
         krbalias_user.add_principal(alias)
 
-        oldpw, newpw = u"Secret1234", u"Secret123"
+        oldpw, newpw = "Secret1234", "Secret123"
 
         pwdmod = krbalias_user.make_update_command({'userpassword': oldpw})
         pwdmod()
@@ -221,10 +221,10 @@ class TestKerberosAliasExceptions(XMLRPC_test):
     def test_add_user_coliding_with_alias(self, krbalias_user):
         krbalias_user.ensure_exists()
 
-        user_alias = u'conflicting_name'
+        user_alias = 'conflicting_name'
         krbalias_user.add_principal([user_alias])
 
-        conflict_user = UserTracker(user_alias, u'test', u'conflict')
+        conflict_user = UserTracker(user_alias, 'test', 'conflict')
 
         with pytest.raises(errors.DuplicateEntry):
             conflict_user.create()
@@ -233,7 +233,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
         krbalias_user.ensure_exists()
         krbalias_user_c.ensure_exists()
 
-        user_alias = u'krbalias-test'
+        user_alias = 'krbalias-test'
 
         krbalias_user.add_principal([user_alias])
 
@@ -254,7 +254,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
         # Add an alias overlapping the trusted domain realm
         with pytest.raises(errors.ValidationError):
             krbalias_user.add_principal(
-                u'{username}\\@{trusted_domain}@{realm}'.format(
+                '{username}\\@{trusted_domain}@{realm}'.format(
                     username=krbalias_user.name,
                     trusted_domain=trusted_domain['name'],
                     realm=api.env.realm
@@ -272,7 +272,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
 
         with pytest.raises(errors.ValidationError):
             krbalias_user.add_principal(
-                u'{username}\\@{trusted_domain}@{realm}'.format(
+                '{username}\\@{trusted_domain}@{realm}'.format(
                     username=krbalias_user.name,
                     trusted_domain=upn_suffix,
                     realm=api.env.realm
@@ -290,7 +290,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
 
         with pytest.raises(errors.ValidationError):
             krbalias_user.add_principal(
-                u'{username}\\@{trusted_domain}@{realm}'.format(
+                '{username}\\@{trusted_domain}@{realm}'.format(
                     username=krbalias_user.name,
                     trusted_domain=netbios_name,
                     realm=api.env.realm

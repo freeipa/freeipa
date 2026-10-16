@@ -31,11 +31,11 @@ class test_passwd(XMLRPC_test):
     """
     Test the `passwd` plugin.
     """
-    uid = u'pwexample'
-    givenname = u'Jim'
-    sn = u'Example'
-    home = u'/home/%s' % uid
-    principalname = u'%s@%s' % (uid, api.env.realm)
+    uid = 'pwexample'
+    givenname = 'Jim'
+    sn = 'Example'
+    home = '/home/%s' % uid
+    principalname = '%s@%s' % (uid, api.env.realm)
     kw = {'givenname': givenname, 'sn': sn, 'uid': uid, 'homedirectory': home}
 
     def test_1_user_add(self):
@@ -53,7 +53,7 @@ class test_passwd(XMLRPC_test):
         """
         Test the `xmlrpc.passwd` method.
         """
-        out = api.Command['passwd'](self.uid, password=u'password1')
+        out = api.Command['passwd'](self.uid, password='password1')
         assert out['result'] is True
 
     def test_3_user_del(self):
