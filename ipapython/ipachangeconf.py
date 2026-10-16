@@ -588,3 +588,29 @@ class IPAChangeConf:
     def emptyLine():
         return {'name': 'empty',
                 'type': 'empty'}
+
+
+def krb5_conf_set_realm_option(conf_file, realm, option, value):
+    """Set an option in a realm subsection of a krb5.conf-style file.
+
+    :param conf_file: path to the configuration file to modify
+    :param realm: Kerberos realm name (e.g. 'EXAMPLE.COM')
+    :param option: option name (e.g. 'auto_fast_armor')
+    :param value: option value (e.g. 'true')
+    """
+    krbconf = IPAChangeConf("IPA Installer")
+    krbconf.setOptionAssignment((" = ", " "))
+    krbconf.setSectionNameDelimiters(("[", "]"))
+    krbconf.setSubSectionDelimiters(("{", "}"))
+    krbconf.setIndent(("", "  ", "    "))
+
+    ropts = [{
+        'name': realm,
+        'type': 'subsection',
+        'value': [
+            krbconf.setOption(option, value),
+        ],
+        'action': 'set'
+    }]
+    opts = [krbconf.setSection('realms', ropts)]
+    krbconf.changeConf(conf_file, opts)
