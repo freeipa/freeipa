@@ -302,6 +302,7 @@ class TestHSMInstall(BaseHSMTest):
                     '--certificate-out', cert_file, csr_file]
         self.master.run_command(cmd_args)
 
+    @pytest.mark.xfail(reason='pki ticket 5213')
     def test_hsm_install_healthcheck(self):
         check_version(self.master)
         set_excludes(self.master, "key", "DSCLE0004")
