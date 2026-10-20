@@ -196,7 +196,11 @@ class ca(LDAPObject):
 
     def add_token_key(self, *keys):
         # the ca name is stored in a cn attribute which is case-insensitive
-        if len(keys) == 0 or keys[0].lower() == IPA_CA_CN.lower():
+        if (
+            len(keys) == 0
+            or keys[-1] is None
+            or keys[-1] and keys[-1].lower() == IPA_CA_CN.lower()
+        ):
             return keys
         config = api.Command['config_show']()['result']
         if 'hsm_token_name' in config and not keys[-1].startswith(
