@@ -32,7 +32,9 @@ ranges in order to cover users and groups found.
 
 Finally, the tool will summarize the analysis, and, if there are proposed
 changes, will ask if the user wants to apply those. Please read the
-proposals carefully before proceeding with changes!
+proposals carefully before proceeding with changes! With \fI--dry-run\fR,
+the tool stops after the summary, without asking and without applying
+anything.
 
 Important note: By default, \fIipa-idrange-fix\fR will not cover the users and 
 groups that have IDs under 1000 as these IDs are reserved for system and
@@ -92,6 +94,11 @@ outer margins will be applied. Rounding will be 10^size of the proposed range.
 \fB\-\-unattended\fR
 Run the tool in unattended mode, if any changes would be proposed, they will
 be applied automatically.
+.TP
+\fB\-\-dry\-run\fR
+Only show the analysis and the proposed changes, without asking for
+confirmation and without applying them. Cannot be used with
+\fI--unattended\fR.
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Print debugging information.

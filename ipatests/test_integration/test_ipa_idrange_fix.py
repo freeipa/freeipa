@@ -201,3 +201,53 @@ range found!"
 
         assert expected_text in result.stderr_text
         assert expected_user in result.stderr_text
+
+    def test_dry_run(self):
+        """Test ipa-idrange-fix --dry-run proposes but changes nothing."""
+        # Use ldapmodify to create the range without rid bases
+        idrange_ldif = (
+            "dn: cn=idrange_no_rid_bases,cn=ranges,cn=etc,{suffix}\n"
+            "changetype: add\n"
+            "objectclass: top\n"
+            "objectclass: ipaIDrange\n"
+            "objectclass: ipadomainidrange\n"
+            "ipaRangeType: ipa-local\n"
+            "ipaBaseID: 10000\n"
+            "ipaIDRangeSize: 20000\n"
+        ).format(suffix=str(self.master.domain.basedn))
+        tasks.ldapmodify_dm(self.master, idrange_ldif)
+
+        result = self.master.run_command(["ipa-idrange-fix", "--dry-run"])
+        show = self.master.run_command(
+            ["ipa", "idrange-show", "idrange_no_rid_bases"]
+        )
+
+        # Remove IDrange with no rid bases
+        self.master.run_command(["ipa", "idrange-del", "idrange_no_rid_bases"])
+
+        assert "Range 'idrange_no_rid_bases' - base RID" in result.stderr_text
+        assert "Dry run, not applying changes." in result.stderr_text
+        assert "RID bases updated" not in result.stderr_text
+        assert "First RID of the corresponding RID range" not in \
+            show.stdout_text
+
+    def test_dry_run_unattended(self):
+        """Test ipa-idrange-fix refuses --dry-run with --unattended."""
+        result = self.master.run_command(
+            ["ipa-idrange-fix", "--dry-run", "--unattended"],
+            raiseonerr=False,
+        )
+        assert result.returncode == 2
+        expected_text = "You cannot specify --dry-run with --unattended"
+        assert expected_text in result.stderr_text
+
+    def test_log_appended(self):
+        """Test ipa-idrange-fix appends to its log instead of truncating."""
+        logfile = "/var/log/ipa-idrange-fix.log"
+        self.master.run_command(["ipa-idrange-fix", "--dry-run"])
+        before = self.master.get_file_contents(logfile, encoding="utf-8")
+        self.master.run_command(["ipa-idrange-fix", "--dry-run"])
+        after = self.master.get_file_contents(logfile, encoding="utf-8")
+
+        assert after.startswith(before)
+        assert len(after) > len(before)

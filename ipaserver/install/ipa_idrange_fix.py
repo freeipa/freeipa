@@ -155,6 +155,14 @@ exactly covering just IDs provided",
             help="Automatically fix all range issues found without asking \
 for confirmation",
         )
+        parser.add_option(
+            "--dry-run",
+            dest="dry_run",
+            action="store_true",
+            default=False,
+            help="Only show the analysis and the proposed changes, \
+without asking for confirmation and without applying them",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -166,8 +174,14 @@ for confirmation",
         self.under1000: List[IDentity] = []
         self.id_ranges: List[IDRange] = []
 
+    def setup_logging(self, log_file_mode="a"):
+        super().setup_logging(log_file_mode=log_file_mode)
+
     def validate_options(self, needs_root=True):
         super().validate_options(needs_root)
+        if self.options.dry_run and self.options.unattended:
+            self.option_parser.error(
+                "You cannot specify --dry-run with --unattended")
 
     def run(self):
         check_server_configuration()
@@ -206,6 +220,10 @@ for confirmation",
 
             logger.info("\nID ranges table after proposed changes:")
             draw_ascii_table(self.id_ranges)
+
+            if self.options.dry_run:
+                logger.info("Dry run, not applying changes.")
+                return 0
 
             if self.options.unattended:
                 logger.info(
