@@ -12,10 +12,8 @@ unchanged for RSA/default reference.
 """
 
 # pylint: disable=no-member
-# Multiple inheritance pattern used throughout this module:
-# Test classes inherit from both helper mixins (PQCInstallBase, PQCCertHelpers)
-# and IntegrationTest. The IntegrationTest base class provides master, clients,
-# replicas attributes via pytest fixtures, which pylint cannot detect.
+# IntegrationTest provides master/clients/replicas via pytest fixtures, which
+# pylint cannot detect. Master/client classes also mix in PQCCertHelpers.
 
 import os
 import random
@@ -55,12 +53,12 @@ def _mldsa_openssl_algorithm(ipa_key_type, mldsa_cert_keygen=None):
     return label or 'ML-DSA-65'
 
 
-class PQCInstallBase:
-    """Base class for ML-DSA FreeIPA installations.
+class PQCMasterClientInstallBase(TestInstallMasterClient):
+    """PQC install on top of TestInstallMasterClient coverage.
 
-    Provides install() method with --key-type-size and --ca-key-type parameters
-    for master+client (line topology). Subclasses inherit from this plus
-    TestInstallMasterClient to get existing cert test coverage.
+    Overrides install() to pass --key-type-size / --ca-key-type for a
+    master+client line topology, and keeps the inherited certmonger/profile
+    tests from TestInstallMasterClient.
 
     Attributes:
         ipa_key_type: ML-DSA key size for IPA service certs
@@ -69,10 +67,6 @@ class PQCInstallBase:
             (e.g., 'mldsa:87')
         mldsa_cert_keygen: OpenSSL algorithm name for certmonger
             (e.g., 'ML-DSA-65')
-
-    Inherited from IntegrationTest (via multiple inheritance):
-        master, clients, replicas: Test host instances
-        domain_level, token_password, random_serial: Configuration attributes
     """
 
     ipa_key_type = None
@@ -135,10 +129,8 @@ class PQCCertHelpers:
         _ipa_user_cert_request: Request cert via 'ipa cert-request'
         _issue_user_certs: Full workflow to issue and validate user certs
         _getcert_request_host_cert: Request host cert via certmonger
-        _cleanup_getcert_request: Stop tracking and cleanup cert files
-
-    Inherited from IntegrationTest (via multiple inheritance):
-        master: Master host instance for running commands
+        _cleanup_getcert_request: Stop tracking (by id and/or file) and
+            remove cert/key files
 
     TODO: Add renewal/rekey helpers for future test scenarios:
         - _getcert_resubmit: Manual cert renewal via 'getcert resubmit'
@@ -218,7 +210,9 @@ class PQCCertHelpers:
                 csr_file, key_file = self._generate_user_csr(
                     user, stem, key_type
                 )
-                cert_file = '%s.crt' % stem
+                cert_file = os.path.join(
+                    paths.OPENSSL_CERTS_DIR, '%s.crt' % stem
+                )
                 self._ipa_user_cert_request(user, csr_file, cert_file)
                 self._assert_user_cert_public_key(cert_file, key_type)
                 self.master.run_command(
@@ -265,23 +259,32 @@ class PQCCertHelpers:
         assert 'profile: caIPAserviceCert' in list_out
         return certfile
 
-    def _cleanup_getcert_request(self, host, req_id):
-        host.run_command(
-            ['getcert', 'stop-tracking', '-i', req_id], raiseonerr=False)
-        host.run_command(
-            ['rm', '-f',
-             os.path.join(paths.OPENSSL_CERTS_DIR, '%s.pem' % req_id),
-             os.path.join(paths.OPENSSL_PRIVATE_DIR, '%s.key' % req_id)],
-            raiseonerr=False,
-        )
+    def _cleanup_getcert_request(self, host, req_id=None, filename=None):
+        cmd = ['getcert', 'stop-tracking']
+        if req_id:
+            cmd.extend(['-i', req_id])
+        if filename:
+            cmd.extend(['-f', filename])
+        if req_id or filename:
+            host.run_command(cmd, raiseonerr=False)
+
+        files = []
+        if req_id:
+            files.extend([
+                os.path.join(paths.OPENSSL_CERTS_DIR, '%s.pem' % req_id),
+                os.path.join(paths.OPENSSL_PRIVATE_DIR, '%s.key' % req_id),
+            ])
+        elif filename:
+            files.append(filename)
+        if files:
+            host.run_command(['rm', '-f'] + files, raiseonerr=False)
 
 
-class TestInstallMasterClientMLDSA(PQCInstallBase,
-                                   PQCCertHelpers,
-                                   TestInstallMasterClient):
+class TestInstallMasterClientMLDSA(PQCMasterClientInstallBase,
+                                   PQCCertHelpers):
     """ML-DSA IPA service keys with default RSA CA.
 
-    Inherits 20+ existing cert tests from TestInstallMasterClient and adds
+    Inherits existing cert tests via PQCMasterClientInstallBase and adds
     ML-DSA-specific scenarios: user cert requests with ML-DSA CSRs, and
     certmonger host cert enrollment with ML-DSA keys.
 
@@ -330,9 +333,8 @@ class TestInstallMasterClientMLDSA(PQCInstallBase,
             self._cleanup_getcert_request(self.master, req_id)
 
 
-class TestInstallMasterClientMLDSACA(PQCInstallBase,
-                                     PQCCertHelpers,
-                                     TestInstallMasterClient):
+class TestInstallMasterClientMLDSACA(PQCMasterClientInstallBase,
+                                     PQCCertHelpers):
     """ML-DSA IPA service keys and ML-DSA CA signing keys.
 
     Tests full ML-DSA deployment: both IPA service certs and CA signing
@@ -397,7 +399,6 @@ class TestInstallMasterClientMLDSACA(PQCInstallBase,
             # Run parent test (validates SAN + ACI behavior)
             super().test_ipa_getcert_san_aci()
         finally:
-            # Cleanup certmonger tracking
             self.clients[0].run_command(
                 ['ipa-getcert', 'stop-tracking', '-f', certfile],
                 raiseonerr=False
@@ -407,7 +408,6 @@ class TestInstallMasterClientMLDSACA(PQCInstallBase,
                 raiseonerr=False
             )
 
-            # Cleanup DNS records
             hostname = self.clients[0].hostname
             tasks.kinit_admin(self.master)
             try:
@@ -418,9 +418,6 @@ class TestInstallMasterClientMLDSACA(PQCInstallBase,
                     ['ipa', 'dnsrecord-del', zone, rec, '--ptr-rec', hostname],
                     raiseonerr=False
                 )
-            except Exception:
-                # DNS cleanup is best-effort
-                pass
             finally:
                 tasks.kdestroy_all(self.master)
 
@@ -492,18 +489,18 @@ class TestInstallMasterClientMLDSACA(PQCInstallBase,
             self._cleanup_getcert_request(host, req_id)
 
 
-class PQCEnrollmentInstall:
-    """PQC install for master + replica (enrollment-focused topology).
-
-    Inherited from IntegrationTest (via multiple inheritance):
-        master, replicas: Test host instances
-    """
+class PQCEnrollmentInstall(IntegrationTest, PQCCertHelpers):
+    """PQC install for master + replica (enrollment-focused topology)."""
 
     num_replicas = 1
     master_with_dns = True
     ipa_key_type = None
     ca_key_type = None
     mldsa_cert_keygen = 'ML-DSA-65'
+    # Prefix for certmonger request IDs in enrollment tests
+    enroll_req_id_prefix = 'pqc-mldsa-enroll'
+    # Stem prefix for ipa cert-request enrollment tests
+    ipa_cert_request_stem_prefix = 'pqc-ipa-cr'
 
     @classmethod
     def install(cls, mh):
@@ -516,17 +513,18 @@ class PQCEnrollmentInstall:
             cls.master, setup_dns=True,
             extra_args=extra_args
         )
+        tasks.add_a_records_for_hosts_in_master_domain(cls.master)
         tasks.install_replica(
             cls.master, cls.replicas[0],
             setup_ca=True,
         )
 
-    def _cleanup_mldsa_enroll_files(self, host, req_id):
-        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, '%s.pem' % req_id)
-        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, '%s.key' % req_id)
-        host.run_command(
-            ['getcert', 'stop-tracking', '-i', req_id], raiseonerr=False)
-        host.run_command(['rm', '-f', certfile, keyfile], raiseonerr=False)
+    def _host_for_enroll_role(self, host_role):
+        if host_role == 'master':
+            return self.master
+        if host_role == 'replica':
+            return self.replicas[0]
+        raise ValueError('Unknown host role: %s' % host_role)
 
     def _request_mldsa_caIPAservice_cert(self, host, req_id):
         """Issue a host cert via Dogtag profile ``caIPAserviceCert``."""
@@ -603,62 +601,40 @@ class PQCEnrollmentInstall:
                 ['ipa', 'service-del', principal], raiseonerr=False)
             host.run_command(['rm', '-f', csr, key, cert], raiseonerr=False)
 
+    @pytest.mark.parametrize('host_role', ['master', 'replica'])
+    def test_getcert_enroll_caIPAserviceCert_mldsa_key(self, host_role):
+        """Certmonger caIPAserviceCert enrollment with an ML-DSA key."""
+        host = self._host_for_enroll_role(host_role)
+        req_id = '%s-%s' % (self.enroll_req_id_prefix, host_role)
+        try:
+            self._request_mldsa_caIPAservice_cert(host, req_id)
+        finally:
+            self._cleanup_getcert_request(host, req_id=req_id)
 
-class TestPQCCertEnrollmentIPACerts(PQCEnrollmentInstall,
-                                    IntegrationTest):
+    def test_ipa_cert_request_mldsa_caIPAservice_profile_master(self):
+        """ipa cert-request with ML-DSA CSR against caIPAserviceCert."""
+        suffix = ''.join(
+            random.choice(string.ascii_lowercase) for _ in range(8)
+        )
+        stem = '%s-%s' % (self.ipa_cert_request_stem_prefix, suffix)
+        self._request_mldsa_via_ipa_cert_request(self.master, stem, suffix)
+
+
+class TestPQCCertEnrollmentIPACerts(PQCEnrollmentInstall):
     """Certmonger enrollment with ML-DSA service keys (RSA CA)."""
 
     ipa_key_type = 'mldsa'
     ca_key_type = None
     mldsa_cert_keygen = 'ML-DSA-65'
-
-    def test_getcert_enroll_caIPAserviceCert_mldsa_key_master(self):
-        req_id = 'pqc-mldsa-enroll-master'
-        try:
-            self._request_mldsa_caIPAservice_cert(self.master, req_id)
-        finally:
-            self._cleanup_mldsa_enroll_files(self.master, req_id)
-
-    def test_getcert_enroll_caIPAserviceCert_mldsa_key_replica(self):
-        req_id = 'pqc-mldsa-enroll-replica'
-        try:
-            self._request_mldsa_caIPAservice_cert(self.replicas[0], req_id)
-        finally:
-            self._cleanup_mldsa_enroll_files(self.replicas[0], req_id)
-
-    def test_ipa_cert_request_mldsa_caIPAservice_profile_master(self):
-        suffix = ''.join(
-            random.choice(string.ascii_lowercase) for _ in range(8)
-        )
-        stem = 'pqc-ipa-cr-%s' % suffix
-        self._request_mldsa_via_ipa_cert_request(self.master, stem, suffix)
+    enroll_req_id_prefix = 'pqc-mldsa-enroll'
+    ipa_cert_request_stem_prefix = 'pqc-ipa-cr'
 
 
-class TestPQCCertEnrollmentCACerts(PQCEnrollmentInstall,
-                                   IntegrationTest):
+class TestPQCCertEnrollmentCACerts(PQCEnrollmentInstall):
     """Enrollment when both IPA service keys and the CA use ML-DSA."""
 
     ipa_key_type = 'mldsa:44'
     ca_key_type = 'mldsa'
     mldsa_cert_keygen = 'ML-DSA-44'
-
-    def test_getcert_enroll_caIPAserviceCert_mldsa_key_master(self):
-        req_id = 'pqc-mldsa44-enroll-master'
-        try:
-            self._request_mldsa_caIPAservice_cert(self.master, req_id)
-        finally:
-            self._cleanup_mldsa_enroll_files(self.master, req_id)
-
-    def test_getcert_enroll_caIPAserviceCert_mldsa_key_replica(self):
-        req_id = 'pqc-mldsa44-enroll-replica'
-        try:
-            self._request_mldsa_caIPAservice_cert(self.replicas[0], req_id)
-        finally:
-            self._cleanup_mldsa_enroll_files(self.replicas[0], req_id)
-
-    def test_ipa_cert_request_mldsa_caIPAservice_profile_master(self):
-        suffix = ''.join(
-            random.choice(string.ascii_lowercase) for _ in range(8)
-        )
-        stem = 'pqc-ipa-cr44-%s' % suffix
-        self._request_mldsa_via_ipa_cert_request(self.master, stem, suffix)
+    enroll_req_id_prefix = 'pqc-mldsa44-enroll'
+    ipa_cert_request_stem_prefix = 'pqc-ipa-cr44'

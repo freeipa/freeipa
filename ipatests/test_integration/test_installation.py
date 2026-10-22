@@ -2276,7 +2276,6 @@ class TestInstallKeySizes(IntegrationTest):
 
 
 class PQCInstallBase(IntegrationTest):
-    num_replicas = 0
     master_with_dns = True
     ipa_key_type = None
     ca_key_type = None
@@ -2288,12 +2287,10 @@ class PQCInstallBase(IntegrationTest):
             extra_args.extend(["--key-type-size", cls.ipa_key_type])
         if cls.ca_key_type:
             extra_args.extend(["--ca-key-type", cls.ca_key_type])
-        tasks.install_master(cls.master, setup_dns=True,
+        tasks.install_master(cls.master, setup_dns=cls.master_with_dns,
                              extra_args=extra_args)
-        # Only install replica if configured
-        if cls.num_replicas > 0:
-            tasks.install_replica(
-                cls.master, cls.replicas[0], setup_ca=True)
+        for replica in cls.replicas:
+            tasks.install_replica(cls.master, replica, setup_ca=True)
 
     def _get_key_type(self, type):
         if type:
@@ -2395,29 +2392,19 @@ class PQCInstallBase(IntegrationTest):
         cert_file = os.path.join(paths.OPENSSL_CERTS_DIR,
                                  f"replica_test_{suffix}.crt")
 
-        tasks.kinit_admin(replica)
         try:
             tasks.user_add(replica, test_user)
 
-            # Generate key and CSR based on configured IPA key type
-            if self.ipa_key_type and self.ipa_key_type.startswith("mldsa"):
-                # ML-DSA CSR
-                algo = expected_key_type
-                replica.run_command([
-                    "openssl", "genpkey", "-algorithm", algo,
-                    "-out", key_file
-                ])
-                replica.run_command([
-                    "openssl", "req", "-new", "-key", key_file,
-                    "-out", csr_file, "-subj", f"/CN={test_user}"
-                ])
-            else:
-                # RSA CSR (default)
-                replica.run_command([
-                    "openssl", "req", "-newkey", "rsa:2048",
-                    "-keyout", key_file, "-nodes", "-out", csr_file,
-                    "-subj", f"/CN={test_user}"
-                ])
+            # Unified CSR path for RSA and ML-DSA (genpkey + req)
+            algo = ("RSA" if expected_key_type == "rsa"
+                    else expected_key_type)
+            replica.run_command([
+                "openssl", "genpkey", "-algorithm", algo, "-out", key_file,
+            ])
+            replica.run_command([
+                "openssl", "req", "-new", "-key", key_file,
+                "-out", csr_file, "-subj", f"/CN={test_user}"
+            ])
 
             # Request certificate from replica CA
             replica.run_command([
