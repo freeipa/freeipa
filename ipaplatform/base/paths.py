@@ -475,6 +475,16 @@ class BasePathNamespace:
     )
     PAM_CONFIG = None
     PASSKEY_CHILD = '/usr/libexec/sssd/passkey_child'
+    # these are specific to Debian-based distributions and are used to
+    # configure the web server.
+    A2ENMOD = None
+    A2DISMOD = None
+    A2QUERY = None
+    A2ENCONF = None
+    A2DISCONF = None
+    A2ENSITE = None
+    A2DISSITE = None
+
 
     def check_paths(self):
         """Check paths for missing files
