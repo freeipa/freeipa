@@ -113,7 +113,7 @@ class KDCProxyConfig:
         """Check replica specific flag"""
         logger.debug('Read settings from dn: %s', self.kdc_dn)
         srcfilter = self.con.make_filter(
-            {'ipaConfigString': u'kdcProxyEnabled'}
+            {'ipaConfigString': 'kdcProxyEnabled'}
         )
         entry = self._find_entry(self.kdc_dn, ['cn'], srcfilter)
         logger.debug('%s ipaConfigString: %s', self.kdc_dn, entry)

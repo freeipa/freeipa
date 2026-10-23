@@ -32,7 +32,7 @@ import gssapi
 
 import SSSDConfig
 
-from six.moves.urllib.parse import urlsplit
+from urllib.parse import urlsplit
 
 from ipapython import ipachangeconf
 from ipaclient import discovery
@@ -459,8 +459,8 @@ def configure_automount():
             # Use the RPC directly so older servers are supported
             api.Backend.rpcclient.forward(
                 'automountlocation_show',
-                ipautil.fsdecode(options.location),
-                version=u'2.0',
+                os.fsdecode(options.location),
+                version='2.0',
             )
         except errors.VersionError as e:
             sys.exit('This client is incompatible: ' + str(e))

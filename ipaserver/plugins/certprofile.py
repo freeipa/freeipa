@@ -277,7 +277,7 @@ class certprofile_import(LDAPCreate):
     # needs such a component must configure the profile directly on the CA,
     # out of band, rather than through the IPA API.
     DANGEROUS_CLASS_IDS = frozenset({
-        u'externalprocessconstraintimpl',
+        'externalprocessconstraintimpl',
     })
 
     CLASS_ID_PATTERN = re.compile(r'class_id\s*=\s*(\S+)', re.MULTILINE)
@@ -300,7 +300,7 @@ class certprofile_import(LDAPCreate):
         matches = self.PROFILE_ID_PATTERN.findall(options['file'])
         if len(matches) == 0:
             # no profileId found, use CLI value as profileId.
-            context.profile = u'profileId=%s\n%s' % (keys[0], context.profile)
+            context.profile = 'profileId=%s\n%s' % (keys[0], context.profile)
         elif len(matches) > 1:
             raise errors.ValidationError(
                 name='file',
@@ -390,7 +390,7 @@ class certprofile_mod(LDAPUpdate):
             # Administrator privilege explicitly before contacting Dogtag.
             op_account = getattr(context, 'principal', None)
             if not principal_has_privilege(
-                    self.api, op_account, u'CA Administrator'):
+                    self.api, op_account, 'CA Administrator'):
                 raise errors.ACIError(info=_(
                     "Insufficient privilege to modify a certificate profile."))
 

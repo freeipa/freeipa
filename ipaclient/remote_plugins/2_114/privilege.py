@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Privileges
@@ -46,23 +38,23 @@ class privilege(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
-            doc=_(u'Privilege description'),
+            label=_('Description'),
+            doc=_('Privilege description'),
         ),
         parameters.Str(
             'memberof_permission',
             required=False,
-            label=_(u'Permissions'),
+            label=_('Permissions'),
         ),
         parameters.Str(
             'member_role',
             required=False,
-            label=_(u'Granting privilege to roles'),
+            label=_('Granting privilege to roles'),
         ),
     )
 
@@ -75,7 +67,7 @@ class privilege_add(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
@@ -83,40 +75,53 @@ class privilege_add(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Privilege description'),
+            label=_('Description'),
+            doc=_('Privilege description'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -125,15 +130,15 @@ class privilege_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -148,27 +153,33 @@ class privilege_add_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -178,8 +189,8 @@ class privilege_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='roles',
-            label=_(u'member role'),
-            doc=_(u'roles to add'),
+            label=_('member role'),
+            doc=_('roles to add'),
             alwaysask=True,
         ),
     )
@@ -190,12 +201,12 @@ class privilege_add_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -208,27 +219,33 @@ class privilege_add_permission(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -238,8 +255,8 @@ class privilege_add_permission(Method):
             required=False,
             multivalue=True,
             cli_name='permissions',
-            label=_(u'permission'),
-            doc=_(u'permissions'),
+            label=_('permission'),
+            doc=_('permissions'),
             alwaysask=True,
         ),
     )
@@ -250,12 +267,12 @@ class privilege_add_permission(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of permissions added'),
+            doc=_('Number of permissions added'),
         ),
     )
 
@@ -269,13 +286,13 @@ class privilege_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -283,13 +300,13 @@ class privilege_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -305,7 +322,7 @@ class privilege_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -313,44 +330,50 @@ class privilege_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Privilege description'),
+            label=_('Description'),
+            doc=_('Privilege description'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -358,8 +381,8 @@ class privilege_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -367,8 +390,8 @@ class privilege_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -376,12 +399,12 @@ class privilege_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -394,7 +417,7 @@ class privilege_mod(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
@@ -402,54 +425,73 @@ class privilege_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Privilege description'),
+            label=_('Description'),
+            doc=_('Privilege description'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -457,22 +499,22 @@ class privilege_mod(Method):
         parameters.Str(
             'rename',
             required=False,
-            label=_(u'Rename'),
-            doc=_(u'Rename the privilege object'),
+            label=_('Rename'),
+            doc=_('Rename the privilege object'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -487,27 +529,33 @@ class privilege_remove_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -517,8 +565,8 @@ class privilege_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='roles',
-            label=_(u'member role'),
-            doc=_(u'roles to remove'),
+            label=_('member role'),
+            doc=_('roles to remove'),
             alwaysask=True,
         ),
     )
@@ -529,12 +577,12 @@ class privilege_remove_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -547,27 +595,33 @@ class privilege_remove_permission(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -577,8 +631,8 @@ class privilege_remove_permission(Method):
             required=False,
             multivalue=True,
             cli_name='permissions',
-            label=_(u'permission'),
-            doc=_(u'permissions'),
+            label=_('permission'),
+            doc=_('permissions'),
             alwaysask=True,
         ),
     )
@@ -589,12 +643,12 @@ class privilege_remove_permission(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of permissions removed'),
+            doc=_('Number of permissions removed'),
         ),
     )
 
@@ -607,34 +661,43 @@ class privilege_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Privilege name'),
+            label=_('Privilege name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -643,14 +706,14 @@ class privilege_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

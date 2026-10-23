@@ -25,7 +25,6 @@ import time
 from copy import deepcopy
 import base64
 
-import six
 
 from ipalib import api, crud, errors
 from ipalib import Method, Object
@@ -40,9 +39,6 @@ from ipalib.plugable import Registry
 from ipalib.request import context
 from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
-
-if six.PY3:
-    unicode = str
 
 DNA_MAGIC = -1
 
@@ -229,7 +225,7 @@ def get_effective_rights(ldap, dn, attrs=None):
             if v == 'none':
                 # the string "none" means "no rights found"
                 # see https://fedorahosted.org/freeipa/ticket/4359
-                v = u''
+                v = ''
             rdict[k.strip().lower()] = v
 
     return rdict
@@ -280,7 +276,7 @@ def pkey_to_unicode(key):
         key = []
     elif not isinstance(key, (tuple, list)):
         key = [key]
-    key = u','.join(unicode(k) for k in key)
+    key = ','.join(str(k) for k in key)
     return key
 
 def pkey_to_value(key, options):
@@ -328,7 +324,7 @@ def validate_externalhost(ugettext, hostname):
     try:
         validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
     except ValueError as e:
-        return unicode(e)
+        return str(e)
     return None
 
 
@@ -497,7 +493,7 @@ def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
             elif (membername in lc_external_entries and
                member_dn not in members):
                 # Already an external member, reset the error message
-                msg = unicode(errors.AlreadyGroupMember())
+                msg = str(errors.AlreadyGroupMember())
                 newerror = (entry[0], msg)
                 ind = failed[memberattr][membertype].index(entry)
                 failed[memberattr][membertype][ind] = newerror
@@ -557,7 +553,7 @@ def remove_external_post_callback(ldap, dn, entry_attrs, failed, completed,
                     external_entries.remove(entry[0])
                 completed_external += 1
             else:
-                msg = unicode(errors.NotGroupMember())
+                msg = str(errors.NotGroupMember())
                 newerror = (entry[0], msg)
                 ind = failed[memberattr][membertype].index(entry)
                 failed[memberattr][membertype][ind] = newerror
@@ -711,7 +707,7 @@ class LDAPObject(Object):
             # crash.
             # Just return the entire DN, it's all we have if the entry
             # doesn't exist
-            return unicode(dn)
+            return str(dn)
 
     def get_ancestor_primary_keys(self):
         if self.parent_object:
@@ -1851,7 +1847,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         if 'rename' in options:
             if not options['rename']:
                 raise errors.ValidationError(
-                    name='rename', error=u'can\'t be empty')
+                    name='rename', error='can\'t be empty')
             entry_attrs[self.obj.primary_key.name] = options['rename']
 
         # if setattr was used to change the RDN, the primary_key.name is
@@ -2076,7 +2072,7 @@ class LDAPModMember(LDAPQuery):
                     try:
                         dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
                     except errors.PublicError as e:
-                        failed[attr][ldap_obj_name].append((name, unicode(e)))
+                        failed[attr][ldap_obj_name].append((name, str(e)))
         return (dns, failed)
 
 
@@ -2130,7 +2126,7 @@ class LDAPAddMember(LDAPModMember):
                         ldap_obj = self.api.Object[ldap_obj_name]
                         failed[attr][ldap_obj_name].append((
                             ldap_obj.get_primary_key_from_dn(m_dn),
-                            unicode(e),)
+                            str(e),)
                         )
                     else:
                         completed += 1
@@ -2231,7 +2227,7 @@ class LDAPRemoveMember(LDAPModMember):
                         ldap_obj = self.api.Object[ldap_obj_name]
                         failed[attr][ldap_obj_name].append((
                             ldap_obj.get_primary_key_from_dn(m_dn),
-                            unicode(e),)
+                            str(e),)
                         )
                     else:
                         completed += 1
@@ -2629,10 +2625,12 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                 except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
-                    failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+                    failed['member'][self.reverse_attr].append(
+                        (attr, msg.strip())
+                    )
 
             except errors.PublicError as e:
-                failed['member'][self.reverse_attr].append((attr, unicode(e)))
+                failed['member'][self.reverse_attr].append((attr, str(e)))
 
         # Update the member data.
         entry_attrs = ldap.get_entry(dn, attrs_list)
@@ -2728,10 +2726,12 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                 except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
-                    failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
+                    failed['member'][self.reverse_attr].append(
+                        (attr, msg.strip())
+                    )
 
             except errors.PublicError as e:
-                failed['member'][self.reverse_attr].append((attr, unicode(e)))
+                failed['member'][self.reverse_attr].append((attr, str(e)))
 
         # Update the member data.
         entry_attrs = ldap.get_entry(dn, attrs_list)

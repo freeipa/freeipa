@@ -11,14 +11,10 @@ from ipaplatform.paths import paths
 import sys
 import os
 
-import six
 import gssapi
 
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipapython.admintool import admin_cleanup_global_argv
-
-if six.PY3:
-    unicode = str
 
 
 def parse_options():
@@ -64,7 +60,7 @@ def parse_options():
     # We only use first argument of the passed args but as D-BUS interface
     # in oddjobd cannot expose optional, we fill in empty slots from IPA side
     # and filter them here.
-    trusted_domain = ipautil.fsdecode(args[0]).lower()
+    trusted_domain = os.fsdecode(args[0]).lower()
 
     # Accept domain names that at least have two labels. We do not support
     # single label Active Directory domains. This also catches empty args.

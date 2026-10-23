@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Automount
@@ -123,18 +115,18 @@ class automountkey(Object):
     takes_params = (
         parameters.Str(
             'automountkey',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
         parameters.Str(
             'description',
             required=False,
             primary_key=True,
-            label=_(u'description'),
+            label=_('description'),
             exclude=('webui', 'cli'),
         ),
     )
@@ -146,8 +138,8 @@ class automountlocation(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
     )
 
@@ -158,13 +150,13 @@ class automountmap(Object):
         parameters.Str(
             'automountmapname',
             primary_key=True,
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
+            label=_('Description'),
         ),
     )
 
@@ -177,52 +169,65 @@ class automountkey_add(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapautomountmapname',
             cli_name='automountmap',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Str(
             'automountkey',
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
             cli_name='info',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -231,15 +236,15 @@ class automountkey_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -252,20 +257,20 @@ class automountkey_del(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapautomountmapname',
             cli_name='automountmap',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -273,26 +278,26 @@ class automountkey_del(Method):
         parameters.Str(
             'automountkey',
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
             required=False,
             cli_name='info',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -308,19 +313,19 @@ class automountkey_find(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapautomountmapname',
             cli_name='automountmap',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -328,37 +333,43 @@ class automountkey_find(Method):
             'automountkey',
             required=False,
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
             required=False,
             cli_name='info',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -367,8 +378,8 @@ class automountkey_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -376,12 +387,12 @@ class automountkey_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -394,54 +405,67 @@ class automountkey_mod(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapautomountmapname',
             cli_name='automountmap',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Str(
             'automountkey',
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
             required=False,
             cli_name='info',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -449,18 +473,24 @@ class automountkey_mod(Method):
             'newautomountinformation',
             required=False,
             cli_name='newinfo',
-            label=_(u'New mount information'),
+            label=_('New mount information'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -468,23 +498,23 @@ class automountkey_mod(Method):
         parameters.Str(
             'rename',
             required=False,
-            label=_(u'Rename'),
-            doc=_(u'Rename the automount key object'),
+            label=_('Rename'),
+            doc=_('Rename the automount key object'),
             exclude=('webui',),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -497,46 +527,55 @@ class automountkey_show(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapautomountmapname',
             cli_name='automountmap',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'automountkey',
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Automount key name.'),
+            label=_('Key'),
+            doc=_('Automount key name.'),
         ),
         parameters.Str(
             'automountinformation',
             required=False,
             cli_name='info',
-            label=_(u'Mount information'),
+            label=_('Mount information'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -545,15 +584,15 @@ class automountkey_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -566,8 +605,8 @@ class automountlocation_add(Method):
         parameters.Str(
             'cn',
             cli_name='location',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
     )
     takes_options = (
@@ -575,26 +614,39 @@ class automountlocation_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -603,15 +655,15 @@ class automountlocation_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -625,14 +677,14 @@ class automountlocation_del(Method):
             'cn',
             multivalue=True,
             cli_name='location',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -640,13 +692,13 @@ class automountlocation_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -662,7 +714,7 @@ class automountlocation_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -670,31 +722,37 @@ class automountlocation_find(Method):
             'cn',
             required=False,
             cli_name='location',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -702,8 +760,10 @@ class automountlocation_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("location")'),
+            label=_('Primary key only'),
+            doc=_(
+                'Results should contain primary key attribute only ("location")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -711,8 +771,8 @@ class automountlocation_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -720,12 +780,12 @@ class automountlocation_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -738,28 +798,37 @@ class automountlocation_show(Method):
         parameters.Str(
             'cn',
             cli_name='location',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -768,15 +837,15 @@ class automountlocation_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -789,8 +858,8 @@ class automountlocation_tofiles(Method):
         parameters.Str(
             'cn',
             cli_name='location',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
     )
     takes_options = (
@@ -810,14 +879,14 @@ class automountmap_add(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapname',
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
@@ -825,32 +894,45 @@ class automountmap_add(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -859,15 +941,15 @@ class automountmap_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -880,14 +962,14 @@ class automountmap_add_indirect(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapname',
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
@@ -895,45 +977,58 @@ class automountmap_add_indirect(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'key',
             cli_name='mount',
-            label=_(u'Mount point'),
+            label=_('Mount point'),
         ),
         parameters.Str(
             'parentmap',
             required=False,
-            label=_(u'Parent map'),
-            doc=_(u'Name of parent automount map (default: auto.master).'),
-            default=u'auto.master',
+            label=_('Parent map'),
+            doc=_('Name of parent automount map (default: auto.master).'),
+            default='auto.master',
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -942,15 +1037,15 @@ class automountmap_add_indirect(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -963,21 +1058,21 @@ class automountmap_del(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapname',
             multivalue=True,
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -985,13 +1080,13 @@ class automountmap_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -1007,13 +1102,13 @@ class automountmap_find(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -1021,37 +1116,43 @@ class automountmap_find(Method):
             'automountmapname',
             required=False,
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1059,8 +1160,8 @@ class automountmap_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("map")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("map")'),
             default=False,
             autofill=True,
         ),
@@ -1068,8 +1169,8 @@ class automountmap_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -1077,12 +1178,12 @@ class automountmap_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -1095,14 +1196,14 @@ class automountmap_mod(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapname',
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
@@ -1110,46 +1211,65 @@ class automountmap_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1158,15 +1278,15 @@ class automountmap_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1179,34 +1299,43 @@ class automountmap_show(Method):
         parameters.Str(
             'automountlocationcn',
             cli_name='automountlocation',
-            label=_(u'Location'),
-            doc=_(u'Automount location name.'),
+            label=_('Location'),
+            doc=_('Automount location name.'),
         ),
         parameters.Str(
             'automountmapname',
             cli_name='map',
-            label=_(u'Map'),
-            doc=_(u'Automount map name.'),
+            label=_('Map'),
+            doc=_('Automount map name.'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1215,14 +1344,14 @@ class automountmap_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

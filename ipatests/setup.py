@@ -75,7 +75,6 @@ if __name__ == '__main__':
             "pytest",
             "pytest_multihost",
             "python-ldap",
-            "six",
             "pexpect",
         ],
         extras_require={

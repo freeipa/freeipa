@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Command
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Raise the IPA Domain Level.
@@ -33,7 +25,7 @@ class domainlevel_get(Command):
         output.Output(
             'result',
             int,
-            doc=_(u'Current domain level:'),
+            doc=_('Current domain level:'),
         ),
     )
 
@@ -46,7 +38,7 @@ class domainlevel_set(Command):
         parameters.Int(
             'ipadomainlevel',
             cli_name='level',
-            label=_(u'Domain Level'),
+            label=_('Domain Level'),
         ),
     )
     takes_options = (
@@ -55,6 +47,6 @@ class domainlevel_set(Command):
         output.Output(
             'result',
             int,
-            doc=_(u'Current domain level:'),
+            doc=_('Current domain level:'),
         ),
     )

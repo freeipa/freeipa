@@ -2,19 +2,13 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
 from . import Command, Method, Object
-from ipalib import api, parameters, output
+from ipalib import parameters, output
 from ipalib.parameters import DefaultFrom
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Domain Name System (DNS)
@@ -249,25 +243,35 @@ class dnsconfig(Object):
             'idnsforwarders',
             required=False,
             multivalue=True,
-            label=_(u'Global forwarders'),
-            doc=_(u'Global forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Global forwarders'),
+            doc=_(
+                'Global forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
-            label=_(u'Forward policy'),
-            doc=_(u'Global forwarding policy. Set to "none" to disable any configured global forwarders.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Global forwarding policy. '
+                'Set to "none" to disable any configured global forwarders.'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records'
+            ),
         ),
         parameters.Int(
             'idnszonerefresh',
             required=False,
-            label=_(u'Zone refresh interval'),
+            label=_('Zone refresh interval'),
         ),
     )
 
@@ -278,33 +282,42 @@ class dnsforwardzone(Object):
         parameters.DNSNameParam(
             'idnsname',
             primary_key=True,
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
         ),
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Bool(
             'idnszoneactive',
             required=False,
-            label=_(u'Active zone'),
-            doc=_(u'Is zone active?'),
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
     )
 
@@ -315,12 +328,12 @@ class dnsrecord(Object):
         parameters.DNSNameParam(
             'idnsname',
             primary_key=True,
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
         parameters.Int(
             'dnsttl',
             required=False,
-            label=_(u'Time to live'),
+            label=_('Time to live'),
         ),
         parameters.Str(
             'dnsclass',
@@ -329,562 +342,571 @@ class dnsrecord(Object):
         parameters.Any(
             'dnsrecords',
             required=False,
-            label=_(u'Records'),
+            label=_('Records'),
         ),
         parameters.Str(
             'dnstype',
             required=False,
-            label=_(u'Record type'),
+            label=_('Record type'),
         ),
         parameters.Str(
             'dnsdata',
             required=False,
-            label=_(u'Record data'),
+            label=_('Record data'),
         ),
         parameters.Str(
             'arecord',
             required=False,
             multivalue=True,
-            label=_(u'A record'),
-            doc=_(u'Raw A records'),
+            label=_('A record'),
+            doc=_('Raw A records'),
         ),
         parameters.Str(
             'a_part_ip_address',
             required=False,
-            label=_(u'A IP Address'),
-            doc=_(u'IP Address'),
+            label=_('A IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Flag(
             'a_extra_create_reverse',
             required=False,
-            label=_(u'A Create reverse'),
-            doc=_(u'Create reverse record for this IP Address'),
+            label=_('A Create reverse'),
+            doc=_('Create reverse record for this IP Address'),
         ),
         parameters.Str(
             'aaaarecord',
             required=False,
             multivalue=True,
-            label=_(u'AAAA record'),
-            doc=_(u'Raw AAAA records'),
+            label=_('AAAA record'),
+            doc=_('Raw AAAA records'),
         ),
         parameters.Str(
             'aaaa_part_ip_address',
             required=False,
-            label=_(u'AAAA IP Address'),
-            doc=_(u'IP Address'),
+            label=_('AAAA IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Flag(
             'aaaa_extra_create_reverse',
             required=False,
-            label=_(u'AAAA Create reverse'),
-            doc=_(u'Create reverse record for this IP Address'),
+            label=_('AAAA Create reverse'),
+            doc=_('Create reverse record for this IP Address'),
         ),
         parameters.Str(
             'a6record',
             required=False,
             multivalue=True,
-            label=_(u'A6 record'),
-            doc=_(u'Raw A6 records'),
+            label=_('A6 record'),
+            doc=_('Raw A6 records'),
         ),
         parameters.Str(
             'a6_part_data',
             required=False,
-            label=_(u'A6 Record data'),
-            doc=_(u'Record data'),
+            label=_('A6 Record data'),
+            doc=_('Record data'),
         ),
         parameters.Str(
             'afsdbrecord',
             required=False,
             multivalue=True,
-            label=_(u'AFSDB record'),
-            doc=_(u'Raw AFSDB records'),
+            label=_('AFSDB record'),
+            doc=_('Raw AFSDB records'),
         ),
         parameters.Int(
             'afsdb_part_subtype',
             required=False,
-            label=_(u'AFSDB Subtype'),
-            doc=_(u'Subtype'),
+            label=_('AFSDB Subtype'),
+            doc=_('Subtype'),
         ),
         parameters.DNSNameParam(
             'afsdb_part_hostname',
             required=False,
-            label=_(u'AFSDB Hostname'),
-            doc=_(u'Hostname'),
+            label=_('AFSDB Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'aplrecord',
             required=False,
             multivalue=True,
-            label=_(u'APL record'),
-            doc=_(u'Raw APL records'),
+            label=_('APL record'),
+            doc=_('Raw APL records'),
         ),
         parameters.Str(
             'certrecord',
             required=False,
             multivalue=True,
-            label=_(u'CERT record'),
-            doc=_(u'Raw CERT records'),
+            label=_('CERT record'),
+            doc=_('Raw CERT records'),
         ),
         parameters.Int(
             'cert_part_type',
             required=False,
-            label=_(u'CERT Certificate Type'),
-            doc=_(u'Certificate Type'),
+            label=_('CERT Certificate Type'),
+            doc=_('Certificate Type'),
         ),
         parameters.Int(
             'cert_part_key_tag',
             required=False,
-            label=_(u'CERT Key Tag'),
-            doc=_(u'Key Tag'),
+            label=_('CERT Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'cert_part_algorithm',
             required=False,
-            label=_(u'CERT Algorithm'),
-            doc=_(u'Algorithm'),
+            label=_('CERT Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Str(
             'cert_part_certificate_or_crl',
             required=False,
-            label=_(u'CERT Certificate/CRL'),
-            doc=_(u'Certificate/CRL'),
+            label=_('CERT Certificate/CRL'),
+            doc=_('Certificate/CRL'),
         ),
         parameters.Str(
             'cnamerecord',
             required=False,
             multivalue=True,
-            label=_(u'CNAME record'),
-            doc=_(u'Raw CNAME records'),
+            label=_('CNAME record'),
+            doc=_('Raw CNAME records'),
         ),
         parameters.DNSNameParam(
             'cname_part_hostname',
             required=False,
-            label=_(u'CNAME Hostname'),
-            doc=_(u'A hostname which this alias hostname points to'),
+            label=_('CNAME Hostname'),
+            doc=_('A hostname which this alias hostname points to'),
         ),
         parameters.Str(
             'dhcidrecord',
             required=False,
             multivalue=True,
-            label=_(u'DHCID record'),
-            doc=_(u'Raw DHCID records'),
+            label=_('DHCID record'),
+            doc=_('Raw DHCID records'),
         ),
         parameters.Str(
             'dlvrecord',
             required=False,
             multivalue=True,
-            label=_(u'DLV record'),
-            doc=_(u'Raw DLV records'),
+            label=_('DLV record'),
+            doc=_('Raw DLV records'),
         ),
         parameters.Int(
             'dlv_part_key_tag',
             required=False,
-            label=_(u'DLV Key Tag'),
-            doc=_(u'Key Tag'),
+            label=_('DLV Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'dlv_part_algorithm',
             required=False,
-            label=_(u'DLV Algorithm'),
-            doc=_(u'Algorithm'),
+            label=_('DLV Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'dlv_part_digest_type',
             required=False,
-            label=_(u'DLV Digest Type'),
-            doc=_(u'Digest Type'),
+            label=_('DLV Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'dlv_part_digest',
             required=False,
-            label=_(u'DLV Digest'),
-            doc=_(u'Digest'),
+            label=_('DLV Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'dnamerecord',
             required=False,
             multivalue=True,
-            label=_(u'DNAME record'),
-            doc=_(u'Raw DNAME records'),
+            label=_('DNAME record'),
+            doc=_('Raw DNAME records'),
         ),
         parameters.DNSNameParam(
             'dname_part_target',
             required=False,
-            label=_(u'DNAME Target'),
-            doc=_(u'Target'),
+            label=_('DNAME Target'),
+            doc=_('Target'),
         ),
         parameters.Str(
             'dsrecord',
             required=False,
             multivalue=True,
-            label=_(u'DS record'),
-            doc=_(u'Raw DS records'),
+            label=_('DS record'),
+            doc=_('Raw DS records'),
         ),
         parameters.Int(
             'ds_part_key_tag',
             required=False,
-            label=_(u'DS Key Tag'),
-            doc=_(u'Key Tag'),
+            label=_('DS Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'ds_part_algorithm',
             required=False,
-            label=_(u'DS Algorithm'),
-            doc=_(u'Algorithm'),
+            label=_('DS Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'ds_part_digest_type',
             required=False,
-            label=_(u'DS Digest Type'),
-            doc=_(u'Digest Type'),
+            label=_('DS Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'ds_part_digest',
             required=False,
-            label=_(u'DS Digest'),
-            doc=_(u'Digest'),
+            label=_('DS Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'hiprecord',
             required=False,
             multivalue=True,
-            label=_(u'HIP record'),
-            doc=_(u'Raw HIP records'),
+            label=_('HIP record'),
+            doc=_('Raw HIP records'),
         ),
         parameters.Str(
             'ipseckeyrecord',
             required=False,
             multivalue=True,
-            label=_(u'IPSECKEY record'),
-            doc=_(u'Raw IPSECKEY records'),
+            label=_('IPSECKEY record'),
+            doc=_('Raw IPSECKEY records'),
         ),
         parameters.Str(
             'keyrecord',
             required=False,
             multivalue=True,
-            label=_(u'KEY record'),
-            doc=_(u'Raw KEY records'),
+            label=_('KEY record'),
+            doc=_('Raw KEY records'),
         ),
         parameters.Str(
             'kxrecord',
             required=False,
             multivalue=True,
-            label=_(u'KX record'),
-            doc=_(u'Raw KX records'),
+            label=_('KX record'),
+            doc=_('Raw KX records'),
         ),
         parameters.Int(
             'kx_part_preference',
             required=False,
-            label=_(u'KX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            label=_('KX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
             required=False,
-            label=_(u'KX Exchanger'),
-            doc=_(u'A host willing to act as a key exchanger'),
+            label=_('KX Exchanger'),
+            doc=_('A host willing to act as a key exchanger'),
         ),
         parameters.Str(
             'locrecord',
             required=False,
             multivalue=True,
-            label=_(u'LOC record'),
-            doc=_(u'Raw LOC records'),
+            label=_('LOC record'),
+            doc=_('Raw LOC records'),
         ),
         parameters.Int(
             'loc_part_lat_deg',
             required=False,
-            label=_(u'LOC Degrees Latitude'),
-            doc=_(u'Degrees Latitude'),
+            label=_('LOC Degrees Latitude'),
+            doc=_('Degrees Latitude'),
         ),
         parameters.Int(
             'loc_part_lat_min',
             required=False,
-            label=_(u'LOC Minutes Latitude'),
-            doc=_(u'Minutes Latitude'),
+            label=_('LOC Minutes Latitude'),
+            doc=_('Minutes Latitude'),
         ),
         parameters.Decimal(
             'loc_part_lat_sec',
             required=False,
-            label=_(u'LOC Seconds Latitude'),
-            doc=_(u'Seconds Latitude'),
+            label=_('LOC Seconds Latitude'),
+            doc=_('Seconds Latitude'),
         ),
         parameters.Str(
             'loc_part_lat_dir',
             required=False,
-            label=_(u'LOC Direction Latitude'),
-            doc=_(u'Direction Latitude'),
+            label=_('LOC Direction Latitude'),
+            doc=_('Direction Latitude'),
         ),
         parameters.Int(
             'loc_part_lon_deg',
             required=False,
-            label=_(u'LOC Degrees Longitude'),
-            doc=_(u'Degrees Longitude'),
+            label=_('LOC Degrees Longitude'),
+            doc=_('Degrees Longitude'),
         ),
         parameters.Int(
             'loc_part_lon_min',
             required=False,
-            label=_(u'LOC Minutes Longitude'),
-            doc=_(u'Minutes Longitude'),
+            label=_('LOC Minutes Longitude'),
+            doc=_('Minutes Longitude'),
         ),
         parameters.Decimal(
             'loc_part_lon_sec',
             required=False,
-            label=_(u'LOC Seconds Longitude'),
-            doc=_(u'Seconds Longitude'),
+            label=_('LOC Seconds Longitude'),
+            doc=_('Seconds Longitude'),
         ),
         parameters.Str(
             'loc_part_lon_dir',
             required=False,
-            label=_(u'LOC Direction Longitude'),
-            doc=_(u'Direction Longitude'),
+            label=_('LOC Direction Longitude'),
+            doc=_('Direction Longitude'),
         ),
         parameters.Decimal(
             'loc_part_altitude',
             required=False,
-            label=_(u'LOC Altitude'),
-            doc=_(u'Altitude'),
+            label=_('LOC Altitude'),
+            doc=_('Altitude'),
         ),
         parameters.Decimal(
             'loc_part_size',
             required=False,
-            label=_(u'LOC Size'),
-            doc=_(u'Size'),
+            label=_('LOC Size'),
+            doc=_('Size'),
         ),
         parameters.Decimal(
             'loc_part_h_precision',
             required=False,
-            label=_(u'LOC Horizontal Precision'),
-            doc=_(u'Horizontal Precision'),
+            label=_('LOC Horizontal Precision'),
+            doc=_('Horizontal Precision'),
         ),
         parameters.Decimal(
             'loc_part_v_precision',
             required=False,
-            label=_(u'LOC Vertical Precision'),
-            doc=_(u'Vertical Precision'),
+            label=_('LOC Vertical Precision'),
+            doc=_('Vertical Precision'),
         ),
         parameters.Str(
             'mxrecord',
             required=False,
             multivalue=True,
-            label=_(u'MX record'),
-            doc=_(u'Raw MX records'),
+            label=_('MX record'),
+            doc=_('Raw MX records'),
         ),
         parameters.Int(
             'mx_part_preference',
             required=False,
-            label=_(u'MX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            label=_('MX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
             required=False,
-            label=_(u'MX Exchanger'),
-            doc=_(u'A host willing to act as a mail exchanger'),
+            label=_('MX Exchanger'),
+            doc=_('A host willing to act as a mail exchanger'),
         ),
         parameters.Str(
             'naptrrecord',
             required=False,
             multivalue=True,
-            label=_(u'NAPTR record'),
-            doc=_(u'Raw NAPTR records'),
+            label=_('NAPTR record'),
+            doc=_('Raw NAPTR records'),
         ),
         parameters.Int(
             'naptr_part_order',
             required=False,
-            label=_(u'NAPTR Order'),
-            doc=_(u'Order'),
+            label=_('NAPTR Order'),
+            doc=_('Order'),
         ),
         parameters.Int(
             'naptr_part_preference',
             required=False,
-            label=_(u'NAPTR Preference'),
-            doc=_(u'Preference'),
+            label=_('NAPTR Preference'),
+            doc=_('Preference'),
         ),
         parameters.Str(
             'naptr_part_flags',
             required=False,
-            label=_(u'NAPTR Flags'),
-            doc=_(u'Flags'),
+            label=_('NAPTR Flags'),
+            doc=_('Flags'),
         ),
         parameters.Str(
             'naptr_part_service',
             required=False,
-            label=_(u'NAPTR Service'),
-            doc=_(u'Service'),
+            label=_('NAPTR Service'),
+            doc=_('Service'),
         ),
         parameters.Str(
             'naptr_part_regexp',
             required=False,
-            label=_(u'NAPTR Regular Expression'),
-            doc=_(u'Regular Expression'),
+            label=_('NAPTR Regular Expression'),
+            doc=_('Regular Expression'),
         ),
         parameters.Str(
             'naptr_part_replacement',
             required=False,
-            label=_(u'NAPTR Replacement'),
-            doc=_(u'Replacement'),
+            label=_('NAPTR Replacement'),
+            doc=_('Replacement'),
         ),
         parameters.Str(
             'nsrecord',
             required=False,
             multivalue=True,
-            label=_(u'NS record'),
-            doc=_(u'Raw NS records'),
+            label=_('NS record'),
+            doc=_('Raw NS records'),
         ),
         parameters.DNSNameParam(
             'ns_part_hostname',
             required=False,
-            label=_(u'NS Hostname'),
-            doc=_(u'Hostname'),
+            label=_('NS Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'nsecrecord',
             required=False,
             multivalue=True,
-            label=_(u'NSEC record'),
-            doc=_(u'Raw NSEC records'),
+            label=_('NSEC record'),
+            doc=_('Raw NSEC records'),
         ),
         parameters.Str(
             'ptrrecord',
             required=False,
             multivalue=True,
-            label=_(u'PTR record'),
-            doc=_(u'Raw PTR records'),
+            label=_('PTR record'),
+            doc=_('Raw PTR records'),
         ),
         parameters.DNSNameParam(
             'ptr_part_hostname',
             required=False,
-            label=_(u'PTR Hostname'),
-            doc=_(u'The hostname this reverse record points to'),
+            label=_('PTR Hostname'),
+            doc=_('The hostname this reverse record points to'),
         ),
         parameters.Str(
             'rrsigrecord',
             required=False,
             multivalue=True,
-            label=_(u'RRSIG record'),
-            doc=_(u'Raw RRSIG records'),
+            label=_('RRSIG record'),
+            doc=_('Raw RRSIG records'),
         ),
         parameters.Str(
             'rprecord',
             required=False,
             multivalue=True,
-            label=_(u'RP record'),
-            doc=_(u'Raw RP records'),
+            label=_('RP record'),
+            doc=_('Raw RP records'),
         ),
         parameters.Str(
             'sigrecord',
             required=False,
             multivalue=True,
-            label=_(u'SIG record'),
-            doc=_(u'Raw SIG records'),
+            label=_('SIG record'),
+            doc=_('Raw SIG records'),
         ),
         parameters.Str(
             'spfrecord',
             required=False,
             multivalue=True,
-            label=_(u'SPF record'),
-            doc=_(u'Raw SPF records'),
+            label=_('SPF record'),
+            doc=_('Raw SPF records'),
         ),
         parameters.Str(
             'srvrecord',
             required=False,
             multivalue=True,
-            label=_(u'SRV record'),
-            doc=_(u'Raw SRV records'),
+            label=_('SRV record'),
+            doc=_('Raw SRV records'),
         ),
         parameters.Int(
             'srv_part_priority',
             required=False,
-            label=_(u'SRV Priority'),
-            doc=_(u'Priority'),
+            label=_('SRV Priority'),
+            doc=_('Priority'),
         ),
         parameters.Int(
             'srv_part_weight',
             required=False,
-            label=_(u'SRV Weight'),
-            doc=_(u'Weight'),
+            label=_('SRV Weight'),
+            doc=_('Weight'),
         ),
         parameters.Int(
             'srv_part_port',
             required=False,
-            label=_(u'SRV Port'),
-            doc=_(u'Port'),
+            label=_('SRV Port'),
+            doc=_('Port'),
         ),
         parameters.DNSNameParam(
             'srv_part_target',
             required=False,
-            label=_(u'SRV Target'),
-            doc=_(u"The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            label=_('SRV Target'),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                "decidedly not available at this domain"
+            ),
         ),
         parameters.Str(
             'sshfprecord',
             required=False,
             multivalue=True,
-            label=_(u'SSHFP record'),
-            doc=_(u'Raw SSHFP records'),
+            label=_('SSHFP record'),
+            doc=_('Raw SSHFP records'),
         ),
         parameters.Int(
             'sshfp_part_algorithm',
             required=False,
-            label=_(u'SSHFP Algorithm'),
-            doc=_(u'Algorithm'),
+            label=_('SSHFP Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'sshfp_part_fp_type',
             required=False,
-            label=_(u'SSHFP Fingerprint Type'),
-            doc=_(u'Fingerprint Type'),
+            label=_('SSHFP Fingerprint Type'),
+            doc=_('Fingerprint Type'),
         ),
         parameters.Str(
             'sshfp_part_fingerprint',
             required=False,
-            label=_(u'SSHFP Fingerprint'),
-            doc=_(u'Fingerprint'),
+            label=_('SSHFP Fingerprint'),
+            doc=_('Fingerprint'),
         ),
         parameters.Str(
             'tlsarecord',
             required=False,
             multivalue=True,
-            label=_(u'TLSA record'),
-            doc=_(u'Raw TLSA records'),
+            label=_('TLSA record'),
+            doc=_('Raw TLSA records'),
         ),
         parameters.Int(
             'tlsa_part_cert_usage',
             required=False,
-            label=_(u'TLSA Certificate Usage'),
-            doc=_(u'Certificate Usage'),
+            label=_('TLSA Certificate Usage'),
+            doc=_('Certificate Usage'),
         ),
         parameters.Int(
             'tlsa_part_selector',
             required=False,
-            label=_(u'TLSA Selector'),
-            doc=_(u'Selector'),
+            label=_('TLSA Selector'),
+            doc=_('Selector'),
         ),
         parameters.Int(
             'tlsa_part_matching_type',
             required=False,
-            label=_(u'TLSA Matching Type'),
-            doc=_(u'Matching Type'),
+            label=_('TLSA Matching Type'),
+            doc=_('Matching Type'),
         ),
         parameters.Str(
             'tlsa_part_cert_association_data',
             required=False,
-            label=_(u'TLSA Certificate Association Data'),
-            doc=_(u'Certificate Association Data'),
+            label=_('TLSA Certificate Association Data'),
+            doc=_('Certificate Association Data'),
         ),
         parameters.Str(
             'txtrecord',
             required=False,
             multivalue=True,
-            label=_(u'TXT record'),
-            doc=_(u'Raw TXT records'),
+            label=_('TXT record'),
+            doc=_('Raw TXT records'),
         ),
         parameters.Str(
             'txt_part_data',
             required=False,
-            label=_(u'TXT Text Data'),
-            doc=_(u'Text Data'),
+            label=_('TXT Text Data'),
+            doc=_('Text Data'),
         ),
     )
 
@@ -895,74 +917,83 @@ class dnszone(Object):
         parameters.DNSNameParam(
             'idnsname',
             primary_key=True,
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
         ),
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Bool(
             'idnszoneactive',
             required=False,
-            label=_(u'Active zone'),
-            doc=_(u'Is zone active?'),
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
             required=False,
-            label=_(u'Authoritative nameserver'),
-            doc=_(u'Authoritative nameserver domain name'),
+            label=_('Authoritative nameserver'),
+            doc=_('Authoritative nameserver domain name'),
         ),
         parameters.DNSNameParam(
             'idnssoarname',
-            label=_(u'Administrator e-mail address'),
+            label=_('Administrator e-mail address'),
         ),
         parameters.Int(
             'idnssoaserial',
-            label=_(u'SOA serial'),
-            doc=_(u'SOA record serial number'),
+            label=_('SOA serial'),
+            doc=_('SOA record serial number'),
         ),
         parameters.Int(
             'idnssoarefresh',
-            label=_(u'SOA refresh'),
-            doc=_(u'SOA record refresh time'),
+            label=_('SOA refresh'),
+            doc=_('SOA record refresh time'),
         ),
         parameters.Int(
             'idnssoaretry',
-            label=_(u'SOA retry'),
-            doc=_(u'SOA record retry time'),
+            label=_('SOA retry'),
+            doc=_('SOA record retry time'),
         ),
         parameters.Int(
             'idnssoaexpire',
-            label=_(u'SOA expire'),
-            doc=_(u'SOA record expire time'),
+            label=_('SOA expire'),
+            doc=_('SOA record expire time'),
         ),
         parameters.Int(
             'idnssoaminimum',
-            label=_(u'SOA minimum'),
-            doc=_(u'How long should negative responses be cached'),
+            label=_('SOA minimum'),
+            doc=_('How long should negative responses be cached'),
         ),
         parameters.Int(
             'dnsttl',
             required=False,
-            label=_(u'Time to live'),
-            doc=_(u'Time to live for records at zone apex'),
+            label=_('Time to live'),
+            doc=_('Time to live for records at zone apex'),
         ),
         parameters.Str(
             'dnsclass',
@@ -971,43 +1002,55 @@ class dnszone(Object):
         parameters.Str(
             'idnsupdatepolicy',
             required=False,
-            label=_(u'BIND update policy'),
+            label=_('BIND update policy'),
         ),
         parameters.Bool(
             'idnsallowdynupdate',
             required=False,
-            label=_(u'Dynamic update'),
-            doc=_(u'Allow dynamic updates.'),
+            label=_('Dynamic update'),
+            doc=_('Allow dynamic updates.'),
         ),
         parameters.Str(
             'idnsallowquery',
             required=False,
-            label=_(u'Allow query'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            label=_('Allow query'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
         ),
         parameters.Str(
             'idnsallowtransfer',
             required=False,
-            label=_(u'Allow transfer'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            label=_('Allow transfer'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
             required=False,
-            label=_(u'Allow in-line DNSSEC signing'),
-            doc=_(u'Allow inline DNSSEC signing of records in the zone'),
+            label=_('Allow in-line DNSSEC signing'),
+            doc=_('Allow inline DNSSEC signing of records in the zone'),
         ),
         parameters.Str(
             'nsec3paramrecord',
             required=False,
-            label=_(u'NSEC3PARAM record'),
-            doc=_(u'NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            label=_('NSEC3PARAM record'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
     )
 
@@ -1023,17 +1066,17 @@ class dns_is_enabled(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1045,7 +1088,7 @@ class dns_resolve(Command):
     takes_args = (
         parameters.Str(
             'hostname',
-            label=_(u'Hostname'),
+            label=_('Hostname'),
         ),
     )
     takes_options = (
@@ -1053,17 +1096,17 @@ class dns_resolve(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1078,70 +1121,99 @@ class dnsconfig_mod(Method):
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Global forwarders'),
-            doc=_(u'Global forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Global forwarders'),
+            doc=_(
+                'Global forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Global forwarding policy. Set to "none" to disable any configured global forwarders.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Global forwarding policy. '
+                'Set to "none" to disable any configured global forwarders.'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             cli_name='allow_sync_ptr',
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records'
+            ),
         ),
         parameters.Int(
             'idnszonerefresh',
             required=False,
             deprecated=True,
             cli_name='zone_refresh',
-            label=_(u'Zone refresh interval'),
+            label=_('Zone refresh interval'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1150,15 +1222,15 @@ class dnsconfig_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1170,21 +1242,30 @@ class dnsconfig_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1193,15 +1274,15 @@ class dnsconfig_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1214,8 +1295,8 @@ class dnsforwardzone_add(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1226,49 +1307,71 @@ class dnsforwardzone_add(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1277,15 +1380,15 @@ class dnsforwardzone_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1298,8 +1401,8 @@ class dnsforwardzone_add_permission(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1311,18 +1414,18 @@ class dnsforwardzone_add_permission(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u'Permission value'),
+            str,
+            doc=_('Permission value'),
         ),
     )
 
@@ -1336,8 +1439,8 @@ class dnsforwardzone_del(Method):
             'idnsname',
             multivalue=True,
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1347,7 +1450,7 @@ class dnsforwardzone_del(Method):
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -1355,13 +1458,13 @@ class dnsforwardzone_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -1377,8 +1480,8 @@ class dnsforwardzone_disable(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1390,17 +1493,17 @@ class dnsforwardzone_disable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1413,8 +1516,8 @@ class dnsforwardzone_enable(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1426,17 +1529,17 @@ class dnsforwardzone_enable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1449,7 +1552,7 @@ class dnsforwardzone_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -1457,8 +1560,8 @@ class dnsforwardzone_find(Method):
             'idnsname',
             required=False,
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1467,54 +1570,69 @@ class dnsforwardzone_find(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Bool(
             'idnszoneactive',
             required=False,
             cli_name='zone_active',
-            label=_(u'Active zone'),
-            doc=_(u'Is zone active?'),
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1522,8 +1640,8 @@ class dnsforwardzone_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -1531,8 +1649,8 @@ class dnsforwardzone_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -1540,12 +1658,12 @@ class dnsforwardzone_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -1558,8 +1676,8 @@ class dnsforwardzone_mod(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1570,63 +1688,91 @@ class dnsforwardzone_mod(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1635,15 +1781,15 @@ class dnsforwardzone_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1656,8 +1802,8 @@ class dnsforwardzone_remove_permission(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1669,18 +1815,18 @@ class dnsforwardzone_remove_permission(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u'Permission value'),
+            str,
+            doc=_('Permission value'),
         ),
     )
 
@@ -1693,8 +1839,8 @@ class dnsforwardzone_show(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1704,21 +1850,30 @@ class dnsforwardzone_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1727,15 +1882,15 @@ class dnsforwardzone_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1748,8 +1903,8 @@ class dnsrecord_add(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -1758,7 +1913,7 @@ class dnsrecord_add(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
     )
     takes_options = (
@@ -1766,7 +1921,7 @@ class dnsrecord_add(Method):
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
+            label=_('Time to live'),
         ),
         parameters.Str(
             'dnsclass',
@@ -1780,25 +1935,25 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='a_rec',
-            option_group=u'A Record',
-            label=_(u'A record'),
-            doc=_(u'Raw A records'),
+            option_group='A Record',
+            label=_('A record'),
+            doc=_('Raw A records'),
         ),
         parameters.Str(
             'a_part_ip_address',
             required=False,
             cli_name='a_ip_address',
-            option_group=u'A Record',
-            label=_(u'A IP Address'),
-            doc=_(u'IP Address'),
+            option_group='A Record',
+            label=_('A IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Flag(
             'a_extra_create_reverse',
             required=False,
             cli_name='a_create_reverse',
-            option_group=u'A Record',
-            label=_(u'A Create reverse'),
-            doc=_(u'Create reverse record for this IP Address'),
+            option_group='A Record',
+            label=_('A Create reverse'),
+            doc=_('Create reverse record for this IP Address'),
             default=False,
             autofill=True,
         ),
@@ -1807,25 +1962,25 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='aaaa_rec',
-            option_group=u'AAAA Record',
-            label=_(u'AAAA record'),
-            doc=_(u'Raw AAAA records'),
+            option_group='AAAA Record',
+            label=_('AAAA record'),
+            doc=_('Raw AAAA records'),
         ),
         parameters.Str(
             'aaaa_part_ip_address',
             required=False,
             cli_name='aaaa_ip_address',
-            option_group=u'AAAA Record',
-            label=_(u'AAAA IP Address'),
-            doc=_(u'IP Address'),
+            option_group='AAAA Record',
+            label=_('AAAA IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Flag(
             'aaaa_extra_create_reverse',
             required=False,
             cli_name='aaaa_create_reverse',
-            option_group=u'AAAA Record',
-            label=_(u'AAAA Create reverse'),
-            doc=_(u'Create reverse record for this IP Address'),
+            option_group='AAAA Record',
+            label=_('AAAA Create reverse'),
+            doc=_('Create reverse record for this IP Address'),
             default=False,
             autofill=True,
         ),
@@ -1834,51 +1989,51 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='a6_rec',
-            option_group=u'A6 Record',
-            label=_(u'A6 record'),
-            doc=_(u'Raw A6 records'),
+            option_group='A6 Record',
+            label=_('A6 record'),
+            doc=_('Raw A6 records'),
         ),
         parameters.Str(
             'a6_part_data',
             required=False,
             cli_name='a6_data',
-            option_group=u'A6 Record',
-            label=_(u'A6 Record data'),
-            doc=_(u'Record data'),
+            option_group='A6 Record',
+            label=_('A6 Record data'),
+            doc=_('Record data'),
         ),
         parameters.Str(
             'afsdbrecord',
             required=False,
             multivalue=True,
             cli_name='afsdb_rec',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB record'),
-            doc=_(u'Raw AFSDB records'),
+            option_group='AFSDB Record',
+            label=_('AFSDB record'),
+            doc=_('Raw AFSDB records'),
         ),
         parameters.Int(
             'afsdb_part_subtype',
             required=False,
             cli_name='afsdb_subtype',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB Subtype'),
-            doc=_(u'Subtype'),
+            option_group='AFSDB Record',
+            label=_('AFSDB Subtype'),
+            doc=_('Subtype'),
         ),
         parameters.DNSNameParam(
             'afsdb_part_hostname',
             required=False,
             cli_name='afsdb_hostname',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB Hostname'),
-            doc=_(u'Hostname'),
+            option_group='AFSDB Record',
+            label=_('AFSDB Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'aplrecord',
             required=False,
             multivalue=True,
             cli_name='apl_rec',
-            option_group=u'APL Record',
-            label=_(u'APL record'),
-            doc=_(u'Raw APL records'),
+            option_group='APL Record',
+            label=_('APL record'),
+            doc=_('Raw APL records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -1886,67 +2041,67 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='cert_rec',
-            option_group=u'CERT Record',
-            label=_(u'CERT record'),
-            doc=_(u'Raw CERT records'),
+            option_group='CERT Record',
+            label=_('CERT record'),
+            doc=_('Raw CERT records'),
         ),
         parameters.Int(
             'cert_part_type',
             required=False,
             cli_name='cert_type',
-            option_group=u'CERT Record',
-            label=_(u'CERT Certificate Type'),
-            doc=_(u'Certificate Type'),
+            option_group='CERT Record',
+            label=_('CERT Certificate Type'),
+            doc=_('Certificate Type'),
         ),
         parameters.Int(
             'cert_part_key_tag',
             required=False,
             cli_name='cert_key_tag',
-            option_group=u'CERT Record',
-            label=_(u'CERT Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='CERT Record',
+            label=_('CERT Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'cert_part_algorithm',
             required=False,
             cli_name='cert_algorithm',
-            option_group=u'CERT Record',
-            label=_(u'CERT Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='CERT Record',
+            label=_('CERT Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Str(
             'cert_part_certificate_or_crl',
             required=False,
             cli_name='cert_certificate_or_crl',
-            option_group=u'CERT Record',
-            label=_(u'CERT Certificate/CRL'),
-            doc=_(u'Certificate/CRL'),
+            option_group='CERT Record',
+            label=_('CERT Certificate/CRL'),
+            doc=_('Certificate/CRL'),
         ),
         parameters.Str(
             'cnamerecord',
             required=False,
             multivalue=True,
             cli_name='cname_rec',
-            option_group=u'CNAME Record',
-            label=_(u'CNAME record'),
-            doc=_(u'Raw CNAME records'),
+            option_group='CNAME Record',
+            label=_('CNAME record'),
+            doc=_('Raw CNAME records'),
         ),
         parameters.DNSNameParam(
             'cname_part_hostname',
             required=False,
             cli_name='cname_hostname',
-            option_group=u'CNAME Record',
-            label=_(u'CNAME Hostname'),
-            doc=_(u'A hostname which this alias hostname points to'),
+            option_group='CNAME Record',
+            label=_('CNAME Hostname'),
+            doc=_('A hostname which this alias hostname points to'),
         ),
         parameters.Str(
             'dhcidrecord',
             required=False,
             multivalue=True,
             cli_name='dhcid_rec',
-            option_group=u'DHCID Record',
-            label=_(u'DHCID record'),
-            doc=_(u'Raw DHCID records'),
+            option_group='DHCID Record',
+            label=_('DHCID record'),
+            doc=_('Raw DHCID records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -1954,108 +2109,108 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='dlv_rec',
-            option_group=u'DLV Record',
-            label=_(u'DLV record'),
-            doc=_(u'Raw DLV records'),
+            option_group='DLV Record',
+            label=_('DLV record'),
+            doc=_('Raw DLV records'),
         ),
         parameters.Int(
             'dlv_part_key_tag',
             required=False,
             cli_name='dlv_key_tag',
-            option_group=u'DLV Record',
-            label=_(u'DLV Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='DLV Record',
+            label=_('DLV Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'dlv_part_algorithm',
             required=False,
             cli_name='dlv_algorithm',
-            option_group=u'DLV Record',
-            label=_(u'DLV Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='DLV Record',
+            label=_('DLV Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'dlv_part_digest_type',
             required=False,
             cli_name='dlv_digest_type',
-            option_group=u'DLV Record',
-            label=_(u'DLV Digest Type'),
-            doc=_(u'Digest Type'),
+            option_group='DLV Record',
+            label=_('DLV Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'dlv_part_digest',
             required=False,
             cli_name='dlv_digest',
-            option_group=u'DLV Record',
-            label=_(u'DLV Digest'),
-            doc=_(u'Digest'),
+            option_group='DLV Record',
+            label=_('DLV Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'dnamerecord',
             required=False,
             multivalue=True,
             cli_name='dname_rec',
-            option_group=u'DNAME Record',
-            label=_(u'DNAME record'),
-            doc=_(u'Raw DNAME records'),
+            option_group='DNAME Record',
+            label=_('DNAME record'),
+            doc=_('Raw DNAME records'),
         ),
         parameters.DNSNameParam(
             'dname_part_target',
             required=False,
             cli_name='dname_target',
-            option_group=u'DNAME Record',
-            label=_(u'DNAME Target'),
-            doc=_(u'Target'),
+            option_group='DNAME Record',
+            label=_('DNAME Target'),
+            doc=_('Target'),
         ),
         parameters.Str(
             'dsrecord',
             required=False,
             multivalue=True,
             cli_name='ds_rec',
-            option_group=u'DS Record',
-            label=_(u'DS record'),
-            doc=_(u'Raw DS records'),
+            option_group='DS Record',
+            label=_('DS record'),
+            doc=_('Raw DS records'),
         ),
         parameters.Int(
             'ds_part_key_tag',
             required=False,
             cli_name='ds_key_tag',
-            option_group=u'DS Record',
-            label=_(u'DS Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='DS Record',
+            label=_('DS Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'ds_part_algorithm',
             required=False,
             cli_name='ds_algorithm',
-            option_group=u'DS Record',
-            label=_(u'DS Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='DS Record',
+            label=_('DS Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'ds_part_digest_type',
             required=False,
             cli_name='ds_digest_type',
-            option_group=u'DS Record',
-            label=_(u'DS Digest Type'),
-            doc=_(u'Digest Type'),
+            option_group='DS Record',
+            label=_('DS Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'ds_part_digest',
             required=False,
             cli_name='ds_digest',
-            option_group=u'DS Record',
-            label=_(u'DS Digest'),
-            doc=_(u'Digest'),
+            option_group='DS Record',
+            label=_('DS Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'hiprecord',
             required=False,
             multivalue=True,
             cli_name='hip_rec',
-            option_group=u'HIP Record',
-            label=_(u'HIP record'),
-            doc=_(u'Raw HIP records'),
+            option_group='HIP Record',
+            label=_('HIP record'),
+            doc=_('Raw HIP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2063,9 +2218,9 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='ipseckey_rec',
-            option_group=u'IPSECKEY Record',
-            label=_(u'IPSECKEY record'),
-            doc=_(u'Raw IPSECKEY records'),
+            option_group='IPSECKEY Record',
+            label=_('IPSECKEY record'),
+            doc=_('Raw IPSECKEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2073,9 +2228,9 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='key_rec',
-            option_group=u'KEY Record',
-            label=_(u'KEY record'),
-            doc=_(u'Raw KEY records'),
+            option_group='KEY Record',
+            label=_('KEY record'),
+            doc=_('Raw KEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2083,137 +2238,140 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='kx_rec',
-            option_group=u'KX Record',
-            label=_(u'KX record'),
-            doc=_(u'Raw KX records'),
+            option_group='KX Record',
+            label=_('KX record'),
+            doc=_('Raw KX records'),
         ),
         parameters.Int(
             'kx_part_preference',
             required=False,
             cli_name='kx_preference',
-            option_group=u'KX Record',
-            label=_(u'KX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            option_group='KX Record',
+            label=_('KX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
             required=False,
             cli_name='kx_exchanger',
-            option_group=u'KX Record',
-            label=_(u'KX Exchanger'),
-            doc=_(u'A host willing to act as a key exchanger'),
+            option_group='KX Record',
+            label=_('KX Exchanger'),
+            doc=_('A host willing to act as a key exchanger'),
         ),
         parameters.Str(
             'locrecord',
             required=False,
             multivalue=True,
             cli_name='loc_rec',
-            option_group=u'LOC Record',
-            label=_(u'LOC record'),
-            doc=_(u'Raw LOC records'),
+            option_group='LOC Record',
+            label=_('LOC record'),
+            doc=_('Raw LOC records'),
         ),
         parameters.Int(
             'loc_part_lat_deg',
             required=False,
             cli_name='loc_lat_deg',
-            option_group=u'LOC Record',
-            label=_(u'LOC Degrees Latitude'),
-            doc=_(u'Degrees Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Degrees Latitude'),
+            doc=_('Degrees Latitude'),
         ),
         parameters.Int(
             'loc_part_lat_min',
             required=False,
             cli_name='loc_lat_min',
-            option_group=u'LOC Record',
-            label=_(u'LOC Minutes Latitude'),
-            doc=_(u'Minutes Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Minutes Latitude'),
+            doc=_('Minutes Latitude'),
         ),
         parameters.Decimal(
             'loc_part_lat_sec',
             required=False,
             cli_name='loc_lat_sec',
-            option_group=u'LOC Record',
-            label=_(u'LOC Seconds Latitude'),
-            doc=_(u'Seconds Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Seconds Latitude'),
+            doc=_('Seconds Latitude'),
             no_convert=True,
         ),
         parameters.Str(
             'loc_part_lat_dir',
             required=False,
             cli_name='loc_lat_dir',
-            option_group=u'LOC Record',
+            option_group='LOC Record',
             cli_metavar="['N', 'S']",
-            label=_(u'LOC Direction Latitude'),
-            doc=_(u'Direction Latitude'),
+            label=_('LOC Direction Latitude'),
+            doc=_('Direction Latitude'),
         ),
         parameters.Int(
             'loc_part_lon_deg',
             required=False,
             cli_name='loc_lon_deg',
-            option_group=u'LOC Record',
-            label=_(u'LOC Degrees Longitude'),
-            doc=_(u'Degrees Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Degrees Longitude'),
+            doc=_('Degrees Longitude'),
         ),
         parameters.Int(
             'loc_part_lon_min',
             required=False,
             cli_name='loc_lon_min',
-            option_group=u'LOC Record',
-            label=_(u'LOC Minutes Longitude'),
-            doc=_(u'Minutes Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Minutes Longitude'),
+            doc=_('Minutes Longitude'),
         ),
         parameters.Decimal(
             'loc_part_lon_sec',
             required=False,
             cli_name='loc_lon_sec',
-            option_group=u'LOC Record',
-            label=_(u'LOC Seconds Longitude'),
-            doc=_(u'Seconds Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Seconds Longitude'),
+            doc=_('Seconds Longitude'),
             no_convert=True,
         ),
         parameters.Str(
             'loc_part_lon_dir',
             required=False,
             cli_name='loc_lon_dir',
-            option_group=u'LOC Record',
+            option_group='LOC Record',
             cli_metavar="['E', 'W']",
-            label=_(u'LOC Direction Longitude'),
-            doc=_(u'Direction Longitude'),
+            label=_('LOC Direction Longitude'),
+            doc=_('Direction Longitude'),
         ),
         parameters.Decimal(
             'loc_part_altitude',
             required=False,
             cli_name='loc_altitude',
-            option_group=u'LOC Record',
-            label=_(u'LOC Altitude'),
-            doc=_(u'Altitude'),
+            option_group='LOC Record',
+            label=_('LOC Altitude'),
+            doc=_('Altitude'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_size',
             required=False,
             cli_name='loc_size',
-            option_group=u'LOC Record',
-            label=_(u'LOC Size'),
-            doc=_(u'Size'),
+            option_group='LOC Record',
+            label=_('LOC Size'),
+            doc=_('Size'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_h_precision',
             required=False,
             cli_name='loc_h_precision',
-            option_group=u'LOC Record',
-            label=_(u'LOC Horizontal Precision'),
-            doc=_(u'Horizontal Precision'),
+            option_group='LOC Record',
+            label=_('LOC Horizontal Precision'),
+            doc=_('Horizontal Precision'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_v_precision',
             required=False,
             cli_name='loc_v_precision',
-            option_group=u'LOC Record',
-            label=_(u'LOC Vertical Precision'),
-            doc=_(u'Vertical Precision'),
+            option_group='LOC Record',
+            label=_('LOC Vertical Precision'),
+            doc=_('Vertical Precision'),
             no_convert=True,
         ),
         parameters.Str(
@@ -2221,109 +2379,112 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='mx_rec',
-            option_group=u'MX Record',
-            label=_(u'MX record'),
-            doc=_(u'Raw MX records'),
+            option_group='MX Record',
+            label=_('MX record'),
+            doc=_('Raw MX records'),
         ),
         parameters.Int(
             'mx_part_preference',
             required=False,
             cli_name='mx_preference',
-            option_group=u'MX Record',
-            label=_(u'MX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            option_group='MX Record',
+            label=_('MX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
             required=False,
             cli_name='mx_exchanger',
-            option_group=u'MX Record',
-            label=_(u'MX Exchanger'),
-            doc=_(u'A host willing to act as a mail exchanger'),
+            option_group='MX Record',
+            label=_('MX Exchanger'),
+            doc=_('A host willing to act as a mail exchanger'),
         ),
         parameters.Str(
             'naptrrecord',
             required=False,
             multivalue=True,
             cli_name='naptr_rec',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR record'),
-            doc=_(u'Raw NAPTR records'),
+            option_group='NAPTR Record',
+            label=_('NAPTR record'),
+            doc=_('Raw NAPTR records'),
         ),
         parameters.Int(
             'naptr_part_order',
             required=False,
             cli_name='naptr_order',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Order'),
-            doc=_(u'Order'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Order'),
+            doc=_('Order'),
         ),
         parameters.Int(
             'naptr_part_preference',
             required=False,
             cli_name='naptr_preference',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Preference'),
-            doc=_(u'Preference'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Preference'),
+            doc=_('Preference'),
         ),
         parameters.Str(
             'naptr_part_flags',
             required=False,
             cli_name='naptr_flags',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Flags'),
-            doc=_(u'Flags'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Flags'),
+            doc=_('Flags'),
             no_convert=True,
         ),
         parameters.Str(
             'naptr_part_service',
             required=False,
             cli_name='naptr_service',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Service'),
-            doc=_(u'Service'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Service'),
+            doc=_('Service'),
         ),
         parameters.Str(
             'naptr_part_regexp',
             required=False,
             cli_name='naptr_regexp',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Regular Expression'),
-            doc=_(u'Regular Expression'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Regular Expression'),
+            doc=_('Regular Expression'),
         ),
         parameters.Str(
             'naptr_part_replacement',
             required=False,
             cli_name='naptr_replacement',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Replacement'),
-            doc=_(u'Replacement'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Replacement'),
+            doc=_('Replacement'),
         ),
         parameters.Str(
             'nsrecord',
             required=False,
             multivalue=True,
             cli_name='ns_rec',
-            option_group=u'NS Record',
-            label=_(u'NS record'),
-            doc=_(u'Raw NS records'),
+            option_group='NS Record',
+            label=_('NS record'),
+            doc=_('Raw NS records'),
         ),
         parameters.DNSNameParam(
             'ns_part_hostname',
             required=False,
             cli_name='ns_hostname',
-            option_group=u'NS Record',
-            label=_(u'NS Hostname'),
-            doc=_(u'Hostname'),
+            option_group='NS Record',
+            label=_('NS Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'nsecrecord',
             required=False,
             multivalue=True,
             cli_name='nsec_rec',
-            option_group=u'NSEC Record',
-            label=_(u'NSEC record'),
-            doc=_(u'Raw NSEC records'),
+            option_group='NSEC Record',
+            label=_('NSEC record'),
+            doc=_('Raw NSEC records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2331,26 +2492,26 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='ptr_rec',
-            option_group=u'PTR Record',
-            label=_(u'PTR record'),
-            doc=_(u'Raw PTR records'),
+            option_group='PTR Record',
+            label=_('PTR record'),
+            doc=_('Raw PTR records'),
         ),
         parameters.DNSNameParam(
             'ptr_part_hostname',
             required=False,
             cli_name='ptr_hostname',
-            option_group=u'PTR Record',
-            label=_(u'PTR Hostname'),
-            doc=_(u'The hostname this reverse record points to'),
+            option_group='PTR Record',
+            label=_('PTR Hostname'),
+            doc=_('The hostname this reverse record points to'),
         ),
         parameters.Str(
             'rrsigrecord',
             required=False,
             multivalue=True,
             cli_name='rrsig_rec',
-            option_group=u'RRSIG Record',
-            label=_(u'RRSIG record'),
-            doc=_(u'Raw RRSIG records'),
+            option_group='RRSIG Record',
+            label=_('RRSIG record'),
+            doc=_('Raw RRSIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2358,9 +2519,9 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='rp_rec',
-            option_group=u'RP Record',
-            label=_(u'RP record'),
-            doc=_(u'Raw RP records'),
+            option_group='RP Record',
+            label=_('RP record'),
+            doc=_('Raw RP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2368,9 +2529,9 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='sig_rec',
-            option_group=u'SIG Record',
-            label=_(u'SIG record'),
-            doc=_(u'Raw SIG records'),
+            option_group='SIG Record',
+            label=_('SIG record'),
+            doc=_('Raw SIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2378,9 +2539,9 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='spf_rec',
-            option_group=u'SPF Record',
-            label=_(u'SPF record'),
-            doc=_(u'Raw SPF records'),
+            option_group='SPF Record',
+            label=_('SPF record'),
+            doc=_('Raw SPF records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2388,173 +2549,193 @@ class dnsrecord_add(Method):
             required=False,
             multivalue=True,
             cli_name='srv_rec',
-            option_group=u'SRV Record',
-            label=_(u'SRV record'),
-            doc=_(u'Raw SRV records'),
+            option_group='SRV Record',
+            label=_('SRV record'),
+            doc=_('Raw SRV records'),
         ),
         parameters.Int(
             'srv_part_priority',
             required=False,
             cli_name='srv_priority',
-            option_group=u'SRV Record',
-            label=_(u'SRV Priority'),
-            doc=_(u'Priority'),
+            option_group='SRV Record',
+            label=_('SRV Priority'),
+            doc=_('Priority'),
         ),
         parameters.Int(
             'srv_part_weight',
             required=False,
             cli_name='srv_weight',
-            option_group=u'SRV Record',
-            label=_(u'SRV Weight'),
-            doc=_(u'Weight'),
+            option_group='SRV Record',
+            label=_('SRV Weight'),
+            doc=_('Weight'),
         ),
         parameters.Int(
             'srv_part_port',
             required=False,
             cli_name='srv_port',
-            option_group=u'SRV Record',
-            label=_(u'SRV Port'),
-            doc=_(u'Port'),
+            option_group='SRV Record',
+            label=_('SRV Port'),
+            doc=_('Port'),
         ),
         parameters.DNSNameParam(
             'srv_part_target',
             required=False,
             cli_name='srv_target',
-            option_group=u'SRV Record',
-            label=_(u'SRV Target'),
-            doc=_(u"The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            option_group='SRV Record',
+            label=_('SRV Target'),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                "decidedly not available at this domain"
+            ),
         ),
         parameters.Str(
             'sshfprecord',
             required=False,
             multivalue=True,
             cli_name='sshfp_rec',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP record'),
-            doc=_(u'Raw SSHFP records'),
+            option_group='SSHFP Record',
+            label=_('SSHFP record'),
+            doc=_('Raw SSHFP records'),
         ),
         parameters.Int(
             'sshfp_part_algorithm',
             required=False,
             cli_name='sshfp_algorithm',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'sshfp_part_fp_type',
             required=False,
             cli_name='sshfp_fp_type',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Fingerprint Type'),
-            doc=_(u'Fingerprint Type'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Fingerprint Type'),
+            doc=_('Fingerprint Type'),
         ),
         parameters.Str(
             'sshfp_part_fingerprint',
             required=False,
             cli_name='sshfp_fingerprint',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Fingerprint'),
-            doc=_(u'Fingerprint'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Fingerprint'),
+            doc=_('Fingerprint'),
         ),
         parameters.Str(
             'tlsarecord',
             required=False,
             multivalue=True,
             cli_name='tlsa_rec',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA record'),
-            doc=_(u'Raw TLSA records'),
+            option_group='TLSA Record',
+            label=_('TLSA record'),
+            doc=_('Raw TLSA records'),
         ),
         parameters.Int(
             'tlsa_part_cert_usage',
             required=False,
             cli_name='tlsa_cert_usage',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Certificate Usage'),
-            doc=_(u'Certificate Usage'),
+            option_group='TLSA Record',
+            label=_('TLSA Certificate Usage'),
+            doc=_('Certificate Usage'),
         ),
         parameters.Int(
             'tlsa_part_selector',
             required=False,
             cli_name='tlsa_selector',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Selector'),
-            doc=_(u'Selector'),
+            option_group='TLSA Record',
+            label=_('TLSA Selector'),
+            doc=_('Selector'),
         ),
         parameters.Int(
             'tlsa_part_matching_type',
             required=False,
             cli_name='tlsa_matching_type',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Matching Type'),
-            doc=_(u'Matching Type'),
+            option_group='TLSA Record',
+            label=_('TLSA Matching Type'),
+            doc=_('Matching Type'),
         ),
         parameters.Str(
             'tlsa_part_cert_association_data',
             required=False,
             cli_name='tlsa_cert_association_data',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Certificate Association Data'),
-            doc=_(u'Certificate Association Data'),
+            option_group='TLSA Record',
+            label=_('TLSA Certificate Association Data'),
+            doc=_('Certificate Association Data'),
         ),
         parameters.Str(
             'txtrecord',
             required=False,
             multivalue=True,
             cli_name='txt_rec',
-            option_group=u'TXT Record',
-            label=_(u'TXT record'),
-            doc=_(u'Raw TXT records'),
+            option_group='TXT Record',
+            label=_('TXT record'),
+            doc=_('Raw TXT records'),
         ),
         parameters.Str(
             'txt_part_data',
             required=False,
             cli_name='txt_data',
-            option_group=u'TXT Record',
-            label=_(u'TXT Text Data'),
-            doc=_(u'Text Data'),
+            option_group='TXT Record',
+            label=_('TXT Text Data'),
+            doc=_('Text Data'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'force',
-            label=_(u'Force'),
-            doc=_(u'force NS record creation even if its hostname is not in DNS'),
+            label=_('Force'),
+            doc=_(
+                'force NS record creation even if its hostname is not in DNS'
+            ),
             exclude=('cli', 'webui'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
+            label=_('Structured'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -2563,15 +2744,15 @@ class dnsrecord_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -2584,8 +2765,8 @@ class dnsrecord_del(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -2594,7 +2775,7 @@ class dnsrecord_del(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
     )
     takes_options = (
@@ -2602,7 +2783,7 @@ class dnsrecord_del(Method):
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
+            label=_('Time to live'),
         ),
         parameters.Str(
             'dnsclass',
@@ -2616,40 +2797,40 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='a_rec',
-            label=_(u'A record'),
-            doc=_(u'Raw A records'),
+            label=_('A record'),
+            doc=_('Raw A records'),
         ),
         parameters.Str(
             'aaaarecord',
             required=False,
             multivalue=True,
             cli_name='aaaa_rec',
-            label=_(u'AAAA record'),
-            doc=_(u'Raw AAAA records'),
+            label=_('AAAA record'),
+            doc=_('Raw AAAA records'),
         ),
         parameters.Str(
             'a6record',
             required=False,
             multivalue=True,
             cli_name='a6_rec',
-            label=_(u'A6 record'),
-            doc=_(u'Raw A6 records'),
+            label=_('A6 record'),
+            doc=_('Raw A6 records'),
         ),
         parameters.Str(
             'afsdbrecord',
             required=False,
             multivalue=True,
             cli_name='afsdb_rec',
-            label=_(u'AFSDB record'),
-            doc=_(u'Raw AFSDB records'),
+            label=_('AFSDB record'),
+            doc=_('Raw AFSDB records'),
         ),
         parameters.Str(
             'aplrecord',
             required=False,
             multivalue=True,
             cli_name='apl_rec',
-            label=_(u'APL record'),
-            doc=_(u'Raw APL records'),
+            label=_('APL record'),
+            doc=_('Raw APL records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2657,24 +2838,24 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='cert_rec',
-            label=_(u'CERT record'),
-            doc=_(u'Raw CERT records'),
+            label=_('CERT record'),
+            doc=_('Raw CERT records'),
         ),
         parameters.Str(
             'cnamerecord',
             required=False,
             multivalue=True,
             cli_name='cname_rec',
-            label=_(u'CNAME record'),
-            doc=_(u'Raw CNAME records'),
+            label=_('CNAME record'),
+            doc=_('Raw CNAME records'),
         ),
         parameters.Str(
             'dhcidrecord',
             required=False,
             multivalue=True,
             cli_name='dhcid_rec',
-            label=_(u'DHCID record'),
-            doc=_(u'Raw DHCID records'),
+            label=_('DHCID record'),
+            doc=_('Raw DHCID records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2682,32 +2863,32 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='dlv_rec',
-            label=_(u'DLV record'),
-            doc=_(u'Raw DLV records'),
+            label=_('DLV record'),
+            doc=_('Raw DLV records'),
         ),
         parameters.Str(
             'dnamerecord',
             required=False,
             multivalue=True,
             cli_name='dname_rec',
-            label=_(u'DNAME record'),
-            doc=_(u'Raw DNAME records'),
+            label=_('DNAME record'),
+            doc=_('Raw DNAME records'),
         ),
         parameters.Str(
             'dsrecord',
             required=False,
             multivalue=True,
             cli_name='ds_rec',
-            label=_(u'DS record'),
-            doc=_(u'Raw DS records'),
+            label=_('DS record'),
+            doc=_('Raw DS records'),
         ),
         parameters.Str(
             'hiprecord',
             required=False,
             multivalue=True,
             cli_name='hip_rec',
-            label=_(u'HIP record'),
-            doc=_(u'Raw HIP records'),
+            label=_('HIP record'),
+            doc=_('Raw HIP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2715,8 +2896,8 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='ipseckey_rec',
-            label=_(u'IPSECKEY record'),
-            doc=_(u'Raw IPSECKEY records'),
+            label=_('IPSECKEY record'),
+            doc=_('Raw IPSECKEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2724,8 +2905,8 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='key_rec',
-            label=_(u'KEY record'),
-            doc=_(u'Raw KEY records'),
+            label=_('KEY record'),
+            doc=_('Raw KEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2733,48 +2914,48 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='kx_rec',
-            label=_(u'KX record'),
-            doc=_(u'Raw KX records'),
+            label=_('KX record'),
+            doc=_('Raw KX records'),
         ),
         parameters.Str(
             'locrecord',
             required=False,
             multivalue=True,
             cli_name='loc_rec',
-            label=_(u'LOC record'),
-            doc=_(u'Raw LOC records'),
+            label=_('LOC record'),
+            doc=_('Raw LOC records'),
         ),
         parameters.Str(
             'mxrecord',
             required=False,
             multivalue=True,
             cli_name='mx_rec',
-            label=_(u'MX record'),
-            doc=_(u'Raw MX records'),
+            label=_('MX record'),
+            doc=_('Raw MX records'),
         ),
         parameters.Str(
             'naptrrecord',
             required=False,
             multivalue=True,
             cli_name='naptr_rec',
-            label=_(u'NAPTR record'),
-            doc=_(u'Raw NAPTR records'),
+            label=_('NAPTR record'),
+            doc=_('Raw NAPTR records'),
         ),
         parameters.Str(
             'nsrecord',
             required=False,
             multivalue=True,
             cli_name='ns_rec',
-            label=_(u'NS record'),
-            doc=_(u'Raw NS records'),
+            label=_('NS record'),
+            doc=_('Raw NS records'),
         ),
         parameters.Str(
             'nsecrecord',
             required=False,
             multivalue=True,
             cli_name='nsec_rec',
-            label=_(u'NSEC record'),
-            doc=_(u'Raw NSEC records'),
+            label=_('NSEC record'),
+            doc=_('Raw NSEC records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2782,16 +2963,16 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='ptr_rec',
-            label=_(u'PTR record'),
-            doc=_(u'Raw PTR records'),
+            label=_('PTR record'),
+            doc=_('Raw PTR records'),
         ),
         parameters.Str(
             'rrsigrecord',
             required=False,
             multivalue=True,
             cli_name='rrsig_rec',
-            label=_(u'RRSIG record'),
-            doc=_(u'Raw RRSIG records'),
+            label=_('RRSIG record'),
+            doc=_('Raw RRSIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2799,8 +2980,8 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='rp_rec',
-            label=_(u'RP record'),
-            doc=_(u'Raw RP records'),
+            label=_('RP record'),
+            doc=_('Raw RP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2808,8 +2989,8 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='sig_rec',
-            label=_(u'SIG record'),
-            doc=_(u'Raw SIG records'),
+            label=_('SIG record'),
+            doc=_('Raw SIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2817,8 +2998,8 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='spf_rec',
-            label=_(u'SPF record'),
-            doc=_(u'Raw SPF records'),
+            label=_('SPF record'),
+            doc=_('Raw SPF records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -2826,44 +3007,44 @@ class dnsrecord_del(Method):
             required=False,
             multivalue=True,
             cli_name='srv_rec',
-            label=_(u'SRV record'),
-            doc=_(u'Raw SRV records'),
+            label=_('SRV record'),
+            doc=_('Raw SRV records'),
         ),
         parameters.Str(
             'sshfprecord',
             required=False,
             multivalue=True,
             cli_name='sshfp_rec',
-            label=_(u'SSHFP record'),
-            doc=_(u'Raw SSHFP records'),
+            label=_('SSHFP record'),
+            doc=_('Raw SSHFP records'),
         ),
         parameters.Str(
             'tlsarecord',
             required=False,
             multivalue=True,
             cli_name='tlsa_rec',
-            label=_(u'TLSA record'),
-            doc=_(u'Raw TLSA records'),
+            label=_('TLSA record'),
+            doc=_('Raw TLSA records'),
         ),
         parameters.Str(
             'txtrecord',
             required=False,
             multivalue=True,
             cli_name='txt_rec',
-            label=_(u'TXT record'),
-            doc=_(u'Raw TXT records'),
+            label=_('TXT record'),
+            doc=_('Raw TXT records'),
         ),
         parameters.Flag(
             'del_all',
-            label=_(u'Delete all associated records'),
+            label=_('Delete all associated records'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
+            label=_('Structured'),
+            doc=_('Parse all raw DNS records and return them in a '
+                  'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
@@ -2871,13 +3052,13 @@ class dnsrecord_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -2895,8 +3076,8 @@ class dnsrecord_delentry(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -2906,13 +3087,13 @@ class dnsrecord_delentry(Method):
             'idnsname',
             multivalue=True,
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -2920,13 +3101,13 @@ class dnsrecord_delentry(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -2942,8 +3123,8 @@ class dnsrecord_find(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -2952,7 +3133,7 @@ class dnsrecord_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -2960,13 +3141,13 @@ class dnsrecord_find(Method):
             'idnsname',
             required=False,
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
         parameters.Int(
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
+            label=_('Time to live'),
         ),
         parameters.Str(
             'dnsclass',
@@ -2980,40 +3161,40 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='a_rec',
-            label=_(u'A record'),
-            doc=_(u'Raw A records'),
+            label=_('A record'),
+            doc=_('Raw A records'),
         ),
         parameters.Str(
             'aaaarecord',
             required=False,
             multivalue=True,
             cli_name='aaaa_rec',
-            label=_(u'AAAA record'),
-            doc=_(u'Raw AAAA records'),
+            label=_('AAAA record'),
+            doc=_('Raw AAAA records'),
         ),
         parameters.Str(
             'a6record',
             required=False,
             multivalue=True,
             cli_name='a6_rec',
-            label=_(u'A6 record'),
-            doc=_(u'Raw A6 records'),
+            label=_('A6 record'),
+            doc=_('Raw A6 records'),
         ),
         parameters.Str(
             'afsdbrecord',
             required=False,
             multivalue=True,
             cli_name='afsdb_rec',
-            label=_(u'AFSDB record'),
-            doc=_(u'Raw AFSDB records'),
+            label=_('AFSDB record'),
+            doc=_('Raw AFSDB records'),
         ),
         parameters.Str(
             'aplrecord',
             required=False,
             multivalue=True,
             cli_name='apl_rec',
-            label=_(u'APL record'),
-            doc=_(u'Raw APL records'),
+            label=_('APL record'),
+            doc=_('Raw APL records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3021,24 +3202,24 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='cert_rec',
-            label=_(u'CERT record'),
-            doc=_(u'Raw CERT records'),
+            label=_('CERT record'),
+            doc=_('Raw CERT records'),
         ),
         parameters.Str(
             'cnamerecord',
             required=False,
             multivalue=True,
             cli_name='cname_rec',
-            label=_(u'CNAME record'),
-            doc=_(u'Raw CNAME records'),
+            label=_('CNAME record'),
+            doc=_('Raw CNAME records'),
         ),
         parameters.Str(
             'dhcidrecord',
             required=False,
             multivalue=True,
             cli_name='dhcid_rec',
-            label=_(u'DHCID record'),
-            doc=_(u'Raw DHCID records'),
+            label=_('DHCID record'),
+            doc=_('Raw DHCID records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3046,32 +3227,32 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='dlv_rec',
-            label=_(u'DLV record'),
-            doc=_(u'Raw DLV records'),
+            label=_('DLV record'),
+            doc=_('Raw DLV records'),
         ),
         parameters.Str(
             'dnamerecord',
             required=False,
             multivalue=True,
             cli_name='dname_rec',
-            label=_(u'DNAME record'),
-            doc=_(u'Raw DNAME records'),
+            label=_('DNAME record'),
+            doc=_('Raw DNAME records'),
         ),
         parameters.Str(
             'dsrecord',
             required=False,
             multivalue=True,
             cli_name='ds_rec',
-            label=_(u'DS record'),
-            doc=_(u'Raw DS records'),
+            label=_('DS record'),
+            doc=_('Raw DS records'),
         ),
         parameters.Str(
             'hiprecord',
             required=False,
             multivalue=True,
             cli_name='hip_rec',
-            label=_(u'HIP record'),
-            doc=_(u'Raw HIP records'),
+            label=_('HIP record'),
+            doc=_('Raw HIP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3079,8 +3260,8 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='ipseckey_rec',
-            label=_(u'IPSECKEY record'),
-            doc=_(u'Raw IPSECKEY records'),
+            label=_('IPSECKEY record'),
+            doc=_('Raw IPSECKEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3088,8 +3269,8 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='key_rec',
-            label=_(u'KEY record'),
-            doc=_(u'Raw KEY records'),
+            label=_('KEY record'),
+            doc=_('Raw KEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3097,48 +3278,48 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='kx_rec',
-            label=_(u'KX record'),
-            doc=_(u'Raw KX records'),
+            label=_('KX record'),
+            doc=_('Raw KX records'),
         ),
         parameters.Str(
             'locrecord',
             required=False,
             multivalue=True,
             cli_name='loc_rec',
-            label=_(u'LOC record'),
-            doc=_(u'Raw LOC records'),
+            label=_('LOC record'),
+            doc=_('Raw LOC records'),
         ),
         parameters.Str(
             'mxrecord',
             required=False,
             multivalue=True,
             cli_name='mx_rec',
-            label=_(u'MX record'),
-            doc=_(u'Raw MX records'),
+            label=_('MX record'),
+            doc=_('Raw MX records'),
         ),
         parameters.Str(
             'naptrrecord',
             required=False,
             multivalue=True,
             cli_name='naptr_rec',
-            label=_(u'NAPTR record'),
-            doc=_(u'Raw NAPTR records'),
+            label=_('NAPTR record'),
+            doc=_('Raw NAPTR records'),
         ),
         parameters.Str(
             'nsrecord',
             required=False,
             multivalue=True,
             cli_name='ns_rec',
-            label=_(u'NS record'),
-            doc=_(u'Raw NS records'),
+            label=_('NS record'),
+            doc=_('Raw NS records'),
         ),
         parameters.Str(
             'nsecrecord',
             required=False,
             multivalue=True,
             cli_name='nsec_rec',
-            label=_(u'NSEC record'),
-            doc=_(u'Raw NSEC records'),
+            label=_('NSEC record'),
+            doc=_('Raw NSEC records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3146,16 +3327,16 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='ptr_rec',
-            label=_(u'PTR record'),
-            doc=_(u'Raw PTR records'),
+            label=_('PTR record'),
+            doc=_('Raw PTR records'),
         ),
         parameters.Str(
             'rrsigrecord',
             required=False,
             multivalue=True,
             cli_name='rrsig_rec',
-            label=_(u'RRSIG record'),
-            doc=_(u'Raw RRSIG records'),
+            label=_('RRSIG record'),
+            doc=_('Raw RRSIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3163,8 +3344,8 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='rp_rec',
-            label=_(u'RP record'),
-            doc=_(u'Raw RP records'),
+            label=_('RP record'),
+            doc=_('Raw RP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3172,8 +3353,8 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='sig_rec',
-            label=_(u'SIG record'),
-            doc=_(u'Raw SIG records'),
+            label=_('SIG record'),
+            doc=_('Raw SIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3181,8 +3362,8 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='spf_rec',
-            label=_(u'SPF record'),
-            doc=_(u'Raw SPF records'),
+            label=_('SPF record'),
+            doc=_('Raw SPF records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3190,63 +3371,71 @@ class dnsrecord_find(Method):
             required=False,
             multivalue=True,
             cli_name='srv_rec',
-            label=_(u'SRV record'),
-            doc=_(u'Raw SRV records'),
+            label=_('SRV record'),
+            doc=_('Raw SRV records'),
         ),
         parameters.Str(
             'sshfprecord',
             required=False,
             multivalue=True,
             cli_name='sshfp_rec',
-            label=_(u'SSHFP record'),
-            doc=_(u'Raw SSHFP records'),
+            label=_('SSHFP record'),
+            doc=_('Raw SSHFP records'),
         ),
         parameters.Str(
             'tlsarecord',
             required=False,
             multivalue=True,
             cli_name='tlsa_rec',
-            label=_(u'TLSA record'),
-            doc=_(u'Raw TLSA records'),
+            label=_('TLSA record'),
+            doc=_('Raw TLSA records'),
         ),
         parameters.Str(
             'txtrecord',
             required=False,
             multivalue=True,
             cli_name='txt_rec',
-            label=_(u'TXT record'),
-            doc=_(u'Raw TXT records'),
+            label=_('TXT record'),
+            doc=_('Raw TXT records'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
+            label=_('Structured'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -3254,8 +3443,8 @@ class dnsrecord_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -3263,8 +3452,8 @@ class dnsrecord_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -3272,12 +3461,12 @@ class dnsrecord_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -3290,8 +3479,8 @@ class dnsrecord_mod(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -3300,7 +3489,7 @@ class dnsrecord_mod(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
     )
     takes_options = (
@@ -3308,7 +3497,7 @@ class dnsrecord_mod(Method):
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
+            label=_('Time to live'),
         ),
         parameters.Str(
             'dnsclass',
@@ -3322,85 +3511,85 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='a_rec',
-            option_group=u'A Record',
-            label=_(u'A record'),
-            doc=_(u'Raw A records'),
+            option_group='A Record',
+            label=_('A record'),
+            doc=_('Raw A records'),
         ),
         parameters.Str(
             'a_part_ip_address',
             required=False,
             cli_name='a_ip_address',
-            option_group=u'A Record',
-            label=_(u'A IP Address'),
-            doc=_(u'IP Address'),
+            option_group='A Record',
+            label=_('A IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Str(
             'aaaarecord',
             required=False,
             multivalue=True,
             cli_name='aaaa_rec',
-            option_group=u'AAAA Record',
-            label=_(u'AAAA record'),
-            doc=_(u'Raw AAAA records'),
+            option_group='AAAA Record',
+            label=_('AAAA record'),
+            doc=_('Raw AAAA records'),
         ),
         parameters.Str(
             'aaaa_part_ip_address',
             required=False,
             cli_name='aaaa_ip_address',
-            option_group=u'AAAA Record',
-            label=_(u'AAAA IP Address'),
-            doc=_(u'IP Address'),
+            option_group='AAAA Record',
+            label=_('AAAA IP Address'),
+            doc=_('IP Address'),
         ),
         parameters.Str(
             'a6record',
             required=False,
             multivalue=True,
             cli_name='a6_rec',
-            option_group=u'A6 Record',
-            label=_(u'A6 record'),
-            doc=_(u'Raw A6 records'),
+            option_group='A6 Record',
+            label=_('A6 record'),
+            doc=_('Raw A6 records'),
         ),
         parameters.Str(
             'a6_part_data',
             required=False,
             cli_name='a6_data',
-            option_group=u'A6 Record',
-            label=_(u'A6 Record data'),
-            doc=_(u'Record data'),
+            option_group='A6 Record',
+            label=_('A6 Record data'),
+            doc=_('Record data'),
         ),
         parameters.Str(
             'afsdbrecord',
             required=False,
             multivalue=True,
             cli_name='afsdb_rec',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB record'),
-            doc=_(u'Raw AFSDB records'),
+            option_group='AFSDB Record',
+            label=_('AFSDB record'),
+            doc=_('Raw AFSDB records'),
         ),
         parameters.Int(
             'afsdb_part_subtype',
             required=False,
             cli_name='afsdb_subtype',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB Subtype'),
-            doc=_(u'Subtype'),
+            option_group='AFSDB Record',
+            label=_('AFSDB Subtype'),
+            doc=_('Subtype'),
         ),
         parameters.DNSNameParam(
             'afsdb_part_hostname',
             required=False,
             cli_name='afsdb_hostname',
-            option_group=u'AFSDB Record',
-            label=_(u'AFSDB Hostname'),
-            doc=_(u'Hostname'),
+            option_group='AFSDB Record',
+            label=_('AFSDB Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'aplrecord',
             required=False,
             multivalue=True,
             cli_name='apl_rec',
-            option_group=u'APL Record',
-            label=_(u'APL record'),
-            doc=_(u'Raw APL records'),
+            option_group='APL Record',
+            label=_('APL record'),
+            doc=_('Raw APL records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3408,67 +3597,67 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='cert_rec',
-            option_group=u'CERT Record',
-            label=_(u'CERT record'),
-            doc=_(u'Raw CERT records'),
+            option_group='CERT Record',
+            label=_('CERT record'),
+            doc=_('Raw CERT records'),
         ),
         parameters.Int(
             'cert_part_type',
             required=False,
             cli_name='cert_type',
-            option_group=u'CERT Record',
-            label=_(u'CERT Certificate Type'),
-            doc=_(u'Certificate Type'),
+            option_group='CERT Record',
+            label=_('CERT Certificate Type'),
+            doc=_('Certificate Type'),
         ),
         parameters.Int(
             'cert_part_key_tag',
             required=False,
             cli_name='cert_key_tag',
-            option_group=u'CERT Record',
-            label=_(u'CERT Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='CERT Record',
+            label=_('CERT Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'cert_part_algorithm',
             required=False,
             cli_name='cert_algorithm',
-            option_group=u'CERT Record',
-            label=_(u'CERT Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='CERT Record',
+            label=_('CERT Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Str(
             'cert_part_certificate_or_crl',
             required=False,
             cli_name='cert_certificate_or_crl',
-            option_group=u'CERT Record',
-            label=_(u'CERT Certificate/CRL'),
-            doc=_(u'Certificate/CRL'),
+            option_group='CERT Record',
+            label=_('CERT Certificate/CRL'),
+            doc=_('Certificate/CRL'),
         ),
         parameters.Str(
             'cnamerecord',
             required=False,
             multivalue=True,
             cli_name='cname_rec',
-            option_group=u'CNAME Record',
-            label=_(u'CNAME record'),
-            doc=_(u'Raw CNAME records'),
+            option_group='CNAME Record',
+            label=_('CNAME record'),
+            doc=_('Raw CNAME records'),
         ),
         parameters.DNSNameParam(
             'cname_part_hostname',
             required=False,
             cli_name='cname_hostname',
-            option_group=u'CNAME Record',
-            label=_(u'CNAME Hostname'),
-            doc=_(u'A hostname which this alias hostname points to'),
+            option_group='CNAME Record',
+            label=_('CNAME Hostname'),
+            doc=_('A hostname which this alias hostname points to'),
         ),
         parameters.Str(
             'dhcidrecord',
             required=False,
             multivalue=True,
             cli_name='dhcid_rec',
-            option_group=u'DHCID Record',
-            label=_(u'DHCID record'),
-            doc=_(u'Raw DHCID records'),
+            option_group='DHCID Record',
+            label=_('DHCID record'),
+            doc=_('Raw DHCID records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3476,108 +3665,108 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='dlv_rec',
-            option_group=u'DLV Record',
-            label=_(u'DLV record'),
-            doc=_(u'Raw DLV records'),
+            option_group='DLV Record',
+            label=_('DLV record'),
+            doc=_('Raw DLV records'),
         ),
         parameters.Int(
             'dlv_part_key_tag',
             required=False,
             cli_name='dlv_key_tag',
-            option_group=u'DLV Record',
-            label=_(u'DLV Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='DLV Record',
+            label=_('DLV Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'dlv_part_algorithm',
             required=False,
             cli_name='dlv_algorithm',
-            option_group=u'DLV Record',
-            label=_(u'DLV Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='DLV Record',
+            label=_('DLV Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'dlv_part_digest_type',
             required=False,
             cli_name='dlv_digest_type',
-            option_group=u'DLV Record',
-            label=_(u'DLV Digest Type'),
-            doc=_(u'Digest Type'),
+            option_group='DLV Record',
+            label=_('DLV Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'dlv_part_digest',
             required=False,
             cli_name='dlv_digest',
-            option_group=u'DLV Record',
-            label=_(u'DLV Digest'),
-            doc=_(u'Digest'),
+            option_group='DLV Record',
+            label=_('DLV Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'dnamerecord',
             required=False,
             multivalue=True,
             cli_name='dname_rec',
-            option_group=u'DNAME Record',
-            label=_(u'DNAME record'),
-            doc=_(u'Raw DNAME records'),
+            option_group='DNAME Record',
+            label=_('DNAME record'),
+            doc=_('Raw DNAME records'),
         ),
         parameters.DNSNameParam(
             'dname_part_target',
             required=False,
             cli_name='dname_target',
-            option_group=u'DNAME Record',
-            label=_(u'DNAME Target'),
-            doc=_(u'Target'),
+            option_group='DNAME Record',
+            label=_('DNAME Target'),
+            doc=_('Target'),
         ),
         parameters.Str(
             'dsrecord',
             required=False,
             multivalue=True,
             cli_name='ds_rec',
-            option_group=u'DS Record',
-            label=_(u'DS record'),
-            doc=_(u'Raw DS records'),
+            option_group='DS Record',
+            label=_('DS record'),
+            doc=_('Raw DS records'),
         ),
         parameters.Int(
             'ds_part_key_tag',
             required=False,
             cli_name='ds_key_tag',
-            option_group=u'DS Record',
-            label=_(u'DS Key Tag'),
-            doc=_(u'Key Tag'),
+            option_group='DS Record',
+            label=_('DS Key Tag'),
+            doc=_('Key Tag'),
         ),
         parameters.Int(
             'ds_part_algorithm',
             required=False,
             cli_name='ds_algorithm',
-            option_group=u'DS Record',
-            label=_(u'DS Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='DS Record',
+            label=_('DS Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'ds_part_digest_type',
             required=False,
             cli_name='ds_digest_type',
-            option_group=u'DS Record',
-            label=_(u'DS Digest Type'),
-            doc=_(u'Digest Type'),
+            option_group='DS Record',
+            label=_('DS Digest Type'),
+            doc=_('Digest Type'),
         ),
         parameters.Str(
             'ds_part_digest',
             required=False,
             cli_name='ds_digest',
-            option_group=u'DS Record',
-            label=_(u'DS Digest'),
-            doc=_(u'Digest'),
+            option_group='DS Record',
+            label=_('DS Digest'),
+            doc=_('Digest'),
         ),
         parameters.Str(
             'hiprecord',
             required=False,
             multivalue=True,
             cli_name='hip_rec',
-            option_group=u'HIP Record',
-            label=_(u'HIP record'),
-            doc=_(u'Raw HIP records'),
+            option_group='HIP Record',
+            label=_('HIP record'),
+            doc=_('Raw HIP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3585,9 +3774,9 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='ipseckey_rec',
-            option_group=u'IPSECKEY Record',
-            label=_(u'IPSECKEY record'),
-            doc=_(u'Raw IPSECKEY records'),
+            option_group='IPSECKEY Record',
+            label=_('IPSECKEY record'),
+            doc=_('Raw IPSECKEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3595,9 +3784,9 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='key_rec',
-            option_group=u'KEY Record',
-            label=_(u'KEY record'),
-            doc=_(u'Raw KEY records'),
+            option_group='KEY Record',
+            label=_('KEY record'),
+            doc=_('Raw KEY records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3605,137 +3794,140 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='kx_rec',
-            option_group=u'KX Record',
-            label=_(u'KX record'),
-            doc=_(u'Raw KX records'),
+            option_group='KX Record',
+            label=_('KX record'),
+            doc=_('Raw KX records'),
         ),
         parameters.Int(
             'kx_part_preference',
             required=False,
             cli_name='kx_preference',
-            option_group=u'KX Record',
-            label=_(u'KX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            option_group='KX Record',
+            label=_('KX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
             required=False,
             cli_name='kx_exchanger',
-            option_group=u'KX Record',
-            label=_(u'KX Exchanger'),
-            doc=_(u'A host willing to act as a key exchanger'),
+            option_group='KX Record',
+            label=_('KX Exchanger'),
+            doc=_('A host willing to act as a key exchanger'),
         ),
         parameters.Str(
             'locrecord',
             required=False,
             multivalue=True,
             cli_name='loc_rec',
-            option_group=u'LOC Record',
-            label=_(u'LOC record'),
-            doc=_(u'Raw LOC records'),
+            option_group='LOC Record',
+            label=_('LOC record'),
+            doc=_('Raw LOC records'),
         ),
         parameters.Int(
             'loc_part_lat_deg',
             required=False,
             cli_name='loc_lat_deg',
-            option_group=u'LOC Record',
-            label=_(u'LOC Degrees Latitude'),
-            doc=_(u'Degrees Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Degrees Latitude'),
+            doc=_('Degrees Latitude'),
         ),
         parameters.Int(
             'loc_part_lat_min',
             required=False,
             cli_name='loc_lat_min',
-            option_group=u'LOC Record',
-            label=_(u'LOC Minutes Latitude'),
-            doc=_(u'Minutes Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Minutes Latitude'),
+            doc=_('Minutes Latitude'),
         ),
         parameters.Decimal(
             'loc_part_lat_sec',
             required=False,
             cli_name='loc_lat_sec',
-            option_group=u'LOC Record',
-            label=_(u'LOC Seconds Latitude'),
-            doc=_(u'Seconds Latitude'),
+            option_group='LOC Record',
+            label=_('LOC Seconds Latitude'),
+            doc=_('Seconds Latitude'),
             no_convert=True,
         ),
         parameters.Str(
             'loc_part_lat_dir',
             required=False,
             cli_name='loc_lat_dir',
-            option_group=u'LOC Record',
+            option_group='LOC Record',
             cli_metavar="['N', 'S']",
-            label=_(u'LOC Direction Latitude'),
-            doc=_(u'Direction Latitude'),
+            label=_('LOC Direction Latitude'),
+            doc=_('Direction Latitude'),
         ),
         parameters.Int(
             'loc_part_lon_deg',
             required=False,
             cli_name='loc_lon_deg',
-            option_group=u'LOC Record',
-            label=_(u'LOC Degrees Longitude'),
-            doc=_(u'Degrees Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Degrees Longitude'),
+            doc=_('Degrees Longitude'),
         ),
         parameters.Int(
             'loc_part_lon_min',
             required=False,
             cli_name='loc_lon_min',
-            option_group=u'LOC Record',
-            label=_(u'LOC Minutes Longitude'),
-            doc=_(u'Minutes Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Minutes Longitude'),
+            doc=_('Minutes Longitude'),
         ),
         parameters.Decimal(
             'loc_part_lon_sec',
             required=False,
             cli_name='loc_lon_sec',
-            option_group=u'LOC Record',
-            label=_(u'LOC Seconds Longitude'),
-            doc=_(u'Seconds Longitude'),
+            option_group='LOC Record',
+            label=_('LOC Seconds Longitude'),
+            doc=_('Seconds Longitude'),
             no_convert=True,
         ),
         parameters.Str(
             'loc_part_lon_dir',
             required=False,
             cli_name='loc_lon_dir',
-            option_group=u'LOC Record',
+            option_group='LOC Record',
             cli_metavar="['E', 'W']",
-            label=_(u'LOC Direction Longitude'),
-            doc=_(u'Direction Longitude'),
+            label=_('LOC Direction Longitude'),
+            doc=_('Direction Longitude'),
         ),
         parameters.Decimal(
             'loc_part_altitude',
             required=False,
             cli_name='loc_altitude',
-            option_group=u'LOC Record',
-            label=_(u'LOC Altitude'),
-            doc=_(u'Altitude'),
+            option_group='LOC Record',
+            label=_('LOC Altitude'),
+            doc=_('Altitude'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_size',
             required=False,
             cli_name='loc_size',
-            option_group=u'LOC Record',
-            label=_(u'LOC Size'),
-            doc=_(u'Size'),
+            option_group='LOC Record',
+            label=_('LOC Size'),
+            doc=_('Size'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_h_precision',
             required=False,
             cli_name='loc_h_precision',
-            option_group=u'LOC Record',
-            label=_(u'LOC Horizontal Precision'),
-            doc=_(u'Horizontal Precision'),
+            option_group='LOC Record',
+            label=_('LOC Horizontal Precision'),
+            doc=_('Horizontal Precision'),
             no_convert=True,
         ),
         parameters.Decimal(
             'loc_part_v_precision',
             required=False,
             cli_name='loc_v_precision',
-            option_group=u'LOC Record',
-            label=_(u'LOC Vertical Precision'),
-            doc=_(u'Vertical Precision'),
+            option_group='LOC Record',
+            label=_('LOC Vertical Precision'),
+            doc=_('Vertical Precision'),
             no_convert=True,
         ),
         parameters.Str(
@@ -3743,109 +3935,112 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='mx_rec',
-            option_group=u'MX Record',
-            label=_(u'MX record'),
-            doc=_(u'Raw MX records'),
+            option_group='MX Record',
+            label=_('MX record'),
+            doc=_('Raw MX records'),
         ),
         parameters.Int(
             'mx_part_preference',
             required=False,
             cli_name='mx_preference',
-            option_group=u'MX Record',
-            label=_(u'MX Preference'),
-            doc=_(u'Preference given to this exchanger. Lower values are more preferred'),
+            option_group='MX Record',
+            label=_('MX Preference'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
             required=False,
             cli_name='mx_exchanger',
-            option_group=u'MX Record',
-            label=_(u'MX Exchanger'),
-            doc=_(u'A host willing to act as a mail exchanger'),
+            option_group='MX Record',
+            label=_('MX Exchanger'),
+            doc=_('A host willing to act as a mail exchanger'),
         ),
         parameters.Str(
             'naptrrecord',
             required=False,
             multivalue=True,
             cli_name='naptr_rec',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR record'),
-            doc=_(u'Raw NAPTR records'),
+            option_group='NAPTR Record',
+            label=_('NAPTR record'),
+            doc=_('Raw NAPTR records'),
         ),
         parameters.Int(
             'naptr_part_order',
             required=False,
             cli_name='naptr_order',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Order'),
-            doc=_(u'Order'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Order'),
+            doc=_('Order'),
         ),
         parameters.Int(
             'naptr_part_preference',
             required=False,
             cli_name='naptr_preference',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Preference'),
-            doc=_(u'Preference'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Preference'),
+            doc=_('Preference'),
         ),
         parameters.Str(
             'naptr_part_flags',
             required=False,
             cli_name='naptr_flags',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Flags'),
-            doc=_(u'Flags'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Flags'),
+            doc=_('Flags'),
             no_convert=True,
         ),
         parameters.Str(
             'naptr_part_service',
             required=False,
             cli_name='naptr_service',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Service'),
-            doc=_(u'Service'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Service'),
+            doc=_('Service'),
         ),
         parameters.Str(
             'naptr_part_regexp',
             required=False,
             cli_name='naptr_regexp',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Regular Expression'),
-            doc=_(u'Regular Expression'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Regular Expression'),
+            doc=_('Regular Expression'),
         ),
         parameters.Str(
             'naptr_part_replacement',
             required=False,
             cli_name='naptr_replacement',
-            option_group=u'NAPTR Record',
-            label=_(u'NAPTR Replacement'),
-            doc=_(u'Replacement'),
+            option_group='NAPTR Record',
+            label=_('NAPTR Replacement'),
+            doc=_('Replacement'),
         ),
         parameters.Str(
             'nsrecord',
             required=False,
             multivalue=True,
             cli_name='ns_rec',
-            option_group=u'NS Record',
-            label=_(u'NS record'),
-            doc=_(u'Raw NS records'),
+            option_group='NS Record',
+            label=_('NS record'),
+            doc=_('Raw NS records'),
         ),
         parameters.DNSNameParam(
             'ns_part_hostname',
             required=False,
             cli_name='ns_hostname',
-            option_group=u'NS Record',
-            label=_(u'NS Hostname'),
-            doc=_(u'Hostname'),
+            option_group='NS Record',
+            label=_('NS Hostname'),
+            doc=_('Hostname'),
         ),
         parameters.Str(
             'nsecrecord',
             required=False,
             multivalue=True,
             cli_name='nsec_rec',
-            option_group=u'NSEC Record',
-            label=_(u'NSEC record'),
-            doc=_(u'Raw NSEC records'),
+            option_group='NSEC Record',
+            label=_('NSEC record'),
+            doc=_('Raw NSEC records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3853,26 +4048,26 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='ptr_rec',
-            option_group=u'PTR Record',
-            label=_(u'PTR record'),
-            doc=_(u'Raw PTR records'),
+            option_group='PTR Record',
+            label=_('PTR record'),
+            doc=_('Raw PTR records'),
         ),
         parameters.DNSNameParam(
             'ptr_part_hostname',
             required=False,
             cli_name='ptr_hostname',
-            option_group=u'PTR Record',
-            label=_(u'PTR Hostname'),
-            doc=_(u'The hostname this reverse record points to'),
+            option_group='PTR Record',
+            label=_('PTR Hostname'),
+            doc=_('The hostname this reverse record points to'),
         ),
         parameters.Str(
             'rrsigrecord',
             required=False,
             multivalue=True,
             cli_name='rrsig_rec',
-            option_group=u'RRSIG Record',
-            label=_(u'RRSIG record'),
-            doc=_(u'Raw RRSIG records'),
+            option_group='RRSIG Record',
+            label=_('RRSIG record'),
+            doc=_('Raw RRSIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3880,9 +4075,9 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='rp_rec',
-            option_group=u'RP Record',
-            label=_(u'RP record'),
-            doc=_(u'Raw RP records'),
+            option_group='RP Record',
+            label=_('RP record'),
+            doc=_('Raw RP records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3890,9 +4085,9 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='sig_rec',
-            option_group=u'SIG Record',
-            label=_(u'SIG record'),
-            doc=_(u'Raw SIG records'),
+            option_group='SIG Record',
+            label=_('SIG record'),
+            doc=_('Raw SIG records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3900,9 +4095,9 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='spf_rec',
-            option_group=u'SPF Record',
-            label=_(u'SPF record'),
-            doc=_(u'Raw SPF records'),
+            option_group='SPF Record',
+            label=_('SPF record'),
+            doc=_('Raw SPF records'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -3910,179 +4105,203 @@ class dnsrecord_mod(Method):
             required=False,
             multivalue=True,
             cli_name='srv_rec',
-            option_group=u'SRV Record',
-            label=_(u'SRV record'),
-            doc=_(u'Raw SRV records'),
+            option_group='SRV Record',
+            label=_('SRV record'),
+            doc=_('Raw SRV records'),
         ),
         parameters.Int(
             'srv_part_priority',
             required=False,
             cli_name='srv_priority',
-            option_group=u'SRV Record',
-            label=_(u'SRV Priority'),
-            doc=_(u'Priority'),
+            option_group='SRV Record',
+            label=_('SRV Priority'),
+            doc=_('Priority'),
         ),
         parameters.Int(
             'srv_part_weight',
             required=False,
             cli_name='srv_weight',
-            option_group=u'SRV Record',
-            label=_(u'SRV Weight'),
-            doc=_(u'Weight'),
+            option_group='SRV Record',
+            label=_('SRV Weight'),
+            doc=_('Weight'),
         ),
         parameters.Int(
             'srv_part_port',
             required=False,
             cli_name='srv_port',
-            option_group=u'SRV Record',
-            label=_(u'SRV Port'),
-            doc=_(u'Port'),
+            option_group='SRV Record',
+            label=_('SRV Port'),
+            doc=_('Port'),
         ),
         parameters.DNSNameParam(
             'srv_part_target',
             required=False,
             cli_name='srv_target',
-            option_group=u'SRV Record',
-            label=_(u'SRV Target'),
-            doc=_(u"The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            option_group='SRV Record',
+            label=_('SRV Target'),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                'decidedly not available at this domain'
+            ),
         ),
         parameters.Str(
             'sshfprecord',
             required=False,
             multivalue=True,
             cli_name='sshfp_rec',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP record'),
-            doc=_(u'Raw SSHFP records'),
+            option_group='SSHFP Record',
+            label=_('SSHFP record'),
+            doc=_('Raw SSHFP records'),
         ),
         parameters.Int(
             'sshfp_part_algorithm',
             required=False,
             cli_name='sshfp_algorithm',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Algorithm'),
-            doc=_(u'Algorithm'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Algorithm'),
+            doc=_('Algorithm'),
         ),
         parameters.Int(
             'sshfp_part_fp_type',
             required=False,
             cli_name='sshfp_fp_type',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Fingerprint Type'),
-            doc=_(u'Fingerprint Type'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Fingerprint Type'),
+            doc=_('Fingerprint Type'),
         ),
         parameters.Str(
             'sshfp_part_fingerprint',
             required=False,
             cli_name='sshfp_fingerprint',
-            option_group=u'SSHFP Record',
-            label=_(u'SSHFP Fingerprint'),
-            doc=_(u'Fingerprint'),
+            option_group='SSHFP Record',
+            label=_('SSHFP Fingerprint'),
+            doc=_('Fingerprint'),
         ),
         parameters.Str(
             'tlsarecord',
             required=False,
             multivalue=True,
             cli_name='tlsa_rec',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA record'),
-            doc=_(u'Raw TLSA records'),
+            option_group='TLSA Record',
+            label=_('TLSA record'),
+            doc=_('Raw TLSA records'),
         ),
         parameters.Int(
             'tlsa_part_cert_usage',
             required=False,
             cli_name='tlsa_cert_usage',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Certificate Usage'),
-            doc=_(u'Certificate Usage'),
+            option_group='TLSA Record',
+            label=_('TLSA Certificate Usage'),
+            doc=_('Certificate Usage'),
         ),
         parameters.Int(
             'tlsa_part_selector',
             required=False,
             cli_name='tlsa_selector',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Selector'),
-            doc=_(u'Selector'),
+            option_group='TLSA Record',
+            label=_('TLSA Selector'),
+            doc=_('Selector'),
         ),
         parameters.Int(
             'tlsa_part_matching_type',
             required=False,
             cli_name='tlsa_matching_type',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Matching Type'),
-            doc=_(u'Matching Type'),
+            option_group='TLSA Record',
+            label=_('TLSA Matching Type'),
+            doc=_('Matching Type'),
         ),
         parameters.Str(
             'tlsa_part_cert_association_data',
             required=False,
             cli_name='tlsa_cert_association_data',
-            option_group=u'TLSA Record',
-            label=_(u'TLSA Certificate Association Data'),
-            doc=_(u'Certificate Association Data'),
+            option_group='TLSA Record',
+            label=_('TLSA Certificate Association Data'),
+            doc=_('Certificate Association Data'),
         ),
         parameters.Str(
             'txtrecord',
             required=False,
             multivalue=True,
             cli_name='txt_rec',
-            option_group=u'TXT Record',
-            label=_(u'TXT record'),
-            doc=_(u'Raw TXT records'),
+            option_group='TXT Record',
+            label=_('TXT record'),
+            doc=_('Raw TXT records'),
         ),
         parameters.Str(
             'txt_part_data',
             required=False,
             cli_name='txt_data',
-            option_group=u'TXT Record',
-            label=_(u'TXT Text Data'),
-            doc=_(u'Text Data'),
+            option_group='TXT Record',
+            label=_('TXT Text Data'),
+            doc=_('Text Data'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
+            label=_('Structured'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4090,22 +4309,22 @@ class dnsrecord_mod(Method):
         parameters.DNSNameParam(
             'rename',
             required=False,
-            label=_(u'Rename'),
-            doc=_(u'Rename the DNS resource record object'),
+            label=_('Rename'),
+            doc=_('Rename the DNS resource record object'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -4118,8 +4337,8 @@ class dnsrecord_show(Method):
         parameters.DNSNameParam(
             'dnszoneidnsname',
             cli_name='dnszone',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4128,35 +4347,46 @@ class dnsrecord_show(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Record name'),
+            label=_('Record name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
+            label=_('Structured'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4165,15 +4395,15 @@ class dnsrecord_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -4186,8 +4416,8 @@ class dnszone_add(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4198,45 +4428,54 @@ class dnszone_add(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
             required=False,
             cli_name='name_server',
-            label=_(u'Authoritative nameserver'),
-            doc=_(u'Authoritative nameserver domain name'),
+            label=_('Authoritative nameserver'),
+            doc=_('Authoritative nameserver domain name'),
         ),
         parameters.DNSNameParam(
             'idnssoarname',
             cli_name='admin_email',
-            label=_(u'Administrator e-mail address'),
-            default=DNSName(u'hostmaster'),
+            label=_('Administrator e-mail address'),
+            default=DNSName('hostmaster'),
             autofill=True,
             no_convert=True,
         ),
         parameters.Int(
             'idnssoaserial',
             cli_name='serial',
-            label=_(u'SOA serial'),
-            doc=_(u'SOA record serial number'),
+            label=_('SOA serial'),
+            doc=_('SOA record serial number'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # def _create_zone_serial():
@@ -4254,32 +4493,32 @@ class dnszone_add(Method):
         parameters.Int(
             'idnssoarefresh',
             cli_name='refresh',
-            label=_(u'SOA refresh'),
-            doc=_(u'SOA record refresh time'),
+            label=_('SOA refresh'),
+            doc=_('SOA record refresh time'),
             default=3600,
             autofill=True,
         ),
         parameters.Int(
             'idnssoaretry',
             cli_name='retry',
-            label=_(u'SOA retry'),
-            doc=_(u'SOA record retry time'),
+            label=_('SOA retry'),
+            doc=_('SOA record retry time'),
             default=900,
             autofill=True,
         ),
         parameters.Int(
             'idnssoaexpire',
             cli_name='expire',
-            label=_(u'SOA expire'),
-            doc=_(u'SOA record expire time'),
+            label=_('SOA expire'),
+            doc=_('SOA record expire time'),
             default=1209600,
             autofill=True,
         ),
         parameters.Int(
             'idnssoaminimum',
             cli_name='minimum',
-            label=_(u'SOA minimum'),
-            doc=_(u'How long should negative responses be cached'),
+            label=_('SOA minimum'),
+            doc=_('How long should negative responses be cached'),
             default=3600,
             autofill=True,
         ),
@@ -4287,8 +4526,8 @@ class dnszone_add(Method):
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
-            doc=_(u'Time to live for records at zone apex'),
+            label=_('Time to live'),
+            doc=_('Time to live for records at zone apex'),
         ),
         parameters.Str(
             'dnsclass',
@@ -4301,7 +4540,7 @@ class dnszone_add(Method):
             'idnsupdatepolicy',
             required=False,
             cli_name='update_policy',
-            label=_(u'BIND update policy'),
+            label=_('BIND update policy'),
             default_from=DefaultFrom(lambda idnsname: None, 'idnsname'),
             # FIXME:
             # lambda idnsname: default_zone_update_policy(idnsname)
@@ -4311,8 +4550,8 @@ class dnszone_add(Method):
             'idnsallowdynupdate',
             required=False,
             cli_name='dynamic_update',
-            label=_(u'Dynamic update'),
-            doc=_(u'Allow dynamic updates.'),
+            label=_('Dynamic update'),
+            doc=_('Allow dynamic updates.'),
             default=False,
             autofill=True,
         ),
@@ -4320,9 +4559,12 @@ class dnszone_add(Method):
             'idnsallowquery',
             required=False,
             cli_name='allow_query',
-            label=_(u'Allow query'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
-            default=u'any;',
+            label=_('Allow query'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
+            default='any;',
             autofill=True,
             no_convert=True,
         ),
@@ -4330,9 +4572,12 @@ class dnszone_add(Method):
             'idnsallowtransfer',
             required=False,
             cli_name='allow_transfer',
-            label=_(u'Allow transfer'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
-            default=u'none;',
+            label=_('Allow transfer'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
+            default='none;',
             autofill=True,
             no_convert=True,
         ),
@@ -4340,42 +4585,57 @@ class dnszone_add(Method):
             'idnsallowsyncptr',
             required=False,
             cli_name='allow_sync_ptr',
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
             required=False,
             cli_name='dnssec',
-            label=_(u'Allow in-line DNSSEC signing'),
-            doc=_(u'Allow inline DNSSEC signing of records in the zone'),
+            label=_('Allow in-line DNSSEC signing'),
+            doc=_('Allow inline DNSSEC signing of records in the zone'),
             default=False,
         ),
         parameters.Str(
             'nsec3paramrecord',
             required=False,
             cli_name='nsec3param_rec',
-            label=_(u'NSEC3PARAM record'),
-            doc=_(u'NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            label=_('NSEC3PARAM record'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'force',
-            label=_(u'Force'),
-            doc=_(u'Force DNS zone creation even if nameserver is not resolvable.'),
+            label=_('Force'),
+            doc=_(
+                'Force DNS zone creation even if nameserver is not resolvable.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -4386,14 +4646,20 @@ class dnszone_add(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4402,15 +4668,15 @@ class dnszone_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -4423,8 +4689,8 @@ class dnszone_add_permission(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4436,18 +4702,18 @@ class dnszone_add_permission(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u'Permission value'),
+            str,
+            doc=_('Permission value'),
         ),
     )
 
@@ -4461,8 +4727,8 @@ class dnszone_del(Method):
             'idnsname',
             multivalue=True,
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4472,7 +4738,7 @@ class dnszone_del(Method):
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -4480,13 +4746,13 @@ class dnszone_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -4502,8 +4768,8 @@ class dnszone_disable(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4515,17 +4781,17 @@ class dnszone_disable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -4538,8 +4804,8 @@ class dnszone_enable(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4551,17 +4817,17 @@ class dnszone_enable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -4574,7 +4840,7 @@ class dnszone_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -4582,8 +4848,8 @@ class dnszone_find(Method):
             'idnsname',
             required=False,
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4592,53 +4858,62 @@ class dnszone_find(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Bool(
             'idnszoneactive',
             required=False,
             cli_name='zone_active',
-            label=_(u'Active zone'),
-            doc=_(u'Is zone active?'),
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
             required=False,
             cli_name='name_server',
-            label=_(u'Authoritative nameserver'),
-            doc=_(u'Authoritative nameserver domain name'),
+            label=_('Authoritative nameserver'),
+            doc=_('Authoritative nameserver domain name'),
         ),
         parameters.DNSNameParam(
             'idnssoarname',
             required=False,
             cli_name='admin_email',
-            label=_(u'Administrator e-mail address'),
-            default=DNSName(u'hostmaster'),
+            label=_('Administrator e-mail address'),
+            default=DNSName('hostmaster'),
             no_convert=True,
         ),
         parameters.Int(
             'idnssoaserial',
             required=False,
             cli_name='serial',
-            label=_(u'SOA serial'),
-            doc=_(u'SOA record serial number'),
+            label=_('SOA serial'),
+            doc=_('SOA record serial number'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # def _create_zone_serial():
@@ -4656,40 +4931,40 @@ class dnszone_find(Method):
             'idnssoarefresh',
             required=False,
             cli_name='refresh',
-            label=_(u'SOA refresh'),
-            doc=_(u'SOA record refresh time'),
+            label=_('SOA refresh'),
+            doc=_('SOA record refresh time'),
             default=3600,
         ),
         parameters.Int(
             'idnssoaretry',
             required=False,
             cli_name='retry',
-            label=_(u'SOA retry'),
-            doc=_(u'SOA record retry time'),
+            label=_('SOA retry'),
+            doc=_('SOA record retry time'),
             default=900,
         ),
         parameters.Int(
             'idnssoaexpire',
             required=False,
             cli_name='expire',
-            label=_(u'SOA expire'),
-            doc=_(u'SOA record expire time'),
+            label=_('SOA expire'),
+            doc=_('SOA record expire time'),
             default=1209600,
         ),
         parameters.Int(
             'idnssoaminimum',
             required=False,
             cli_name='minimum',
-            label=_(u'SOA minimum'),
-            doc=_(u'How long should negative responses be cached'),
+            label=_('SOA minimum'),
+            doc=_('How long should negative responses be cached'),
             default=3600,
         ),
         parameters.Int(
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
-            doc=_(u'Time to live for records at zone apex'),
+            label=_('Time to live'),
+            doc=_('Time to live for records at zone apex'),
         ),
         parameters.Str(
             'dnsclass',
@@ -4702,7 +4977,7 @@ class dnszone_find(Method):
             'idnsupdatepolicy',
             required=False,
             cli_name='update_policy',
-            label=_(u'BIND update policy'),
+            label=_('BIND update policy'),
             default_from=DefaultFrom(lambda idnsname: None, 'idnsname'),
             # FIXME:
             # lambda idnsname: default_zone_update_policy(idnsname)
@@ -4711,79 +4986,97 @@ class dnszone_find(Method):
             'idnsallowdynupdate',
             required=False,
             cli_name='dynamic_update',
-            label=_(u'Dynamic update'),
-            doc=_(u'Allow dynamic updates.'),
+            label=_('Dynamic update'),
+            doc=_('Allow dynamic updates.'),
             default=False,
         ),
         parameters.Str(
             'idnsallowquery',
             required=False,
             cli_name='allow_query',
-            label=_(u'Allow query'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
-            default=u'any;',
+            label=_('Allow query'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
+            default='any;',
             no_convert=True,
         ),
         parameters.Str(
             'idnsallowtransfer',
             required=False,
             cli_name='allow_transfer',
-            label=_(u'Allow transfer'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
-            default=u'none;',
+            label=_('Allow transfer'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
+            default='none;',
             no_convert=True,
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             cli_name='allow_sync_ptr',
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
             required=False,
             cli_name='dnssec',
-            label=_(u'Allow in-line DNSSEC signing'),
-            doc=_(u'Allow inline DNSSEC signing of records in the zone'),
+            label=_('Allow in-line DNSSEC signing'),
+            doc=_('Allow inline DNSSEC signing of records in the zone'),
             default=False,
         ),
         parameters.Str(
             'nsec3paramrecord',
             required=False,
             cli_name='nsec3param_rec',
-            label=_(u'NSEC3PARAM record'),
-            doc=_(u'NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            label=_('NSEC3PARAM record'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'forward_only',
-            label=_(u'Forward zones only'),
-            doc=_(u'Search for forward zones only'),
+            label=_('Forward zones only'),
+            doc=_('Search for forward zones only'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4791,8 +5084,8 @@ class dnszone_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -4800,8 +5093,8 @@ class dnszone_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -4809,12 +5102,12 @@ class dnszone_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -4827,8 +5120,8 @@ class dnszone_mod(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -4839,46 +5132,55 @@ class dnszone_mod(Method):
         parameters.Str(
             'name_from_ip',
             required=False,
-            label=_(u'Reverse zone IP network'),
-            doc=_(u'IP network to create reverse zone name from'),
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
         ),
         parameters.Str(
             'idnsforwarders',
             required=False,
             multivalue=True,
             cli_name='forwarder',
-            label=_(u'Zone forwarders'),
-            doc=_(u'Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            label=_('Zone forwarders'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
-            label=_(u'Forward policy'),
-            doc=_(u'Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            label=_('Forward policy'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
             required=False,
             cli_name='name_server',
-            label=_(u'Authoritative nameserver'),
-            doc=_(u'Authoritative nameserver domain name'),
+            label=_('Authoritative nameserver'),
+            doc=_('Authoritative nameserver domain name'),
         ),
         parameters.DNSNameParam(
             'idnssoarname',
             required=False,
             cli_name='admin_email',
-            label=_(u'Administrator e-mail address'),
-            default=DNSName(u'hostmaster'),
+            label=_('Administrator e-mail address'),
+            default=DNSName('hostmaster'),
             no_convert=True,
         ),
         parameters.Int(
             'idnssoaserial',
             required=False,
             cli_name='serial',
-            label=_(u'SOA serial'),
-            doc=_(u'SOA record serial number'),
+            label=_('SOA serial'),
+            doc=_('SOA record serial number'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # def _create_zone_serial():
@@ -4896,40 +5198,40 @@ class dnszone_mod(Method):
             'idnssoarefresh',
             required=False,
             cli_name='refresh',
-            label=_(u'SOA refresh'),
-            doc=_(u'SOA record refresh time'),
+            label=_('SOA refresh'),
+            doc=_('SOA record refresh time'),
             default=3600,
         ),
         parameters.Int(
             'idnssoaretry',
             required=False,
             cli_name='retry',
-            label=_(u'SOA retry'),
-            doc=_(u'SOA record retry time'),
+            label=_('SOA retry'),
+            doc=_('SOA record retry time'),
             default=900,
         ),
         parameters.Int(
             'idnssoaexpire',
             required=False,
             cli_name='expire',
-            label=_(u'SOA expire'),
-            doc=_(u'SOA record expire time'),
+            label=_('SOA expire'),
+            doc=_('SOA record expire time'),
             default=1209600,
         ),
         parameters.Int(
             'idnssoaminimum',
             required=False,
             cli_name='minimum',
-            label=_(u'SOA minimum'),
-            doc=_(u'How long should negative responses be cached'),
+            label=_('SOA minimum'),
+            doc=_('How long should negative responses be cached'),
             default=3600,
         ),
         parameters.Int(
             'dnsttl',
             required=False,
             cli_name='ttl',
-            label=_(u'Time to live'),
-            doc=_(u'Time to live for records at zone apex'),
+            label=_('Time to live'),
+            doc=_('Time to live for records at zone apex'),
         ),
         parameters.Str(
             'dnsclass',
@@ -4942,7 +5244,7 @@ class dnszone_mod(Method):
             'idnsupdatepolicy',
             required=False,
             cli_name='update_policy',
-            label=_(u'BIND update policy'),
+            label=_('BIND update policy'),
             default_from=DefaultFrom(lambda idnsname: None, 'idnsname'),
             # FIXME:
             # lambda idnsname: default_zone_update_policy(idnsname)
@@ -4951,95 +5253,126 @@ class dnszone_mod(Method):
             'idnsallowdynupdate',
             required=False,
             cli_name='dynamic_update',
-            label=_(u'Dynamic update'),
-            doc=_(u'Allow dynamic updates.'),
+            label=_('Dynamic update'),
+            doc=_('Allow dynamic updates.'),
             default=False,
         ),
         parameters.Str(
             'idnsallowquery',
             required=False,
             cli_name='allow_query',
-            label=_(u'Allow query'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
-            default=u'any;',
+            label=_('Allow query'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
+            default='any;',
             no_convert=True,
         ),
         parameters.Str(
             'idnsallowtransfer',
             required=False,
             cli_name='allow_transfer',
-            label=_(u'Allow transfer'),
-            doc=_(u'Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
-            default=u'none;',
+            label=_('Allow transfer'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
+            default='none;',
             no_convert=True,
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             cli_name='allow_sync_ptr',
-            label=_(u'Allow PTR sync'),
-            doc=_(u'Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            label=_('Allow PTR sync'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
             required=False,
             cli_name='dnssec',
-            label=_(u'Allow in-line DNSSEC signing'),
-            doc=_(u'Allow inline DNSSEC signing of records in the zone'),
+            label=_('Allow in-line DNSSEC signing'),
+            doc=_('Allow inline DNSSEC signing of records in the zone'),
             default=False,
         ),
         parameters.Str(
             'nsec3paramrecord',
             required=False,
             cli_name='nsec3param_rec',
-            label=_(u'NSEC3PARAM record'),
-            doc=_(u'NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            label=_('NSEC3PARAM record'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'force',
-            label=_(u'Force'),
-            doc=_(u'Force nameserver change even if nameserver not in DNS'),
+            label=_('Force'),
+            doc=_('Force nameserver change even if nameserver not in DNS'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -5048,15 +5381,15 @@ class dnszone_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -5069,8 +5402,8 @@ class dnszone_remove_permission(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -5082,18 +5415,18 @@ class dnszone_remove_permission(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u'Permission value'),
+            str,
+            doc=_('Permission value'),
         ),
     )
 
@@ -5106,8 +5439,8 @@ class dnszone_show(Method):
         parameters.DNSNameParam(
             'idnsname',
             cli_name='name',
-            label=_(u'Zone name'),
-            doc=_(u'Zone name (FQDN)'),
+            label=_('Zone name'),
+            doc=_('Zone name (FQDN)'),
             default_from=DefaultFrom(lambda name_from_ip: None, 'name_from_ip'),
             # FIXME:
             # lambda name_from_ip: _reverse_zone_name(name_from_ip)
@@ -5117,21 +5450,30 @@ class dnszone_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -5140,14 +5482,14 @@ class dnszone_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

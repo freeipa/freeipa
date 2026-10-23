@@ -11,7 +11,6 @@ import enum
 import logging
 import signal
 
-import six
 
 from ipapython import admintool, config
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -21,9 +20,6 @@ from ipapython.ipautil import (CheckedIPAddress, CheckedIPAddressLoopback,
 from . import core, common
 
 __all__ = ['install_tool', 'uninstall_tool']
-
-if six.PY3:
-    long = int
 
 NoneType = type(None)
 
@@ -180,8 +176,6 @@ class ConfigureTool(admintool.AdminTool):
                 kwargs['type'] = 'string'
             elif knob_scalar_type is int:
                 kwargs['type'] = 'int'
-            elif knob_scalar_type is long:
-                kwargs['type'] = 'long'
             elif knob_scalar_type is CheckedIPAddressLoopback:
                 kwargs['type'] = 'ip_with_loopback'
             elif knob_scalar_type is CheckedIPAddress:

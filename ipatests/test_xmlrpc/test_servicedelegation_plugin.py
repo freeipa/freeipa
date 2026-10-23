@@ -11,13 +11,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 import pytest
 
-rule1 = u'test1'
-rule2 = u'test rule two'
-target1 = u'test1-targets'
-target2 = u'test2-targets'
-princ1 = u'HTTP/%s@%s' % (api.env.host, api.env.realm)
-princ2 = u'ldap/%s@%s' % (api.env.host, api.env.realm)
-princ3 = u'host/%s@%s' % (api.env.host, api.env.realm)
+rule1 = 'test1'
+rule2 = 'test rule two'
+target1 = 'test1-targets'
+target2 = 'test2-targets'
+princ1 = 'HTTP/%s@%s' % (api.env.host, api.env.realm)
+princ2 = 'ldap/%s@%s' % (api.env.host, api.env.realm)
+princ3 = 'host/%s@%s' % (api.env.host, api.env.realm)
 host3 = api.env.host
 
 
@@ -42,7 +42,7 @@ class test_servicedelegation(Declarative):
             desc='Try to retrieve non-existent %r' % rule1,
             command=('servicedelegationrule_show', [rule1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service delegation rule not found' % rule1
+                reason='%s: service delegation rule not found' % rule1
             ),
         ),
 
@@ -51,7 +51,7 @@ class test_servicedelegation(Declarative):
             desc='Try to delete non-existent %r' % rule1,
             command=('servicedelegationrule_del', [rule1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service delegation rule not found' % rule1
+                reason='%s: service delegation rule not found' % rule1
             ),
         ),
 
@@ -63,7 +63,7 @@ class test_servicedelegation(Declarative):
             ),
             expected=dict(
                 value=rule1,
-                summary=u'Added service delegation rule "%s"' % rule1,
+                summary='Added service delegation rule "%s"' % rule1,
                 result=dict(
                     cn=[rule1],
                     objectclass=objectclasses.servicedelegationrule,
@@ -79,7 +79,7 @@ class test_servicedelegation(Declarative):
                 'servicedelegationrule_add', [rule1], {}
             ),
             expected=errors.DuplicateEntry(
-                message=u'service delegation rule with name "%s" '
+                message='service delegation rule with name "%s" '
                 'already exists' % rule1),
         ),
 
@@ -110,7 +110,7 @@ class test_servicedelegation(Declarative):
                         cn=[rule1],
                     ),
                 ],
-                summary=u'1 service delegation rule matched',
+                summary='1 service delegation rule matched',
             ),
         ),
 
@@ -125,7 +125,7 @@ class test_servicedelegation(Declarative):
             ),
             expected=dict(
                 value=rule2,
-                summary=u'Added service delegation rule "%s"' % rule2,
+                summary='Added service delegation rule "%s"' % rule2,
                 result=dict(
                     cn=[rule2],
                     objectclass=objectclasses.servicedelegationrule,
@@ -139,17 +139,17 @@ class test_servicedelegation(Declarative):
             desc='Search for all rules with members',
             command=('servicedelegationrule_find', [], {'no_members': False}),
             expected=dict(
-                summary=u'3 service delegation rules matched',
+                summary='3 service delegation rules matched',
                 count=3,
                 truncated=False,
                 result=[
                     {
-                        'dn': get_servicedelegation_dn(u'ipa-http-delegation'),
-                        'cn': [u'ipa-http-delegation'],
+                        'dn': get_servicedelegation_dn('ipa-http-delegation'),
+                        'cn': ['ipa-http-delegation'],
                         'memberprincipal': [princ1],
                         'ipaallowedtarget_servicedelegationtarget':
-                            [u'ipa-ldap-delegation-targets',
-                             u'ipa-cifs-delegation-targets']
+                            ['ipa-ldap-delegation-targets',
+                             'ipa-cifs-delegation-targets']
                     },
                     dict(
                         dn=get_servicedelegation_dn(rule2),
@@ -168,13 +168,13 @@ class test_servicedelegation(Declarative):
             desc='Search for all rules',
             command=('servicedelegationrule_find', [], {}),
             expected=dict(
-                summary=u'3 service delegation rules matched',
+                summary='3 service delegation rules matched',
                 count=3,
                 truncated=False,
                 result=[
                     {
-                        'dn': get_servicedelegation_dn(u'ipa-http-delegation'),
-                        'cn': [u'ipa-http-delegation'],
+                        'dn': get_servicedelegation_dn('ipa-http-delegation'),
+                        'cn': ['ipa-http-delegation'],
                         'memberprincipal': [princ1],
                     },
                     dict(
@@ -197,7 +197,7 @@ class test_servicedelegation(Declarative):
             ),
             expected=dict(
                 value=target1,
-                summary=u'Added service delegation target "%s"' % target1,
+                summary='Added service delegation target "%s"' % target1,
                 result=dict(
                     cn=[target1],
                     objectclass=objectclasses.servicedelegationtarget,
@@ -214,7 +214,7 @@ class test_servicedelegation(Declarative):
             ),
             expected=dict(
                 value=target2,
-                summary=u'Added service delegation target "%s"' % target2,
+                summary='Added service delegation target "%s"' % target2,
                 result=dict(
                     cn=[target2],
                     objectclass=objectclasses.servicedelegationtarget,
@@ -228,20 +228,20 @@ class test_servicedelegation(Declarative):
             desc='Search for all targets',
             command=('servicedelegationtarget_find', [], {}),
             expected=dict(
-                summary=u'4 service delegation targets matched',
+                summary='4 service delegation targets matched',
                 count=4,
                 truncated=False,
                 result=[
                     {
                         'dn': get_servicedelegation_dn(
-                            u'ipa-cifs-delegation-targets'),
-                        'cn': [u'ipa-cifs-delegation-targets'],
+                            'ipa-cifs-delegation-targets'),
+                        'cn': ['ipa-cifs-delegation-targets'],
                     },
                     {
                         'dn': get_servicedelegation_dn(
-                            u'ipa-ldap-delegation-targets'
+                            'ipa-ldap-delegation-targets'
                         ),
-                        'cn': [u'ipa-ldap-delegation-targets'],
+                        'cn': ['ipa-ldap-delegation-targets'],
                         'memberprincipal': [princ2],
                     },
                     dict(
@@ -292,7 +292,7 @@ class test_servicedelegation(Declarative):
                 failed=dict(
                     ipaallowedtarget=dict(
                         servicedelegationtarget=[
-                            [target1, u'This entry is already a member']
+                            [target1, 'This entry is already a member']
                         ],
                     ),
                 ),
@@ -306,17 +306,17 @@ class test_servicedelegation(Declarative):
 
 
         dict(
-            desc='Add non-existent target %r to %r' % (u'notfound', rule1),
+            desc='Add non-existent target %r to %r' % ('notfound', rule1),
             command=(
                 'servicedelegationrule_add_target', [rule1],
-                dict(servicedelegationtarget=u'notfound')
+                dict(servicedelegationtarget='notfound')
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     ipaallowedtarget=dict(
                         servicedelegationtarget=[
-                            [u'notfound', u'no such entry']
+                            ['notfound', 'no such entry']
                         ],
                     ),
                 ),
@@ -352,18 +352,18 @@ class test_servicedelegation(Declarative):
 
         dict(
             desc='Remove non-existent target %r from %r' % (
-                u'notfound', rule1
+                'notfound', rule1
             ),
             command=(
                 'servicedelegationrule_remove_target', [rule1],
-                dict(servicedelegationtarget=u'notfound')
+                dict(servicedelegationtarget='notfound')
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     ipaallowedtarget=dict(
                         servicedelegationtarget=[
-                            [u'notfound', u'This entry is not a member']
+                            ['notfound', 'This entry is not a member']
                         ],
                     ),
                 ),
@@ -410,7 +410,7 @@ class test_servicedelegation(Declarative):
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [princ1, u'This entry is already a member']
+                            [princ1, 'This entry is already a member']
                         ],
                     ),
                 ),
@@ -425,19 +425,19 @@ class test_servicedelegation(Declarative):
 
         dict(
             desc='Add non-existent member %r to %r' % (
-                u'HTTP/notfound', rule1
+                'HTTP/notfound', rule1
             ),
             command=(
                 'servicedelegationrule_add_member', [rule1],
-                dict(principal=u'HTTP/notfound@%s' % api.env.realm)
+                dict(principal='HTTP/notfound@%s' % api.env.realm)
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [u'HTTP/notfound@%s' % api.env.realm,
-                             u'no matching entry found']
+                            ['HTTP/notfound@%s' % api.env.realm,
+                             'no matching entry found']
                             ],
                     ),
                 ),
@@ -518,19 +518,19 @@ class test_servicedelegation(Declarative):
 
         dict(
             desc='Remove non-existent member %r from %r' % (
-                 u'HTTP/notfound', rule1
+                 'HTTP/notfound', rule1
             ),
             command=(
                 'servicedelegationrule_remove_member', [rule1],
-                dict(principal=u'HTTP/notfound@%s' % api.env.realm)
+                dict(principal='HTTP/notfound@%s' % api.env.realm)
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [u'HTTP/notfound@%s' % api.env.realm,
-                             u'This entry is not a member']
+                            ['HTTP/notfound@%s' % api.env.realm,
+                             'This entry is not a member']
                         ],
                     ),
                 ),
@@ -575,7 +575,7 @@ class test_servicedelegation(Declarative):
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [princ1, u'This entry is already a member']
+                            [princ1, 'This entry is already a member']
                         ],
                     ),
                 ),
@@ -590,19 +590,19 @@ class test_servicedelegation(Declarative):
 
         dict(
             desc='Add non-existent member %r to %r' % (
-                u'HTTP/notfound', target1
+                'HTTP/notfound', target1
             ),
             command=(
                 'servicedelegationtarget_add_member', [target1],
-                dict(principal=u'HTTP/notfound@%s' % api.env.realm)
+                dict(principal='HTTP/notfound@%s' % api.env.realm)
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [u'HTTP/notfound@%s' % api.env.realm,
-                             u'no matching entry found']
+                            ['HTTP/notfound@%s' % api.env.realm,
+                             'no matching entry found']
                         ],
                     ),
                 ),
@@ -639,19 +639,19 @@ class test_servicedelegation(Declarative):
 
         dict(
             desc='Remove non-existent member %r from %r' % (
-                u'HTTP/notfound', target1
+                'HTTP/notfound', target1
             ),
             command=(
                 'servicedelegationtarget_remove_member', [target1],
-                dict(principal=u'HTTP/notfound@%s' % api.env.realm)
+                dict(principal='HTTP/notfound@%s' % api.env.realm)
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     failed_memberprincipal=dict(
                         memberprincipal=[
-                            [u'HTTP/notfound@%s' % api.env.realm,
-                             u'This entry is not a member']
+                            ['HTTP/notfound@%s' % api.env.realm,
+                             'This entry is not a member']
                         ],
                     ),
                 ),

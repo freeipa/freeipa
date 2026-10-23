@@ -32,7 +32,7 @@ class TestParamFindAndShowCommand(XMLRPC_test):
         assert result['result'][0]['label'] == 'User login', result
 
         # right command, right criteria
-        criteria = u'postalcode'
+        criteria = 'postalcode'
         result = self.run_command(cmd, "user-add", criteria)
         assert len(result['result']) != 0, result
         for item in result['result']:
@@ -97,7 +97,7 @@ class TestOutputFindAndShowCommand(XMLRPC_test):
             'User-friendly description of action performed', result
 
         # right command, right criteria
-        criteria = u'result'
+        criteria = 'result'
         result = self.run_command(cmd, "user-add", criteria)
         assert len(result['result']) == 1, result
         assert criteria in result['result'][0]['name'].lower(), result

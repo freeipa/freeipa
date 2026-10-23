@@ -224,7 +224,7 @@ class MockMasterTopology:
     a presence of real IPA masters with services running on them.
     """
 
-    ipamaster_services = [u'KDC', u'HTTP', u'KPASSWD']
+    ipamaster_services = ['KDC', 'HTTP', 'KPASSWD']
 
     def __init__(self, api_instance, domain_data):
         self.api = api_instance
@@ -242,7 +242,7 @@ class MockMasterTopology:
 
         self.existing_masters = {
             m['cn'][0] for m in self.api.Command.server_find(
-                u'', sizelimit=0,
+                '', sizelimit=0,
                 pkey_only=True,
                 no_members=True,
                 raw=True)['result']}
@@ -277,7 +277,7 @@ class MockMasterTopology:
 
     def _add_host_entry(self, fqdn):
         self.api.Command.host_add(fqdn, force=True)
-        self.api.Command.hostgroup_add_member(u'ipaservers', host=fqdn)
+        self.api.Command.hostgroup_add_member('ipaservers', host=fqdn)
 
     def _del_host_entry(self, fqdn):
         try:
@@ -401,7 +401,7 @@ class MockMasterTopology:
                 original_dns_configs.append(
                     (svc_entry.dn, list(svc_entry.get('ipaConfigString', [])))
                 )
-                svc_entry[u'ipaConfigString'].remove(attr_name)
+                svc_entry['ipaConfigString'].remove(attr_name)
                 self.ldap.update_entry(svc_entry)
 
         return original_dns_configs
@@ -604,23 +604,23 @@ class TestServerRoleStatusRetrieval:
             role_servrole=role_name)
 
         return [
-            r for r in result if r[u'server_server'] not in
+            r for r in result if r['server_server'] not in
             mock_masters.existing_masters]
 
     def get_enabled_roles_on_master(self, master, mock_api, mock_masters):
         fqdn = mock_masters.get_fqdn(master)
         result = mock_api.Backend.serverroles.server_role_search(
-            server_server=fqdn, role_servrole=None, status=u'enabled'
+            server_server=fqdn, role_servrole=None, status='enabled'
         )
-        return sorted(set(r[u'role_servrole'] for r in result))
+        return sorted(set(r['role_servrole'] for r in result))
 
     def get_masters_with_enabled_role(self, role_name, mock_api, mock_masters):
         result = mock_api.Backend.serverroles.server_role_search(
             server_server=None, role_servrole=role_name)
 
         return sorted(
-            r[u'server_server'] for r in result if
-            r[u'status'] == u'enabled' and r[u'server_server'] not in
+            r['server_server'] for r in result if
+            r['status'] == 'enabled' and r['server_server'] not in
             mock_masters.existing_masters)
 
     def test_listing_of_enabled_role(
@@ -628,14 +628,14 @@ class TestServerRoleStatusRetrieval:
         master, role_name = enabled_role
         result = self.retrieve_role(master, role_name, mock_api, mock_masters)
 
-        assert result[0][u'status'] == u'enabled'
+        assert result[0]['status'] == 'enabled'
 
     def test_listing_of_configured_role(
             self, mock_api, mock_masters, configured_role):
         master, role_name = configured_role
         result = self.retrieve_role(master, role_name, mock_api, mock_masters)
 
-        assert result[0][u'status'] == u'configured'
+        assert result[0]['status'] == 'configured'
 
     def test_role_providers(
             self, mock_api, mock_masters, role_providers):
@@ -670,10 +670,10 @@ class TestServerRoleStatusRetrieval:
                                 master=master_name)
 
         for r in result:
-            if r[u'role_servrole'] in enabled_roles:
-                assert r[u'status'] == u'enabled'
+            if r['role_servrole'] in enabled_roles:
+                assert r['status'] == 'enabled'
             else:
-                assert r[u'status'] == u'absent'
+                assert r['status'] == 'absent'
 
     def test_invalid_substring_search_returns_nothing(self, mock_api,
                                                       mock_masters):
