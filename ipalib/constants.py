@@ -213,6 +213,9 @@ DEFAULT_CONFIG = (
     # Session stuff:
     ('kinit_lifetime', None),
 
+    # KDC thread count, 0 means auto-detect
+    ('krb5kdc_thread_count', 0),
+
     # Debugging:
     ('verbose', 0),
     ('debug', False),
