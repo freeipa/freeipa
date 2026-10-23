@@ -30,67 +30,67 @@ import pytest
 
 @pytest.fixture(scope='class')
 def user1(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'tuser1', givenname=u'Test1', sn=u'User1')
+    tracker = UserTracker(name='tuser1', givenname='Test1', sn='User1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user2(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'tuser2', givenname=u'Test2', sn=u'User2')
+    tracker = UserTracker(name='tuser2', givenname='Test2', sn='User2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user3(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'tuser3', givenname=u'Test3', sn=u'User3')
+    tracker = UserTracker(name='tuser3', givenname='Test3', sn='User3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user4(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'tuser4', givenname=u'Test4', sn=u'User4')
+    tracker = UserTracker(name='tuser4', givenname='Test4', sn='User4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def group1(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'testgroup1', description=u'Test desc1')
+    tracker = GroupTracker(name='testgroup1', description='Test desc1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def group2(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'testgroup2', description=u'Test desc2')
+    tracker = GroupTracker(name='testgroup2', description='Test desc2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def group3(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'testgroup3', description=u'Test desc3')
+    tracker = GroupTracker(name='testgroup3', description='Test desc3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def group4(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'testgroup4', description=u'Test desc4')
+    tracker = GroupTracker(name='testgroup4', description='Test desc4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host1(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'host1')
+    tracker = HostTracker(name='host1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup1(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'hostgroup1')
+    tracker = HostGroupTracker(name='hostgroup1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup2(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'hostgroup2')
+    tracker = HostGroupTracker(name='hostgroup2')
     return tracker.make_fixture(request)
 
 
@@ -179,7 +179,7 @@ class TestNestingUserGroups(XMLRPC_test):
             memberindirect_group=[group4.cn]
         )
         group3.attrs.update(
-            memberindirect_user=[u'tuser4', u'tuser1']
+            memberindirect_user=['tuser4', 'tuser1']
         )
 
     def test_retrieve_group_group(self, group1, group2, group3, group4):
@@ -205,7 +205,7 @@ class TestNestingHostGroups(XMLRPC_test):
             dict(hostgroup=hostgroup2.cn)
         )
         hostgroup1.attrs.update(
-            memberindirect_host=hostgroup2.attrs[u'member_host'],
+            memberindirect_host=hostgroup2.attrs['member_host'],
             member_hostgroup=[hostgroup2.cn]
         )
         result = command()

@@ -8,8 +8,6 @@ Utilities.
 
 import sys
 
-import six
-
 
 class from_:
     """
@@ -78,7 +76,7 @@ def run_generator_with_yield_from(gen):
             exc_info = sys.exc_info()
 
     if exc_info is not None:
-        six.reraise(*exc_info)
+        raise exc_info[1].with_traceback(exc_info[2])
 
 
 class InnerClassMeta(type):
@@ -150,7 +148,7 @@ class InnerClassMeta(type):
         except KeyError:
             outer_class, name, value = None, None, None
             for outer_class in obj_type.__mro__:
-                for name, value in six.iteritems(outer_class.__dict__):
+                for name, value in outer_class.__dict__.items():
                     if value is cls:
                         break
                 if value is cls:

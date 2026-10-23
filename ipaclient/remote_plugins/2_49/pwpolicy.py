@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Password policy
@@ -85,61 +77,61 @@ class pwpolicy(Object):
             'cn',
             required=False,
             primary_key=True,
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
         parameters.Int(
             'krbmaxpwdlife',
             required=False,
-            label=_(u'Max lifetime (days)'),
-            doc=_(u'Maximum password lifetime (in days)'),
+            label=_('Max lifetime (days)'),
+            doc=_('Maximum password lifetime (in days)'),
         ),
         parameters.Int(
             'krbminpwdlife',
             required=False,
-            label=_(u'Min lifetime (hours)'),
-            doc=_(u'Minimum password lifetime (in hours)'),
+            label=_('Min lifetime (hours)'),
+            doc=_('Minimum password lifetime (in hours)'),
         ),
         parameters.Int(
             'krbpwdhistorylength',
             required=False,
-            label=_(u'History size'),
-            doc=_(u'Password history size'),
+            label=_('History size'),
+            doc=_('Password history size'),
         ),
         parameters.Int(
             'krbpwdmindiffchars',
             required=False,
-            label=_(u'Character classes'),
-            doc=_(u'Minimum number of character classes'),
+            label=_('Character classes'),
+            doc=_('Minimum number of character classes'),
         ),
         parameters.Int(
             'krbpwdminlength',
             required=False,
-            label=_(u'Min length'),
-            doc=_(u'Minimum length of password'),
+            label=_('Min length'),
+            doc=_('Minimum length of password'),
         ),
         parameters.Int(
             'cospriority',
-            label=_(u'Priority'),
-            doc=_(u'Priority of the policy (higher number means lower priority'),
+            label=_('Priority'),
+            doc=_('Priority of the policy (higher number means lower priority'),
         ),
         parameters.Int(
             'krbpwdmaxfailure',
             required=False,
-            label=_(u'Max failures'),
-            doc=_(u'Consecutive failures before lockout'),
+            label=_('Max failures'),
+            doc=_('Consecutive failures before lockout'),
         ),
         parameters.Int(
             'krbpwdfailurecountinterval',
             required=False,
-            label=_(u'Failure reset interval'),
-            doc=_(u'Period after which failure count will be reset (seconds)'),
+            label=_('Failure reset interval'),
+            doc=_('Period after which failure count will be reset (seconds)'),
         ),
         parameters.Int(
             'krbpwdlockoutduration',
             required=False,
-            label=_(u'Lockout duration'),
-            doc=_(u'Period for which lockout is enforced (seconds)'),
+            label=_('Lockout duration'),
+            doc=_('Period for which lockout is enforced (seconds)'),
         ),
     )
 
@@ -164,26 +156,39 @@ class cosentry_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -192,16 +197,16 @@ class cosentry_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -219,7 +224,7 @@ class cosentry_del(Method):
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -227,18 +232,18 @@ class cosentry_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -251,7 +256,7 @@ class cosentry_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -270,25 +275,31 @@ class cosentry_find(Method):
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -296,8 +307,8 @@ class cosentry_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("cn")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("cn")'),
             default=False,
             autofill=True,
         ),
@@ -305,8 +316,8 @@ class cosentry_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -314,12 +325,12 @@ class cosentry_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -346,40 +357,59 @@ class cosentry_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -388,16 +418,16 @@ class cosentry_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -414,21 +444,30 @@ class cosentry_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -437,16 +476,16 @@ class cosentry_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -459,8 +498,8 @@ class pwpolicy_add(Method):
         parameters.Str(
             'cn',
             cli_name='group',
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
     )
     takes_options = (
@@ -468,88 +507,101 @@ class pwpolicy_add(Method):
             'krbmaxpwdlife',
             required=False,
             cli_name='maxlife',
-            label=_(u'Max lifetime (days)'),
-            doc=_(u'Maximum password lifetime (in days)'),
+            label=_('Max lifetime (days)'),
+            doc=_('Maximum password lifetime (in days)'),
         ),
         parameters.Int(
             'krbminpwdlife',
             required=False,
             cli_name='minlife',
-            label=_(u'Min lifetime (hours)'),
-            doc=_(u'Minimum password lifetime (in hours)'),
+            label=_('Min lifetime (hours)'),
+            doc=_('Minimum password lifetime (in hours)'),
         ),
         parameters.Int(
             'krbpwdhistorylength',
             required=False,
             cli_name='history',
-            label=_(u'History size'),
-            doc=_(u'Password history size'),
+            label=_('History size'),
+            doc=_('Password history size'),
         ),
         parameters.Int(
             'krbpwdmindiffchars',
             required=False,
             cli_name='minclasses',
-            label=_(u'Character classes'),
-            doc=_(u'Minimum number of character classes'),
+            label=_('Character classes'),
+            doc=_('Minimum number of character classes'),
         ),
         parameters.Int(
             'krbpwdminlength',
             required=False,
             cli_name='minlength',
-            label=_(u'Min length'),
-            doc=_(u'Minimum length of password'),
+            label=_('Min length'),
+            doc=_('Minimum length of password'),
         ),
         parameters.Int(
             'cospriority',
             cli_name='priority',
-            label=_(u'Priority'),
-            doc=_(u'Priority of the policy (higher number means lower priority'),
+            label=_('Priority'),
+            doc=_('Priority of the policy (higher number means lower priority'),
         ),
         parameters.Int(
             'krbpwdmaxfailure',
             required=False,
             cli_name='maxfail',
-            label=_(u'Max failures'),
-            doc=_(u'Consecutive failures before lockout'),
+            label=_('Max failures'),
+            doc=_('Consecutive failures before lockout'),
         ),
         parameters.Int(
             'krbpwdfailurecountinterval',
             required=False,
             cli_name='failinterval',
-            label=_(u'Failure reset interval'),
-            doc=_(u'Period after which failure count will be reset (seconds)'),
+            label=_('Failure reset interval'),
+            doc=_('Period after which failure count will be reset (seconds)'),
         ),
         parameters.Int(
             'krbpwdlockoutduration',
             required=False,
             cli_name='lockouttime',
-            label=_(u'Lockout duration'),
-            doc=_(u'Period for which lockout is enforced (seconds)'),
+            label=_('Lockout duration'),
+            doc=_('Period for which lockout is enforced (seconds)'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -558,16 +610,16 @@ class pwpolicy_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -581,14 +633,14 @@ class pwpolicy_del(Method):
             'cn',
             multivalue=True,
             cli_name='group',
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -596,18 +648,18 @@ class pwpolicy_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -620,7 +672,7 @@ class pwpolicy_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -628,94 +680,100 @@ class pwpolicy_find(Method):
             'cn',
             required=False,
             cli_name='group',
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
         parameters.Int(
             'krbmaxpwdlife',
             required=False,
             cli_name='maxlife',
-            label=_(u'Max lifetime (days)'),
-            doc=_(u'Maximum password lifetime (in days)'),
+            label=_('Max lifetime (days)'),
+            doc=_('Maximum password lifetime (in days)'),
         ),
         parameters.Int(
             'krbminpwdlife',
             required=False,
             cli_name='minlife',
-            label=_(u'Min lifetime (hours)'),
-            doc=_(u'Minimum password lifetime (in hours)'),
+            label=_('Min lifetime (hours)'),
+            doc=_('Minimum password lifetime (in hours)'),
         ),
         parameters.Int(
             'krbpwdhistorylength',
             required=False,
             cli_name='history',
-            label=_(u'History size'),
-            doc=_(u'Password history size'),
+            label=_('History size'),
+            doc=_('Password history size'),
         ),
         parameters.Int(
             'krbpwdmindiffchars',
             required=False,
             cli_name='minclasses',
-            label=_(u'Character classes'),
-            doc=_(u'Minimum number of character classes'),
+            label=_('Character classes'),
+            doc=_('Minimum number of character classes'),
         ),
         parameters.Int(
             'krbpwdminlength',
             required=False,
             cli_name='minlength',
-            label=_(u'Min length'),
-            doc=_(u'Minimum length of password'),
+            label=_('Min length'),
+            doc=_('Minimum length of password'),
         ),
         parameters.Int(
             'cospriority',
             required=False,
             cli_name='priority',
-            label=_(u'Priority'),
-            doc=_(u'Priority of the policy (higher number means lower priority'),
+            label=_('Priority'),
+            doc=_('Priority of the policy (higher number means lower priority'),
         ),
         parameters.Int(
             'krbpwdmaxfailure',
             required=False,
             cli_name='maxfail',
-            label=_(u'Max failures'),
-            doc=_(u'Consecutive failures before lockout'),
+            label=_('Max failures'),
+            doc=_('Consecutive failures before lockout'),
         ),
         parameters.Int(
             'krbpwdfailurecountinterval',
             required=False,
             cli_name='failinterval',
-            label=_(u'Failure reset interval'),
-            doc=_(u'Period after which failure count will be reset (seconds)'),
+            label=_('Failure reset interval'),
+            doc=_('Period after which failure count will be reset (seconds)'),
         ),
         parameters.Int(
             'krbpwdlockoutduration',
             required=False,
             cli_name='lockouttime',
-            label=_(u'Lockout duration'),
-            doc=_(u'Period for which lockout is enforced (seconds)'),
+            label=_('Lockout duration'),
+            doc=_('Period for which lockout is enforced (seconds)'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -723,8 +781,10 @@ class pwpolicy_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("group")'),
+            label=_('Primary key only'),
+            doc=_(
+                'Results should contain primary key attribute only ("group")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -732,8 +792,8 @@ class pwpolicy_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -741,12 +801,12 @@ class pwpolicy_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -760,8 +820,8 @@ class pwpolicy_mod(Method):
             'cn',
             required=False,
             cli_name='group',
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
     )
     takes_options = (
@@ -769,103 +829,122 @@ class pwpolicy_mod(Method):
             'krbmaxpwdlife',
             required=False,
             cli_name='maxlife',
-            label=_(u'Max lifetime (days)'),
-            doc=_(u'Maximum password lifetime (in days)'),
+            label=_('Max lifetime (days)'),
+            doc=_('Maximum password lifetime (in days)'),
         ),
         parameters.Int(
             'krbminpwdlife',
             required=False,
             cli_name='minlife',
-            label=_(u'Min lifetime (hours)'),
-            doc=_(u'Minimum password lifetime (in hours)'),
+            label=_('Min lifetime (hours)'),
+            doc=_('Minimum password lifetime (in hours)'),
         ),
         parameters.Int(
             'krbpwdhistorylength',
             required=False,
             cli_name='history',
-            label=_(u'History size'),
-            doc=_(u'Password history size'),
+            label=_('History size'),
+            doc=_('Password history size'),
         ),
         parameters.Int(
             'krbpwdmindiffchars',
             required=False,
             cli_name='minclasses',
-            label=_(u'Character classes'),
-            doc=_(u'Minimum number of character classes'),
+            label=_('Character classes'),
+            doc=_('Minimum number of character classes'),
         ),
         parameters.Int(
             'krbpwdminlength',
             required=False,
             cli_name='minlength',
-            label=_(u'Min length'),
-            doc=_(u'Minimum length of password'),
+            label=_('Min length'),
+            doc=_('Minimum length of password'),
         ),
         parameters.Int(
             'cospriority',
             required=False,
             cli_name='priority',
-            label=_(u'Priority'),
-            doc=_(u'Priority of the policy (higher number means lower priority'),
+            label=_('Priority'),
+            doc=_('Priority of the policy (higher number means lower priority'),
         ),
         parameters.Int(
             'krbpwdmaxfailure',
             required=False,
             cli_name='maxfail',
-            label=_(u'Max failures'),
-            doc=_(u'Consecutive failures before lockout'),
+            label=_('Max failures'),
+            doc=_('Consecutive failures before lockout'),
         ),
         parameters.Int(
             'krbpwdfailurecountinterval',
             required=False,
             cli_name='failinterval',
-            label=_(u'Failure reset interval'),
-            doc=_(u'Period after which failure count will be reset (seconds)'),
+            label=_('Failure reset interval'),
+            doc=_('Period after which failure count will be reset (seconds)'),
         ),
         parameters.Int(
             'krbpwdlockoutduration',
             required=False,
             cli_name='lockouttime',
-            label=_(u'Lockout duration'),
-            doc=_(u'Period for which lockout is enforced (seconds)'),
+            label=_('Lockout duration'),
+            doc=_('Period for which lockout is enforced (seconds)'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -874,16 +953,16 @@ class pwpolicy_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -897,34 +976,43 @@ class pwpolicy_show(Method):
             'cn',
             required=False,
             cli_name='group',
-            label=_(u'Group'),
-            doc=_(u'Manage password policy for specific group'),
+            label=_('Group'),
+            doc=_('Manage password policy for specific group'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'user',
             required=False,
-            label=_(u'User'),
-            doc=_(u'Display effective policy for a specific user'),
+            label=_('User'),
+            doc=_('Display effective policy for a specific user'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -933,15 +1021,15 @@ class pwpolicy_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

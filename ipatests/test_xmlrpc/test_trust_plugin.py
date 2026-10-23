@@ -20,7 +20,6 @@
 Test the `ipaserver/plugins/trust.py` module.
 """
 
-import six
 
 from ipalib import api, errors
 from ipapython.dn import DN
@@ -33,16 +32,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.util import MockLDAP, change_principal, unlock_principal_password
 import pytest
 
-if six.PY3:
-    unicode = str
-
 
 trustconfig_ad_config = DN(('cn', api.env.domain),
         api.env.container_cifsdomains, api.env.basedn)
-testgroup = u'adtestgroup'
+testgroup = 'adtestgroup'
 testgroup_dn = DN(('cn', testgroup), api.env.container_group, api.env.basedn)
 
-default_group = u'Default SMB Group'
+default_group = 'Default SMB Group'
 default_group_dn = DN(('cn', default_group), api.env.container_group, api.env.basedn)
 
 
@@ -53,23 +49,22 @@ class test_trustconfig(Declarative):
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
         try:
-           api.Command['trustconfig_show'](trust_type=u'ad')
+            api.Command['trustconfig_show'](trust_type='ad')
         except errors.NotFound:
             pytest.skip('Trusts are not configured')
 
     cleanup_commands = [
         ('group_del', [testgroup], {}),
-        ('trustconfig_mod', [], {'trust_type': u'ad',
+        ('trustconfig_mod', [], {'trust_type': 'ad',
             'ipantfallbackprimarygroup': default_group}),
     ]
 
     tests = [
-
         dict(
             desc='Retrieve trust configuration for AD domains',
-            command=('trustconfig_show', [], {'trust_type': u'ad'}),
+            command=('trustconfig_show', [], {'trust_type': 'ad'}),
             expected={
-                'value': u'ad',
+                'value': 'ad',
                 'summary': None,
                 'result': {
                     'dn': trustconfig_ad_config,
@@ -79,16 +74,15 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),
-
         dict(
             desc='Retrieve trust configuration for AD domains with --raw',
-            command=('trustconfig_show', [], {'trust_type': u'ad', 'raw': True}),
+            command=('trustconfig_show', [], {'trust_type': 'ad', 'raw': True}),
             expected={
-                'value': u'ad',
+                'value': 'ad',
                 'summary': None,
                 'result': {
                     'dn': trustconfig_ad_config,
@@ -96,52 +90,66 @@ class test_trustconfig(Declarative):
                     'ipantdomainguid': [fuzzy_guid],
                     'ipantfallbackprimarygroup': [default_group_dn],
                     'ipantflatname': [fuzzy_string],
-                    'ipantsecurityidentifier': [fuzzy_domain_sid]
+                    'ipantsecurityidentifier': [fuzzy_domain_sid],
                 },
             },
         ),
-
         dict(
             desc='Create auxiliary group %r' % testgroup,
-            command=(
-                'group_add', [testgroup], dict(description=u'Test group')
-            ),
+            command=('group_add', [testgroup], dict(description='Test group')),
             expected=dict(
                 value=testgroup,
-                summary=u'Added group "%s"' % testgroup,
+                summary='Added group "%s"' % testgroup,
                 result=dict(
                     cn=[testgroup],
-                    description=[u'Test group'],
+                    description=['Test group'],
                     gidnumber=[fuzzy_digits],
                     objectclass=fuzzy_set_optional_oc(
-                        objectclasses.posixgroup, 'ipantgroupattrs'),
+                        objectclasses.posixgroup, 'ipantgroupattrs'
+                    ),
                     ipauniqueid=[fuzzy_uuid],
                     dn=testgroup_dn,
                 ),
             ),
         ),
-
         dict(
             desc='Try to change primary fallback group to nonexistent group',
-            command=('trustconfig_mod', [],
-                {'trust_type': u'ad', 'ipantfallbackprimarygroup': u'doesnotexist'}),
-            expected=errors.NotFound(reason=u'%s: group not found' % 'doesnotexist')
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': 'doesnotexist',
+                },
+            ),
+            expected=errors.NotFound(
+                reason='%s: group not found' % 'doesnotexist'
+            ),
         ),
-
         dict(
             desc='Try to change primary fallback group to nonexistent group DN',
-            command=('trustconfig_mod', [], {'trust_type': u'ad',
-                'ipantfallbackprimarygroup': u'cn=doesnotexist,dc=test'}),
-            expected=errors.NotFound(reason=u'%s: group not found' % 'cn=doesnotexist,dc=test')
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': 'cn=doesnotexist,dc=test',
+                },
+            ),
+            expected=errors.NotFound(
+                reason='%s: group not found' % 'cn=doesnotexist,dc=test'
+            ),
         ),
-
         dict(
             desc='Change primary fallback group to "%s"' % testgroup,
-            command=('trustconfig_mod', [], {'trust_type': u'ad',
-                'ipantfallbackprimarygroup': testgroup}),
+            command=(
+                'trustconfig_mod',
+                [],
+                {'trust_type': 'ad', 'ipantfallbackprimarygroup': testgroup},
+            ),
             expected={
-                'value': u'ad',
-                'summary': u'Modified "ad" trust configuration',
+                'value': 'ad',
+                'summary': 'Modified "ad" trust configuration',
                 'result': {
                     'cn': [api.env.domain],
                     'ipantdomainguid': [fuzzy_guid],
@@ -149,18 +157,24 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),
-
         dict(
-            desc='Change primary fallback group back to "%s" using DN' % default_group,
-            command=('trustconfig_mod', [], {'trust_type': u'ad',
-                 'ipantfallbackprimarygroup': unicode(default_group_dn)}),
+            desc='Change primary fallback group back to "%s" using DN'
+            % default_group,
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': str(default_group_dn),
+                },
+            ),
             expected={
-                'value': u'ad',
-                'summary': u'Modified "ad" trust configuration',
+                'value': 'ad',
+                'summary': 'Modified "ad" trust configuration',
                 'result': {
                     'cn': [api.env.domain],
                     'ipantdomainguid': [fuzzy_guid],
@@ -168,18 +182,18 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),
     ]
 
 
-FETCH_DOMAINS_NORMAL_USER = u'test-trust-fetch-user'
-FETCH_DOMAINS_NORMAL_USER_PASSWORD = u'Secret123'
+FETCH_DOMAINS_NORMAL_USER = 'test-trust-fetch-user'
+FETCH_DOMAINS_NORMAL_USER_PASSWORD = 'Secret123'
 
-fetch_domains_test_trust_cn = u'fetchdomainstest.test'
-fetch_domains_test_trust_sid = u'S-1-5-21-1111111111-2222222222-3333333333'
+fetch_domains_test_trust_cn = 'fetchdomainstest.test'
+fetch_domains_test_trust_sid = 'S-1-5-21-1111111111-2222222222-3333333333'
 fetch_domains_test_trust_dn = get_trust_dn(fetch_domains_test_trust_cn)
 
 
@@ -200,14 +214,14 @@ class TestTrustFetchDomainsPermissions(XMLRPC_test):
     @pytest.fixture(autouse=True, scope="class")
     def trust_fetch_domains_setup(self, request, xmlrpc_setup):
         try:
-            api.Command['trustconfig_show'](trust_type=u'ad')
+            api.Command['trustconfig_show'](trust_type='ad')
         except errors.NotFound:
             pytest.skip('Trusts are not configured')
 
         api.Command.user_add(
             FETCH_DOMAINS_NORMAL_USER,
-            givenname=u'Normal',
-            sn=u'User',
+            givenname='Normal',
+            sn='User',
             userpassword=FETCH_DOMAINS_NORMAL_USER_PASSWORD,
         )
         unlock_principal_password(

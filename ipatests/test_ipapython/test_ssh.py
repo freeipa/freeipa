@@ -22,13 +22,9 @@ Test the `ipapython/ssh.py` module.
 
 import base64
 
-import six
 import pytest
 
 from ipapython import ssh
-
-if six.PY3:
-    unicode = str
 
 pytestmark = pytest.mark.tier0
 
@@ -39,46 +35,46 @@ openssh = 'ssh-rsa %s' % b64
 
 @pytest.mark.parametrize("pk,out", [
     (b'\xff', UnicodeDecodeError),
-    (u'\xff', ValueError),
+    ('\xff', ValueError),
 
     (raw, openssh),
-    (b'\0\0\0\x04none', u'none AAAABG5vbmU='),
+    (b'\0\0\0\x04none', 'none AAAABG5vbmU='),
     (b'\0\0\0', ValueError),
     (b'\0\0\0\0', ValueError),
     (b'\0\0\0\x01', ValueError),
     (b'\0\0\0\x01\xff', ValueError),
 
-    (u'\0\0\0\x04none', ValueError),
-    (u'\0\0\0', ValueError),
-    (u'\0\0\0\0', ValueError),
-    (u'\0\0\0\x01', ValueError),
-    (u'\0\0\0\x01\xff', ValueError),
+    ('\0\0\0\x04none', ValueError),
+    ('\0\0\0', ValueError),
+    ('\0\0\0\0', ValueError),
+    ('\0\0\0\x01', ValueError),
+    ('\0\0\0\x01\xff', ValueError),
 
     (b64, openssh),
-    (unicode(b64), openssh),
+    (str(b64), openssh),
     (b64.encode('ascii'), openssh),
-    (u'\n%s\n\n' % b64, openssh),
-    (u'AAAABG5vbmU=', u'none AAAABG5vbmU='),
-    (u'AAAAB', ValueError),
+    ('\n%s\n\n' % b64, openssh),
+    ('AAAABG5vbmU=', 'none AAAABG5vbmU='),
+    ('AAAAB', ValueError),
 
     (openssh, openssh),
-    (unicode(openssh), openssh),
+    (str(openssh), openssh),
     (openssh.encode('ascii'), openssh),
-    (u'none AAAABG5vbmU=', u'none AAAABG5vbmU='),
-    (u'\t \t ssh-rsa \t \t%s\t \tthis is a comment\t \t ' % b64,
-     u'%s this is a comment' % openssh),
-    (u'opt3,opt2="\tx ",opt1,opt2="\\"x " %s comment ' % openssh,
-     u'opt1,opt2="\\"x ",opt3 %s comment' % openssh),
-    (u'permitopen=\"1.1.1.1:111\",permitopen=\"2.2.2.2:222\" %s' % openssh,
-     u'permitopen=\"1.1.1.1:111\",permitopen=\"2.2.2.2:222\" %s' % openssh),
-    (u'permitlisten=\"1.1.1.1:111\",permitlisten=\"2.2.2.2:222\" %s' % openssh,
-     u'permitlisten=\"1.1.1.1:111\",permitlisten=\"2.2.2.2:222\" %s' % openssh),
-    (u'ssh-rsa\n%s' % b64, ValueError),
-    (u'ssh-rsa\t%s' % b64, ValueError),
-    (u'vanitas %s' % b64, ValueError),
-    (u'@opt %s' % openssh, ValueError),
-    (u'opt=val %s' % openssh, ValueError),
-    (u'opt, %s' % openssh, ValueError)],
+    ('none AAAABG5vbmU=', 'none AAAABG5vbmU='),
+    ('\t \t ssh-rsa \t \t%s\t \tthis is a comment\t \t ' % b64,
+     '%s this is a comment' % openssh),
+    ('opt3,opt2="\tx ",opt1,opt2="\\"x " %s comment ' % openssh,
+     'opt1,opt2="\\"x ",opt3 %s comment' % openssh),
+    ('permitopen=\"1.1.1.1:111\",permitopen=\"2.2.2.2:222\" %s' % openssh,
+     'permitopen=\"1.1.1.1:111\",permitopen=\"2.2.2.2:222\" %s' % openssh),
+    ('permitlisten=\"1.1.1.1:111\",permitlisten=\"2.2.2.2:222\" %s' % openssh,
+     'permitlisten=\"1.1.1.1:111\",permitlisten=\"2.2.2.2:222\" %s' % openssh),
+    ('ssh-rsa\n%s' % b64, ValueError),
+    ('ssh-rsa\t%s' % b64, ValueError),
+    ('vanitas %s' % b64, ValueError),
+    ('@opt %s' % openssh, ValueError),
+    ('opt=val %s' % openssh, ValueError),
+    ('opt, %s' % openssh, ValueError)],
     # ids=repr is workaround for pytest issue with NULL bytes,
     # see https://github.com/pytest-dev/pytest/issues/2644
     ids=repr

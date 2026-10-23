@@ -40,17 +40,17 @@ class ServerTracker(Tracker):
         self.attrs = dict(
             dn=self.dn,
             cn=[self.server_name],
-            iparepltopomanagedsuffix_topologysuffix=[u'domain', u'ca'],
+            iparepltopomanagedsuffix_topologysuffix=['domain', 'ca'],
             objectclass=[
-                u"ipalocationmember",
-                u"ipaReplTopoManagedServer",
-                u"top",
-                u"ipaConfigObject",
-                u"nsContainer",
-                u"ipaSupportedDomainLevelConfig"
+                "ipalocationmember",
+                "ipaReplTopoManagedServer",
+                "top",
+                "ipaConfigObject",
+                "nsContainer",
+                "ipaSupportedDomainLevelConfig"
             ],
-            ipamaxdomainlevel=[u"1"],
-            ipamindomainlevel=[u"1"],
+            ipamaxdomainlevel=["1"],
+            ipamindomainlevel=["1"],
         )
         self.exists = True
 
@@ -89,7 +89,7 @@ class ServerTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 IPA server matched',
+            summary='1 IPA server matched',
             result=[expected],
         ), result)
 
@@ -98,7 +98,7 @@ class ServerTracker(Tracker):
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 IPA servers matched',
+            summary='0 IPA servers matched',
             result=[],
         ), result)
 
@@ -106,7 +106,7 @@ class ServerTracker(Tracker):
         """Check `server-update` command result"""
         expected = dict(
             value=self.server_name,
-            summary=u'Modified IPA server "{server}"'.format(
+            summary='Modified IPA server "{server}"'.format(
                 server=self.name),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
             )
@@ -134,7 +134,7 @@ class ServerTracker(Tracker):
             messages=messages)
 
     def make_fixture_clean_location(self, request):
-        command = self.make_update_command({u'ipalocation_location': None})
+        command = self.make_update_command({'ipalocation_location': None})
         try:
             command()
         except errors.EmptyModlist:

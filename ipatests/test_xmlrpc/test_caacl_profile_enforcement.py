@@ -9,7 +9,6 @@ import os
 import pytest
 import tempfile
 
-import six
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -31,9 +30,6 @@ from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 
 from ipapython.ipautil import run
 
-if six.PY3:
-    unicode = str
-
 BASE_DIR = os.path.dirname(__file__)
 
 SMIME_PROFILE_TEMPLATE = os.path.join(BASE_DIR, 'data/smime.cfg.tmpl')
@@ -41,8 +37,8 @@ SMIME_MOD_CONSTR_PROFILE_TEMPLATE = os.path.join(BASE_DIR, 'data/smime-mod.cfg.t
 CERT_OPENSSL_CONFIG_TEMPLATE = os.path.join(BASE_DIR, 'data/usercert.conf.tmpl')
 CERT_RSA_PRIVATE_KEY_PATH = os.path.join(BASE_DIR, 'data/usercert-priv-key.pem')
 
-SMIME_USER_INIT_PW = u'Change123'
-SMIME_USER_PW = u'Secret123'
+SMIME_USER_INIT_PW = 'Change123'
+SMIME_USER_PW = 'Secret123'
 
 
 def generate_user_csr(username, domain=None):
@@ -57,7 +53,7 @@ def generate_user_csr(username, domain=None):
                  CERT_OPENSSL_CONFIG_TEMPLATE, csr_values)])
 
         with open(csr_file.name, 'r') as f:
-            csr = unicode(f.read())
+            csr = str(f.read())
 
     return csr
 
@@ -68,8 +64,8 @@ def smime_profile(request, xmlrpc_setup):
             SMIME_PROFILE_TEMPLATE,
             dict(ipadomain=api.env.domain, iparealm=api.env.realm))
 
-    tracker = CertprofileTracker(u'smime', store=True,
-                                 desc=u"S/MIME certificate profile",
+    tracker = CertprofileTracker('smime', store=True,
+                                 desc="S/MIME certificate profile",
                                  profile=profile_path)
 
     return tracker.make_fixture(request)
@@ -77,7 +73,7 @@ def smime_profile(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def smime_acl(request, xmlrpc_setup):
-    tracker = CAACLTracker(u'smime_acl')
+    tracker = CAACLTracker('smime_acl')
 
     return tracker.make_fixture(request)
 
@@ -87,8 +83,8 @@ def smime_acl(request, xmlrpc_setup):
 # Until fixed, will use this fixture.
 @pytest.fixture(scope='class')
 def smime_user(request, xmlrpc_setup):
-    username = u'alice'
-    api.Command.user_add(uid=username, givenname=u'Alice', sn=u'SMIME',
+    username = 'alice'
+    api.Command.user_add(uid=username, givenname='Alice', sn='SMIME',
                          userpassword=SMIME_USER_INIT_PW)
 
     unlock_principal_password(username, SMIME_USER_INIT_PW, SMIME_USER_PW)
@@ -102,13 +98,13 @@ def smime_user(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def smime_group(request, xmlrpc_setup):
-    api.Command.group_add(u'smime_users')
+    api.Command.group_add('smime_users')
 
     def fin():
-        api.Command.group_del(u'smime_users')
+        api.Command.group_del('smime_users')
     request.addfinalizer(fin)
 
-    return u'smime_users'
+    return 'smime_users'
 
 
 @pytest.mark.tier1
@@ -244,9 +240,9 @@ class TestSignWithChangedProfile(XMLRPC_test):
                                                    iparealm=api.env.realm))
 
         with open(updated_profile_path) as f:
-            updated_profile = unicode(f.read())
+            updated_profile = str(f.read())
 
-        updates = {u'file': updated_profile}
+        updates = {'file': updated_profile}
         update_smime_profile = smime_profile.make_update_command(updates)
         update_smime_profile()
 
@@ -260,8 +256,8 @@ class TestSignWithChangedProfile(XMLRPC_test):
 
 @pytest.fixture(scope='class')
 def smime_signing_ca(request, xmlrpc_setup):
-    name = u'smime-signing-ca'
-    subject = u'CN=SMIME CA,O=test industries Inc.'
+    name = 'smime-signing-ca'
+    subject = 'CN=SMIME CA,O=test industries Inc.'
     return CATracker(name, subject).make_fixture(request)
 
 
@@ -369,39 +365,39 @@ class TestCertSignMIMEwithSubCA(XMLRPC_test):
 
 @pytest.fixture(scope='class')
 def santest_subca(request, xmlrpc_setup):
-    name = u'default-profile-subca'
-    subject = u'CN={},O=test'.format(name)
+    name = 'default-profile-subca'
+    subject = 'CN={},O=test'.format(name)
     tr = CATracker(name, subject)
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def santest_subca_acl(request, xmlrpc_setup):
-    tr = CAACLTracker(u'default_profile_subca')
+    tr = CAACLTracker('default_profile_subca')
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def santest_host_1(request, xmlrpc_setup):
-    tr = HostTracker(u'santest-host-1')
+    tr = HostTracker('santest-host-1')
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def santest_host_2(request, xmlrpc_setup):
-    tr = HostTracker(u'santest-host-2')
+    tr = HostTracker('santest-host-2')
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def santest_service_host_1(request, santest_host_1):
-    tr = ServiceTracker(u'srv', santest_host_1.name)
+    tr = ServiceTracker('srv', santest_host_1.name)
     return tr.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def santest_service_host_2(request, santest_host_2):
-    tr = ServiceTracker(u'srv', santest_host_2.name)
+    tr = ServiceTracker('srv', santest_host_2.name)
     return tr.make_fixture(request)
 
 
@@ -478,7 +474,7 @@ class SubjectAltNameOneServiceBase(XMLRPC_test):
         santest_subca_acl.add_ca(santest_subca.name)
 
     def test_prepare_caacl_profile(self, santest_subca_acl):
-        santest_subca_acl.add_profile(u'caIPAserviceCert')
+        santest_subca_acl.add_profile('caIPAserviceCert')
 
     def test_prepare_caacl_services(self, santest_subca_acl,
                                     santest_service_host_1):

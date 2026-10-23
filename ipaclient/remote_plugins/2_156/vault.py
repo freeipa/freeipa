@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
 from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Vaults
@@ -176,81 +168,81 @@ class vault(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
-            doc=_(u'Vault description'),
+            label=_('Description'),
+            doc=_('Vault description'),
         ),
         parameters.Str(
             'ipavaulttype',
             required=False,
-            label=_(u'Type'),
-            doc=_(u'Vault type'),
+            label=_('Type'),
+            doc=_('Vault type'),
         ),
         parameters.Bytes(
             'ipavaultsalt',
             required=False,
-            label=_(u'Salt'),
-            doc=_(u'Vault salt'),
+            label=_('Salt'),
+            doc=_('Vault salt'),
         ),
         parameters.Bytes(
             'ipavaultpublickey',
             required=False,
-            label=_(u'Public key'),
-            doc=_(u'Vault public key'),
+            label=_('Public key'),
+            doc=_('Vault public key'),
         ),
         parameters.Str(
             'owner_user',
             required=False,
-            label=_(u'Owner users'),
+            label=_('Owner users'),
         ),
         parameters.Str(
             'owner_group',
             required=False,
-            label=_(u'Owner groups'),
+            label=_('Owner groups'),
         ),
         parameters.Str(
             'owner_service',
             required=False,
-            label=_(u'Owner services'),
+            label=_('Owner services'),
         ),
         parameters.Str(
             'owner',
             required=False,
-            label=_(u'Failed owners'),
+            label=_('Failed owners'),
         ),
         parameters.Str(
             'service',
             required=False,
-            label=_(u'Vault service'),
+            label=_('Vault service'),
         ),
         parameters.Flag(
             'shared',
             required=False,
-            label=_(u'Shared vault'),
+            label=_('Shared vault'),
         ),
         parameters.Str(
             'username',
             required=False,
-            label=_(u'Vault user'),
+            label=_('Vault user'),
         ),
         parameters.Str(
             'member_user',
             required=False,
-            label=_(u'Member users'),
+            label=_('Member users'),
         ),
         parameters.Str(
             'member_group',
             required=False,
-            label=_(u'Member groups'),
+            label=_('Member groups'),
         ),
         parameters.Str(
             'member_service',
             required=False,
-            label=_(u'Member services'),
+            label=_('Member services'),
         ),
     )
 
@@ -260,7 +252,7 @@ class vaultconfig(Object):
     takes_params = (
         parameters.Bytes(
             'transport_cert',
-            label=_(u'Transport Certificate'),
+            label=_('Transport Certificate'),
         ),
     )
 
@@ -271,37 +263,37 @@ class vaultcontainer(Object):
         parameters.Str(
             'owner_user',
             required=False,
-            label=_(u'Owner users'),
+            label=_('Owner users'),
         ),
         parameters.Str(
             'owner_group',
             required=False,
-            label=_(u'Owner groups'),
+            label=_('Owner groups'),
         ),
         parameters.Str(
             'owner_service',
             required=False,
-            label=_(u'Owner services'),
+            label=_('Owner services'),
         ),
         parameters.Str(
             'owner',
             required=False,
-            label=_(u'Failed owners'),
+            label=_('Failed owners'),
         ),
         parameters.Str(
             'service',
             required=False,
-            label=_(u'Vault service'),
+            label=_('Vault service'),
         ),
         parameters.Flag(
             'shared',
             required=False,
-            label=_(u'Shared vault'),
+            label=_('Shared vault'),
         ),
         parameters.Str(
             'username',
             required=False,
-            label=_(u'Vault user'),
+            label=_('Vault user'),
         ),
     )
 
@@ -315,17 +307,17 @@ class kra_is_enabled(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -338,7 +330,7 @@ class vault_add_internal(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
@@ -346,43 +338,43 @@ class vault_add_internal(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Vault description'),
+            label=_('Description'),
+            doc=_('Vault description'),
         ),
         parameters.Str(
             'ipavaulttype',
             required=False,
             cli_name='type',
             cli_metavar="['standard', 'symmetric', 'asymmetric']",
-            label=_(u'Type'),
-            doc=_(u'Vault type'),
-            default=u'symmetric',
+            label=_('Type'),
+            doc=_('Vault type'),
+            default='symmetric',
             autofill=True,
         ),
         parameters.Bytes(
             'ipavaultsalt',
             required=False,
             cli_name='salt',
-            label=_(u'Salt'),
-            doc=_(u'Vault salt'),
+            label=_('Salt'),
+            doc=_('Vault salt'),
         ),
         parameters.Bytes(
             'ipavaultpublickey',
             required=False,
             cli_name='public_key',
-            label=_(u'Public key'),
-            doc=_(u'Vault public key'),
+            label=_('Public key'),
+            doc=_('Vault public key'),
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -390,25 +382,31 @@ class vault_add_internal(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -417,15 +415,15 @@ class vault_add_internal(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -438,20 +436,20 @@ class vault_add_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -459,25 +457,31 @@ class vault_add_member(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -487,8 +491,8 @@ class vault_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -496,16 +500,16 @@ class vault_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'member service'),
-            doc=_(u'services to add'),
+            label=_('member service'),
+            doc=_('services to add'),
             alwaysask=True,
         ),
     )
@@ -516,12 +520,12 @@ class vault_add_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -534,20 +538,20 @@ class vault_add_owner(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -555,25 +559,31 @@ class vault_add_owner(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -583,8 +593,8 @@ class vault_add_owner(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'owner user'),
-            doc=_(u'users to add'),
+            label=_('owner user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -592,16 +602,16 @@ class vault_add_owner(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'owner group'),
-            doc=_(u'groups to add'),
+            label=_('owner group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'owner service'),
-            doc=_(u'services to add'),
+            label=_('owner service'),
+            doc=_('services to add'),
             alwaysask=True,
         ),
     )
@@ -612,12 +622,12 @@ class vault_add_owner(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Owners that could not be added'),
+            doc=_('Owners that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of owners added'),
+            doc=_('Number of owners added'),
         ),
     )
 
@@ -630,20 +640,20 @@ class vault_archive_internal(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -651,30 +661,36 @@ class vault_archive_internal(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Bytes(
             'session_key',
-            doc=_(u'Session key wrapped with transport certificate'),
+            doc=_('Session key wrapped with transport certificate'),
         ),
         parameters.Bytes(
             'vault_data',
-            doc=_(u'Vault data encrypted with session key'),
+            doc=_('Vault data encrypted with session key'),
         ),
         parameters.Bytes(
             'nonce',
-            doc=_(u'Nonce'),
+            doc=_('Nonce'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -683,15 +699,15 @@ class vault_archive_internal(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -705,26 +721,26 @@ class vault_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -732,19 +748,19 @@ class vault_del(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -760,7 +776,7 @@ class vault_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -768,46 +784,46 @@ class vault_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Vault description'),
+            label=_('Description'),
+            doc=_('Vault description'),
         ),
         parameters.Str(
             'ipavaulttype',
             required=False,
             cli_name='type',
             cli_metavar="['standard', 'symmetric', 'asymmetric']",
-            label=_(u'Type'),
-            doc=_(u'Vault type'),
-            default=u'symmetric',
+            label=_('Type'),
+            doc=_('Vault type'),
+            default='symmetric',
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -815,39 +831,45 @@ class vault_find(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'services',
             required=False,
-            doc=_(u'List all service vaults'),
+            doc=_('List all service vaults'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'users',
             required=False,
-            doc=_(u'List all user vaults'),
+            doc=_('List all user vaults'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -855,8 +877,8 @@ class vault_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -864,8 +886,8 @@ class vault_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -873,12 +895,12 @@ class vault_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -891,7 +913,7 @@ class vault_mod_internal(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
@@ -899,70 +921,83 @@ class vault_mod_internal(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Vault description'),
+            label=_('Description'),
+            doc=_('Vault description'),
         ),
         parameters.Str(
             'ipavaulttype',
             required=False,
             cli_name='type',
             cli_metavar="['standard', 'symmetric', 'asymmetric']",
-            label=_(u'Type'),
-            doc=_(u'Vault type'),
-            default=u'symmetric',
+            label=_('Type'),
+            doc=_('Vault type'),
+            default='symmetric',
         ),
         parameters.Bytes(
             'ipavaultsalt',
             required=False,
             cli_name='salt',
-            label=_(u'Salt'),
-            doc=_(u'Vault salt'),
+            label=_('Salt'),
+            doc=_('Vault salt'),
         ),
         parameters.Bytes(
             'ipavaultpublickey',
             required=False,
             cli_name='public_key',
-            label=_(u'Public key'),
-            doc=_(u'Vault public key'),
+            label=_('Public key'),
+            doc=_('Vault public key'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -970,25 +1005,31 @@ class vault_mod_internal(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -997,15 +1038,15 @@ class vault_mod_internal(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1018,20 +1059,20 @@ class vault_remove_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1039,25 +1080,31 @@ class vault_remove_member(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1067,8 +1114,8 @@ class vault_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1076,16 +1123,16 @@ class vault_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'member service'),
-            doc=_(u'services to remove'),
+            label=_('member service'),
+            doc=_('services to remove'),
             alwaysask=True,
         ),
     )
@@ -1096,12 +1143,12 @@ class vault_remove_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1114,20 +1161,20 @@ class vault_remove_owner(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1135,25 +1182,31 @@ class vault_remove_owner(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1163,8 +1216,8 @@ class vault_remove_owner(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'owner user'),
-            doc=_(u'users to remove'),
+            label=_('owner user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1172,16 +1225,16 @@ class vault_remove_owner(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'owner group'),
-            doc=_(u'groups to remove'),
+            label=_('owner group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'owner service'),
-            doc=_(u'services to remove'),
+            label=_('owner service'),
+            doc=_('services to remove'),
             alwaysask=True,
         ),
     )
@@ -1192,12 +1245,12 @@ class vault_remove_owner(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Owners that could not be removed'),
+            doc=_('Owners that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of owners removed'),
+            doc=_('Number of owners removed'),
         ),
     )
 
@@ -1210,20 +1263,20 @@ class vault_retrieve_internal(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1231,22 +1284,28 @@ class vault_retrieve_internal(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Bytes(
             'session_key',
-            doc=_(u'Session key wrapped with transport certificate'),
+            doc=_('Session key wrapped with transport certificate'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1255,15 +1314,15 @@ class vault_retrieve_internal(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1276,27 +1335,30 @@ class vault_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Vault name'),
+            label=_('Vault name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1304,25 +1366,31 @@ class vault_show(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1331,15 +1399,15 @@ class vault_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1352,18 +1420,24 @@ class vaultconfig_show(Method):
         parameters.Str(
             'transport_out',
             required=False,
-            doc=_(u'Output file to store the transport certificate'),
+            doc=_('Output file to store the transport certificate'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1372,15 +1446,15 @@ class vaultconfig_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1393,13 +1467,13 @@ class vaultcontainer_add_owner(Method):
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1407,25 +1481,31 @@ class vaultcontainer_add_owner(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1435,8 +1515,8 @@ class vaultcontainer_add_owner(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'owner user'),
-            doc=_(u'users to add'),
+            label=_('owner user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1444,16 +1524,16 @@ class vaultcontainer_add_owner(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'owner group'),
-            doc=_(u'groups to add'),
+            label=_('owner group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'owner service'),
-            doc=_(u'services to add'),
+            label=_('owner service'),
+            doc=_('services to add'),
             alwaysask=True,
         ),
     )
@@ -1464,12 +1544,12 @@ class vaultcontainer_add_owner(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Owners that could not be added'),
+            doc=_('Owners that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of owners added'),
+            doc=_('Number of owners added'),
         ),
     )
 
@@ -1481,20 +1561,20 @@ class vaultcontainer_del(Method):
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1502,19 +1582,19 @@ class vaultcontainer_del(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -1530,13 +1610,13 @@ class vaultcontainer_remove_owner(Method):
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1544,25 +1624,31 @@ class vaultcontainer_remove_owner(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1572,8 +1658,8 @@ class vaultcontainer_remove_owner(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'owner user'),
-            doc=_(u'users to remove'),
+            label=_('owner user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1581,16 +1667,16 @@ class vaultcontainer_remove_owner(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'owner group'),
-            doc=_(u'groups to remove'),
+            label=_('owner group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
             'services',
             required=False,
             multivalue=True,
-            label=_(u'owner service'),
-            doc=_(u'services to remove'),
+            label=_('owner service'),
+            doc=_('services to remove'),
             alwaysask=True,
         ),
     )
@@ -1601,12 +1687,12 @@ class vaultcontainer_remove_owner(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Owners that could not be removed'),
+            doc=_('Owners that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of owners removed'),
+            doc=_('Number of owners removed'),
         ),
     )
 
@@ -1618,21 +1704,24 @@ class vaultcontainer_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'service',
             required=False,
-            doc=_(u'Service name of the service vault'),
+            doc=_('Service name of the service vault'),
             no_convert=True,
         ),
         parameters.Flag(
             'shared',
             required=False,
-            doc=_(u'Shared vault'),
+            doc=_('Shared vault'),
             default=False,
             autofill=True,
         ),
@@ -1640,25 +1729,31 @@ class vaultcontainer_show(Method):
             'username',
             required=False,
             cli_name='user',
-            doc=_(u'Username of the user vault'),
+            doc=_('Username of the user vault'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1667,14 +1762,14 @@ class vaultcontainer_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

@@ -16,7 +16,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipapython.dnsutil import DNSName
 
 
-@pytest.fixture(scope='class', params=[u'location1', u'sk\xfa\u0161ka.idna'])
+@pytest.fixture(scope='class', params=['location1', 'sk\xfa\u0161ka.idna'])
 def location(request, xmlrpc_setup):
     tracker = LocationTracker(request.param)
     return tracker.make_fixture(request)
@@ -24,13 +24,13 @@ def location(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def location_invalid(request, xmlrpc_setup):
-    tracker = LocationTracker(u'invalid..location')
+    tracker = LocationTracker('invalid..location')
     return tracker
 
 
 @pytest.fixture(scope='class')
 def location_absolute(request, xmlrpc_setup):
-    tracker = LocationTracker(u'invalid.absolute.')
+    tracker = LocationTracker('invalid.absolute.')
     return tracker
 
 
@@ -46,22 +46,22 @@ class TestNonexistentIPALocation(XMLRPC_test):
         location.ensure_missing()
         command = location.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: location not found' % location.idnsname)):
+                reason='%s: location not found' % location.idnsname)):
             command()
 
     def test_update_nonexistent(self, location):
         location.ensure_missing()
         command = location.make_update_command(updates=dict(
-            description=u'Nope'))
+            description='Nope'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: location not found' % location.idnsname)):
+                reason='%s: location not found' % location.idnsname)):
             command()
 
     def test_delete_nonexistent(self, location):
         location.ensure_missing()
         command = location.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: location not found' % location.idnsname)):
+                reason='%s: location not found' % location.idnsname)):
             command()
 
 @pytest.mark.tier1
@@ -69,14 +69,14 @@ class TestInvalidIPALocations(XMLRPC_test):
     def test_invalid_name(self, location_invalid):
         command = location_invalid.make_create_command()
         with raises_exact(errors.ConversionError(
-                name=u'name',
-                error=u"empty DNS label")):
+                name='name',
+                error="empty DNS label")):
             command()
 
     def test_invalid_absolute(self, location_absolute):
         command = location_absolute.make_create_command()
         with raises_exact(errors.ValidationError(
-                name=u'name', error=u'must be relative')):
+                name='name', error='must be relative')):
             command()
 
 
@@ -86,7 +86,7 @@ class TestCRUD(XMLRPC_test):
         location.ensure_exists()
         command = location.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'location with name "%s" already exists' %
+                message='location with name "%s" already exists' %
                         location.idnsname)):
             command()
 
@@ -103,18 +103,20 @@ class TestCRUD(XMLRPC_test):
         location.find(all=True)
 
     def test_update_simple(self, location):
-        location.update(dict(
-                description=u'Updated description',
+        location.update(
+            dict(
+                description='Updated description',
             ),
             expected_updates=dict(
-                description=[u'Updated description'],
-            ))
+                description=['Updated description'],
+            ),
+        )
         location.retrieve()
 
     def test_try_rename(self, location):
         location.ensure_exists()
         command = location.make_update_command(
-            updates=dict(setattr=u'idnsname=changed'))
+            updates=dict(setattr='idnsname=changed'))
         with raises_exact(errors.NotAllowedOnRDN()):
             command()
 
@@ -126,26 +128,32 @@ class TestCRUD(XMLRPC_test):
 @pytest.mark.skipif(
     not api.Command.dns_is_enabled()['result'], reason='DNS not configured')
 class TestLocationsServer(XMLRPC_test):
-    messages = [{
-        u'data': {u'service': knownservices.named.systemd_name,
-                  u'server': api.env.host},
-        u'message': (u'Service %s requires restart '
-                     u'on IPA server %s to apply configuration '
-                     u'changes.' % (knownservices.named.systemd_name,
-                                    api.env.host)),
-        u'code': 13025,
-        u'type': u'warning',
-        u'name': u'ServiceRestartRequired'}]
+    messages = [
+        {
+            'data': {
+                'service': knownservices.named.systemd_name,
+                'server': api.env.host,
+            },
+            'message': (
+                'Service %s requires restart '
+                'on IPA server %s to apply configuration '
+                'changes.' % (knownservices.named.systemd_name, api.env.host)
+            ),
+            'code': 13025,
+            'type': 'warning',
+            'name': 'ServiceRestartRequired',
+        }
+    ]
 
     def test_add_nonexistent_location_to_server(self, server):
-        nonexistent_loc = DNSName(u'nonexistent-location')
+        nonexistent_loc = DNSName('nonexistent-location')
         command = server.make_update_command(
             updates=dict(
                 ipalocation_location=nonexistent_loc,
             )
         )
         with raises_exact(errors.NotFound(
-                reason=u"{location}: location not found".format(
+                reason="{location}: location not found".format(
                     location=nonexistent_loc
                 ))):
             command()
@@ -153,9 +161,9 @@ class TestLocationsServer(XMLRPC_test):
     def test_add_location_to_server(self, location, server):
         location.ensure_exists()
         server.update(
-            updates={u'ipalocation_location': location.idnsname_obj},
-            expected_updates={u'ipalocation_location': [location.idnsname_obj],
-                              u'enabled_role_servrole': lambda other: True},
+            updates={'ipalocation_location': location.idnsname_obj},
+            expected_updates={'ipalocation_location': [location.idnsname_obj],
+                              'enabled_role_servrole': lambda other: True},
             messages=self.messages)
         location.add_server_to_location(server.server_name)
         location.retrieve()
@@ -189,11 +197,11 @@ class TestLocationsServer(XMLRPC_test):
         location.ensure_exists()
 
         server.update(
-            updates={u'ipalocation_location': location.idnsname_obj,
-                     u'ipaserviceweight': 200},
-            expected_updates={u'ipalocation_location': [location.idnsname_obj],
-                              u'enabled_role_servrole': lambda other: True,
-                              u'ipaserviceweight': [u'200']},
+            updates={'ipalocation_location': location.idnsname_obj,
+                     'ipaserviceweight': 200},
+            expected_updates={'ipalocation_location': [location.idnsname_obj],
+                              'enabled_role_servrole': lambda other: True,
+                              'ipaserviceweight': ['200']},
             messages=self.messages)
 
         # remove invalid data from the previous test
@@ -204,15 +212,15 @@ class TestLocationsServer(XMLRPC_test):
 
     def test_remove_location_from_server(self, location, server):
         server.update(
-            updates={u'ipalocation_location': None},
-            expected_updates={u'enabled_role_servrole': lambda other: True},
+            updates={'ipalocation_location': None},
+            expected_updates={'enabled_role_servrole': lambda other: True},
             messages=self.messages)
         location.remove_server_from_location(server.server_name)
         location.retrieve()
 
     def test_remove_service_weight_from_server(self, location, server):
         server.update(
-            updates={u'ipaserviceweight': None},
-            expected_updates={u'enabled_role_servrole': lambda other: True},
+            updates={'ipaserviceweight': None},
+            expected_updates={'enabled_role_servrole': lambda other: True},
             messages=self.messages)
         location.retrieve()

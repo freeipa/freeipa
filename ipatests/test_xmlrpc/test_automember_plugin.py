@@ -43,142 +43,142 @@ except ImportError:
 else:
     have_ldap2 = True
 
-user_does_not_exist = u'does_not_exist'
-fqdn_does_not_exist = u'does_not_exist.%s' % api.env.domain
-group_include_regex = u'mscott'
-hostgroup_include_regex = u'^web[1-9]'
-hostgroup_include_regex2 = u'^www[1-9]'
-hostgroup_include_regex3 = u'webserver[1-9]'
-hostgroup_exclude_regex = u'^web5'
-hostgroup_exclude_regex2 = u'^www5'
-hostgroup_exclude_regex3 = u'^webserver5'
+user_does_not_exist = 'does_not_exist'
+fqdn_does_not_exist = 'does_not_exist.%s' % api.env.domain
+group_include_regex = 'mscott'
+hostgroup_include_regex = '^web[1-9]'
+hostgroup_include_regex2 = '^www[1-9]'
+hostgroup_include_regex3 = 'webserver[1-9]'
+hostgroup_exclude_regex = '^web5'
+hostgroup_exclude_regex2 = '^www5'
+hostgroup_exclude_regex3 = '^webserver5'
 
 
 @pytest.fixture(scope='class')
 def manager1(request, xmlrpc_setup):
     """ User tracker used as a manager account """
-    tracker = UserTracker(name=u'mscott', sn=u'Manager1',
-                          givenname=u'Automember test manager user1')
+    tracker = UserTracker(name='mscott', sn='Manager1',
+                          givenname='Automember test manager user1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user1(request, manager1):
     """ User tracker with assigned manager """
-    tracker = UserTracker(name=u'tuser1', sn=u'User1', manager=manager1.name,
-                          givenname=u'Automember test user1')
+    tracker = UserTracker(name='tuser1', sn='User1', manager=manager1.name,
+                          givenname='Automember test user1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def group1(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'tgroup1',
-                           description=u'Automember test group1')
+    tracker = GroupTracker(name='tgroup1',
+                           description='Automember test group1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def defaultgroup1(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'defaultgroup1',
-                           description=u'Automember test defaultgroup1')
+    tracker = GroupTracker(name='defaultgroup1',
+                           description='Automember test defaultgroup1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup1(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'thostgroup1',
-                               description=u'Automember test hostgroup1')
+    tracker = HostGroupTracker(name='thostgroup1',
+                               description='Automember test hostgroup1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup2(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'thostgroup2',
-                               description=u'Automember test hostgroup2')
+    tracker = HostGroupTracker(name='thostgroup2',
+                               description='Automember test hostgroup2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup3(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'thostgroup3',
-                               description=u'Automember test hostgroup3')
+    tracker = HostGroupTracker(name='thostgroup3',
+                               description='Automember test hostgroup3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def hostgroup4(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'thostgroup4',
-                               description=u'Automember test hostgroup4')
+    tracker = HostGroupTracker(name='thostgroup4',
+                               description='Automember test hostgroup4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def defaulthostgroup1(request, xmlrpc_setup):
-    tracker = HostGroupTracker(name=u'defaulthostgroup1',
-                               description=u'Automember test'
+    tracker = HostGroupTracker(name='defaulthostgroup1',
+                               description='Automember test'
                                            'defaulthostgroup1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host1(request, xmlrpc_setup):
-    tracker = HostTracker(u'web1')
+    tracker = HostTracker('web1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host2(request, xmlrpc_setup):
-    tracker = HostTracker(u'dev1')
+    tracker = HostTracker('dev1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host3(request, xmlrpc_setup):
-    tracker = HostTracker(u'web5')
+    tracker = HostTracker('web5')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host4(request, xmlrpc_setup):
-    tracker = HostTracker(u'www5')
+    tracker = HostTracker('www5')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host5(request, xmlrpc_setup):
-    tracker = HostTracker(u'webserver5')
+    tracker = HostTracker('webserver5')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def automember_group(request, group1):
     tracker = AutomemberTracker(groupname=group1.cn,
-                                description=u'Automember group tracker',
-                                membertype=u'group')
+                                description='Automember group tracker',
+                                membertype='group')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def automember_hostgroup(request, hostgroup1):
     tracker = AutomemberTracker(groupname=hostgroup1.cn,
-                                description=u'Automember hostgroup tracker',
-                                membertype=u'hostgroup')
+                                description='Automember hostgroup tracker',
+                                membertype='hostgroup')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def automember_hostgroup2(request, hostgroup2):
     tracker = AutomemberTracker(groupname=hostgroup2.cn,
-                                description=u'Automember hostgroup tracker 2',
-                                membertype=u'hostgroup')
+                                description='Automember hostgroup tracker 2',
+                                membertype='hostgroup')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def automember_hostgroup3(request, hostgroup3):
     tracker = AutomemberTracker(groupname=hostgroup3.cn,
-                                description=u'Automember hostgroup tracker 3',
-                                membertype=u'hostgroup')
+                                description='Automember hostgroup tracker 3',
+                                membertype='hostgroup')
 
     return tracker.make_fixture(request)
 
@@ -186,8 +186,8 @@ def automember_hostgroup3(request, hostgroup3):
 @pytest.fixture(scope='class')
 def automember_hostgroup4(request, hostgroup4):
     tracker = AutomemberTracker(groupname=hostgroup4.cn,
-                                description=u'Automember hostgroup tracker 4',
-                                membertype=u'hostgroup')
+                                description='Automember hostgroup tracker 4',
+                                membertype='hostgroup')
     return tracker.make_fixture(request)
 
 
@@ -200,7 +200,7 @@ class TestAutomemberAddNegative(XMLRPC_test):
         group1.ensure_missing()
         command = automember_group.make_create_command()
         with raises_exact(errors.NotFound(
-                reason=u'group "%s" not found' % group1.cn)):
+                reason='group "%s" not found' % group1.cn)):
             command()
 
     def test_create_with_nonexistent_hostgroup(self, automember_hostgroup,
@@ -209,7 +209,7 @@ class TestAutomemberAddNegative(XMLRPC_test):
         hostgroup1.ensure_missing()
         command = automember_hostgroup.make_create_command()
         with raises_exact(errors.NotFound(
-                reason=u'hostgroup "%s" not found' % hostgroup1.cn)):
+                reason='hostgroup "%s" not found' % hostgroup1.cn)):
             command()
 
     @pytest.mark.parametrize(
@@ -264,7 +264,7 @@ class TestAutomemberFindNegative(XMLRPC_test):
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 rules matched',
+            summary='0 rules matched',
             result=[],
         ), result)
 
@@ -334,7 +334,7 @@ class TestCRUDFOnAutomember(XMLRPC_test):
         automember_group.create()
         automember_group.retrieve()
         automember_group.find()
-        automember_group.update(dict(description=u'New description'))
+        automember_group.update(dict(description='New description'))
         automember_group.delete()
 
     def test_basic_ops_on_hostgroup_automember(self, automember_hostgroup,
@@ -345,7 +345,7 @@ class TestCRUDFOnAutomember(XMLRPC_test):
         automember_hostgroup.create()
         automember_hostgroup.retrieve()
         automember_hostgroup.find()
-        automember_hostgroup.update(dict(description=u'New description'))
+        automember_hostgroup.update(dict(description='New description'))
         automember_hostgroup.delete()
 
 
@@ -429,7 +429,7 @@ class TestAutomemberRebuildHostMembership(XMLRPC_test):
         host1.ensure_exists()
         automember_hostgroup.ensure_exists()
         automember_hostgroup.add_condition(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             inclusiveregex=[hostgroup_include_regex]
         )
         hostgroup1.retrieve()
@@ -585,7 +585,7 @@ class TestAutomemberRebuildGroupMembership(XMLRPC_test):
         user1.ensure_exists()
         automember_group.ensure_exists()
         automember_group.add_condition(
-            key=u'manager', type=u'group', inclusiveregex=[group_include_regex]
+            key='manager', type='group', inclusiveregex=[group_include_regex]
         )
         group1.retrieve()
 
@@ -660,7 +660,7 @@ class TestAutomemberRebuildMembershipIncorrectly(XMLRPC_test):
         """
         command = automember_hostgroup.make_rebuild_command()
         with raises_exact(errors.MutuallyExclusiveError(
-                reason=u'at least one of options: '
+                reason='at least one of options: '
                        'type, users, hosts must be specified')):
             command()
 
@@ -671,7 +671,7 @@ class TestAutomemberRebuildMembershipIncorrectly(XMLRPC_test):
         command = automember_hostgroup.make_rebuild_command(users=user1.name,
                                                             hosts=host1.fqdn)
         with raises_exact(errors.MutuallyExclusiveError(
-                reason=u'users and hosts cannot both be set')):
+                reason='users and hosts cannot both be set')):
             command()
 
     def test_rebuild_membership_users_hostgroup(self, automember_hostgroup,
@@ -679,9 +679,9 @@ class TestAutomemberRebuildMembershipIncorrectly(XMLRPC_test):
         """ Try to issue rebuild membership command with type --hosts and
         users specified """
         command = automember_hostgroup.make_rebuild_command(users=user1.name,
-                                                            type=u'hostgroup')
+                                                            type='hostgroup')
         with raises_exact(errors.MutuallyExclusiveError(
-                reason=u"users cannot be set when type is 'hostgroup'")):
+                reason="users cannot be set when type is 'hostgroup'")):
             command()
 
     def test_rebuild_membership_hosts_group(self, automember_hostgroup, user1,
@@ -689,9 +689,9 @@ class TestAutomemberRebuildMembershipIncorrectly(XMLRPC_test):
         """ Try to issue rebuild membership command with type --users and
         hosts specified """
         command = automember_hostgroup.make_rebuild_command(hosts=host1.fqdn,
-                                                            type=u'group')
+                                                            type='group')
         with raises_exact(errors.MutuallyExclusiveError(
-                reason=u"hosts cannot be set when type is 'group'")):
+                reason="hosts cannot be set when type is 'group'")):
             command()
 
 
@@ -708,7 +708,7 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         automember_grp.ensure_missing()
         command = automember_grp.make_add_condition_command(
-            key=u'manager', type=automember_grp.membertype,
+            key='manager', type=automember_grp.membertype,
             automemberinclusiveregex="eng[0-9]+.example.com")
         with pytest.raises(errors.NotFound,
                            match=r'Auto member rule: %s not found'
@@ -725,7 +725,7 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         automember_grp.ensure_missing()
         command = automember_grp.make_add_condition_command(
-            key=u'manager', type=automember_grp.membertype,
+            key='manager', type=automember_grp.membertype,
             automemberexclusiveregex="qa[0-9]+.example.com")
         with pytest.raises(errors.NotFound,
                            match=r'Auto member rule: %s not found'
@@ -743,7 +743,7 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         grp.ensure_exists()
         automember_grp.ensure_exists()
-        automember_grp.add_condition(key=u'manager',
+        automember_grp.add_condition(key='manager',
                                      type=automember_grp.membertype,
                                      inclusiveregex=[group_include_regex])
 
@@ -759,8 +759,8 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         grp.ensure_exists()
         automember_grp.ensure_exists()
         automember_grp.add_condition_exclusive(
-            key=u'manager', type=automember_grp.membertype,
-            exclusiveregex=[u'mjohn'])
+            key='manager', type=automember_grp.membertype,
+            exclusiveregex=['mjohn'])
 
     @pytest.mark.parametrize(
         "automember_grp, grp", [
@@ -774,8 +774,8 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         grp.ensure_exists()
         automember_grp.ensure_exists()
         command = automember_grp.make_add_condition_command(
-            key=u'manager', type='badtype',
-            automemberinclusiveregex=[u'mjohn'])
+            key='manager', type='badtype',
+            automemberinclusiveregex=['mjohn'])
         with pytest.raises(errors.ValidationError,
                            match=r'invalid \'type\': must be one '
                                  r'of \'group\', \'hostgroup\''):
@@ -793,7 +793,7 @@ class TestAutomemberAddConditionNegative(XMLRPC_test):
         grp.ensure_exists()
         automember_grp.ensure_exists()
         command = automember_grp.make_add_condition_command(
-            key=u'fqdn', type='badtype',
+            key='fqdn', type='badtype',
             automemberexclusiveregex="eng[0-9]+.example.com")
         with pytest.raises(errors.ValidationError,
                            match=r'invalid \'type\': must be one '
@@ -869,7 +869,7 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         automember_grp.ensure_missing()
         command = automember_grp.make_remove_condition_command(
-            key=u'manager', type=automember_grp.membertype,
+            key='manager', type=automember_grp.membertype,
             automemberinclusiveregex="eng[0-9]+.example.com")
         with pytest.raises(errors.NotFound,
                            match=r'Auto member rule: %s not found'
@@ -890,8 +890,8 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         grp.ensure_exists()
         automember_grp.ensure_exists()
         command = automember_grp.make_remove_condition_command(
-            key=u'manager', type='badtype',
-            automemberinclusiveregex=[u'mjohn'])
+            key='manager', type='badtype',
+            automemberinclusiveregex=['mjohn'])
         with pytest.raises(errors.ValidationError,
                            match=r'invalid \'type\': must be one '
                                  r'of \'group\', \'hostgroup\''):
@@ -928,7 +928,7 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         grp.ensure_exists()
         automember_grp.ensure_exists()
-        automember_grp.add_condition(key=u'manager',
+        automember_grp.add_condition(key='manager',
                                      type=automember_grp.membertype,
                                      inclusiveregex=[group_include_regex])
         command = automember_grp.make_remove_condition_command(
@@ -938,17 +938,17 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
 
         expected = dict(
             value=automember_grp.cn,
-            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            summary='Removed condition(s) from "%s"' % automember_grp.cn,
             completed=0,
             failed=dict(
                 failed=dict(
                     automemberexclusiveregex=tuple(),
-                    automemberinclusiveregex=(u'badkey=%s' %
+                    automemberinclusiveregex=('badkey=%s' %
                                               group_include_regex,),
                 )
             ),
             result=dict(
-                automemberinclusiveregex=[u'manager=%s' %
+                automemberinclusiveregex=['manager=%s' %
                                           group_include_regex],
             ),
         )
@@ -968,21 +968,21 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp.ensure_exists()
         command = automember_grp.make_remove_condition_command(
             key='manager', type=automember_grp.membertype,
-            automemberinclusiveregex=[u'badmscott'])
+            automemberinclusiveregex=['badmscott'])
         result = command()
 
         expected = dict(
             value=automember_grp.cn,
-            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            summary='Removed condition(s) from "%s"' % automember_grp.cn,
             completed=0,
             failed=dict(
                 failed=dict(
                     automemberexclusiveregex=tuple(),
-                    automemberinclusiveregex=(u'manager=badmscott',),
+                    automemberinclusiveregex=('manager=badmscott',),
                 )
             ),
             result=dict(
-                automemberinclusiveregex=[u'manager=%s' %
+                automemberinclusiveregex=['manager=%s' %
                                           group_include_regex],
             ),
         )
@@ -1001,7 +1001,7 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp.ensure_exists()
         command = automember_grp.make_remove_condition_command(
             key='manager', type=automember_grp.membertype,
-            automemberinclusiveregex=[u'mjohn'])
+            automemberinclusiveregex=['mjohn'])
         command()
 
     @pytest.mark.parametrize(
@@ -1016,7 +1016,7 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         grp.ensure_exists()
         automember_grp.ensure_exists()
         command = automember_grp.make_remove_condition_command(
-            key=u'fqdn', type='badtype',
+            key='fqdn', type='badtype',
             automemberexclusiveregex="eng[0-9]+.example.com")
         with pytest.raises(errors.ValidationError,
                            match=r'invalid \'type\': must be one '
@@ -1033,7 +1033,7 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         automember_grp.ensure_missing()
         command = automember_grp.make_remove_condition_command(
-            key=u'manager', type=automember_grp.membertype,
+            key='manager', type=automember_grp.membertype,
             automemberexclusiveregex="qa[0-9]+.example.com")
         with pytest.raises(errors.NotFound,
                            match=r'Auto member rule: %s not found'
@@ -1069,26 +1069,26 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp = request.getfixturevalue(automember_grp)
         grp.ensure_exists()
         automember_grp.ensure_exists()
-        automember_grp.add_condition_exclusive(key=u'manager',
+        automember_grp.add_condition_exclusive(key='manager',
                                                type=automember_grp.membertype,
-                                               exclusiveregex=[u'mjohn'])
+                                               exclusiveregex=['mjohn'])
         command = automember_grp.make_remove_condition_command(
             key='badkey', type=automember_grp.membertype,
-            automemberexclusiveregex=[u'mjohn'])
+            automemberexclusiveregex=['mjohn'])
         result = command()
 
         expected = dict(
             value=automember_grp.cn,
-            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            summary='Removed condition(s) from "%s"' % automember_grp.cn,
             completed=0,
             failed=dict(
                 failed=dict(
-                    automemberexclusiveregex=(u'badkey=mjohn',),
+                    automemberexclusiveregex=('badkey=mjohn',),
                     automemberinclusiveregex=tuple(),
                 )
             ),
             result=dict(
-                automemberexclusiveregex=[u'manager=mjohn'],
+                automemberexclusiveregex=['manager=mjohn'],
             ),
         )
         assert_deepequal(expected, result)
@@ -1106,21 +1106,21 @@ class TestAutomemberRemoveCondition(XMLRPC_test):
         automember_grp.ensure_exists()
         command = automember_grp.make_remove_condition_command(
             key='manager', type=automember_grp.membertype,
-            automemberexclusiveregex=[u'badmjohn'])
+            automemberexclusiveregex=['badmjohn'])
         result = command()
 
         expected = dict(
             value=automember_grp.cn,
-            summary=u'Removed condition(s) from "%s"' % automember_grp.cn,
+            summary='Removed condition(s) from "%s"' % automember_grp.cn,
             completed=0,
             failed=dict(
                 failed=dict(
                     automemberinclusiveregex=tuple(),
-                    automemberexclusiveregex=(u'manager=badmjohn',),
+                    automemberexclusiveregex=('manager=badmjohn',),
                 )
             ),
             result=dict(
-                automemberexclusiveregex=[u'manager=mjohn'],
+                automemberexclusiveregex=['manager=mjohn'],
             ),
         )
         assert_deepequal(expected, result)
@@ -1144,11 +1144,11 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         defaulthostgroup1.ensure_exists()
 
         automember_group.ensure_exists()
-        automember_group.add_condition(key=u'manager', type=u'group',
+        automember_group.add_condition(key='manager', type='group',
                                        inclusiveregex=[group_include_regex])
         automember_hostgroup.ensure_exists()
         automember_hostgroup.add_condition(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             inclusiveregex=[hostgroup_include_regex]
         )
 
@@ -1156,7 +1156,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
                                                    hostgroup1):
         """ Try to create a duplicate automember condition """
         command = automember_hostgroup.make_add_condition_command(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             automemberinclusiveregex=[hostgroup_include_regex]
         )
         result = command()
@@ -1167,7 +1167,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         """ Add additional automember conditions to existing one, with both
         inclusive and exclusive regular expressions the condition """
         command = automember_hostgroup.make_add_condition_command(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             automemberinclusiveregex=[hostgroup_include_regex2,
                                       hostgroup_include_regex3],
             automemberexclusiveregex=[hostgroup_exclude_regex,
@@ -1178,7 +1178,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
 
         expected = dict(
             value=automember_hostgroup.cn,
-            summary=u'Added condition(s) to "%s"' % automember_hostgroup.cn,
+            summary='Added condition(s) to "%s"' % automember_hostgroup.cn,
             completed=5,
             failed=dict(
                 failed=dict(
@@ -1191,18 +1191,18 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
                 description=[automember_hostgroup.description],
                 automembertargetgroup=[automember_hostgroup.attrs
                                        ['automembertargetgroup'][0]],
-                automemberinclusiveregex=[u'fqdn=%s' %
+                automemberinclusiveregex=['fqdn=%s' %
                                           hostgroup_include_regex,
-                                          u'fqdn=%s' %
+                                          'fqdn=%s' %
                                           hostgroup_include_regex3,
-                                          u'fqdn=%s' %
+                                          'fqdn=%s' %
                                           hostgroup_include_regex2,
                                           ],
-                automemberexclusiveregex=[u'fqdn=%s' %
+                automemberexclusiveregex=['fqdn=%s' %
                                           hostgroup_exclude_regex2,
-                                          u'fqdn=%s' %
+                                          'fqdn=%s' %
                                           hostgroup_exclude_regex3,
-                                          u'fqdn=%s' %
+                                          'fqdn=%s' %
                                           hostgroup_exclude_regex,
                                           ],
             ),
@@ -1210,13 +1210,13 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         assert_deepequal(expected, result)
 
         automember_hostgroup.attrs.update(
-            automemberinclusiveregex=[u'fqdn=%s' % hostgroup_include_regex,
-                                      u'fqdn=%s' % hostgroup_include_regex3,
-                                      u'fqdn=%s' % hostgroup_include_regex2,
+            automemberinclusiveregex=['fqdn=%s' % hostgroup_include_regex,
+                                      'fqdn=%s' % hostgroup_include_regex3,
+                                      'fqdn=%s' % hostgroup_include_regex2,
                                       ],
-            automemberexclusiveregex=[u'fqdn=%s' % hostgroup_exclude_regex2,
-                                      u'fqdn=%s' % hostgroup_exclude_regex3,
-                                      u'fqdn=%s' % hostgroup_exclude_regex,
+            automemberexclusiveregex=['fqdn=%s' % hostgroup_exclude_regex2,
+                                      'fqdn=%s' % hostgroup_exclude_regex3,
+                                      'fqdn=%s' % hostgroup_exclude_regex,
                                       ]
         )  # modify automember_hostgroup tracker for next tests
 
@@ -1226,43 +1226,43 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         """ Create three more hostgroup automembers """
         automember_hostgroup2.ensure_exists()
         automember_hostgroup2.add_condition(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             inclusiveregex=[hostgroup_exclude_regex]
         )
         automember_hostgroup3.ensure_exists()
         automember_hostgroup3.add_condition(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             inclusiveregex=[hostgroup_exclude_regex2]
         )
         automember_hostgroup4.ensure_exists()
         automember_hostgroup4.add_condition(
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             inclusiveregex=[hostgroup_exclude_regex3]
         )
 
     def test_set_default_group_for_automembers(self, defaultgroup1):
         """ Set new default group for group automembers """
         result = api.Command['automember_default_group_set'](
-            type=u'group',
+            type='group',
             automemberdefaultgroup=defaultgroup1.cn
         )
 
         assert_deepequal(
             dict(
                 result=dict(
-                    cn=[u'Group'],
+                    cn=['Group'],
                     automemberdefaultgroup=[DN(('cn', defaultgroup1.cn),
                                             ('cn', 'groups'),
                                             ('cn', 'accounts'),
                                             api.env.basedn)],
                 ),
-                value=u'group',
-                summary=u'Set default (fallback) group for automember "group"'
+                value='group',
+                summary='Set default (fallback) group for automember "group"'
                 ),
             result)
 
         result = api.Command['automember_default_group_show'](
-            type=u'group',
+            type='group',
         )
 
         assert_deepequal(
@@ -1270,7 +1270,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
                 result=dict(dn=DN(('cn', 'group'),
                                   ('cn', 'automember'),
                                   ('cn', 'etc'), api.env.basedn),
-                            cn=[u'Group'],
+                            cn=['Group'],
                             automemberdefaultgroup=[
                                 DN(('cn', defaultgroup1.cn),
                                    ('cn', 'groups'),
@@ -1278,7 +1278,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
                                    api.env.basedn)
                                 ],
                             ),
-                value=u'group',
+                value='group',
                 summary=None,
             ),
             result)
@@ -1286,26 +1286,26 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
     def test_set_default_hostgroup_for_automembers(self, defaulthostgroup1):
         """ Set new default hostgroup for hostgroup automembers """
         result = api.Command['automember_default_group_set'](
-            type=u'hostgroup',
+            type='hostgroup',
             automemberdefaultgroup=defaulthostgroup1.cn
         )
 
         assert_deepequal(
             dict(
                 result=dict(
-                    cn=[u'Hostgroup'],
+                    cn=['Hostgroup'],
                     automemberdefaultgroup=[DN(('cn', defaulthostgroup1.cn),
                                             ('cn', 'hostgroups'),
                                             ('cn', 'accounts'),
                                             api.env.basedn)],
                     ),
-                value=u'hostgroup',
-                summary=u'Set default (fallback) group for '
+                value='hostgroup',
+                summary='Set default (fallback) group for '
                         'automember "hostgroup"'),
             result)
 
         result = api.Command['automember_default_group_show'](
-            type=u'hostgroup',
+            type='hostgroup',
         )
 
         assert_deepequal(
@@ -1313,14 +1313,14 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
                 result=dict(dn=DN(('cn', 'hostgroup'),
                             ('cn', 'automember'),
                             ('cn', 'etc'), api.env.basedn),
-                            cn=[u'Hostgroup'],
+                            cn=['Hostgroup'],
                             automemberdefaultgroup=[
                                 DN(('cn', defaulthostgroup1.cn),
                                    ('cn', 'hostgroups'),
                                    ('cn', 'accounts'),
                                    api.env.basedn)],
                             ),
-                value=u'hostgroup',
+                value='hostgroup',
                 summary=None,
             ),
             result)
@@ -1338,13 +1338,13 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         user1.ensure_missing()
 
         manager1.track_create()
-        manager1.attrs.update(memberof_group=[defaultgroup1.cn, u'ipausers'])
+        manager1.attrs.update(memberof_group=[defaultgroup1.cn, 'ipausers'])
         command = manager1.make_create_command()
         result = command()
         manager1.check_create(result)
 
         user1.track_create()
-        user1.attrs.update(memberof_group=[group1.cn, u'ipausers'])
+        user1.attrs.update(memberof_group=[group1.cn, 'ipausers'])
         command = user1.make_create_command()
         result = command()
         user1.check_create(result)
@@ -1392,14 +1392,14 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
     def test_rebuild_membership_for_one_host(self, automember_hostgroup,
                                              host1):
         """ Rebuild hostgroup automember membership for one host """
-        command = automember_hostgroup.make_rebuild_command(type=u'hostgroup',
+        command = automember_hostgroup.make_rebuild_command(type='hostgroup',
                                                             hosts=host1.fqdn)
         result = command()
         automember_hostgroup.check_rebuild(result)
 
     def test_rebuild_membership_for_one_user(self, automember_group, user1):
         """ Rebuild group automember membership for one user """
-        command = automember_group.make_rebuild_command(type=u'group',
+        command = automember_group.make_rebuild_command(type='group',
                                                         users=user1.name)
         result = command()
         automember_group.check_rebuild(result)
@@ -1410,7 +1410,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         command = automember_hostgroup.make_rebuild_command(
             hosts=fqdn_does_not_exist)
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % fqdn_does_not_exist)):
+                reason='%s: host not found' % fqdn_does_not_exist)):
             command()
 
     def test_rebuild_membership_with_invalid_user_in_users(self,
@@ -1419,7 +1419,7 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         command = automember_group.make_rebuild_command(
             users=user_does_not_exist)
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user_does_not_exist)):
+                reason='%s: user not found' % user_does_not_exist)):
             command()
 
     def test_reset_automember_default_groups(self, defaultgroup1, user1,
@@ -1428,32 +1428,32 @@ class TestMultipleAutomemberConditions(XMLRPC_test):
         manager1.delete()
         user1.delete()
         result = api.Command['automember_default_group_remove'](
-            type=u'group',
+            type='group',
         )
 
         assert_deepequal(
             dict(
                 result=dict(
-                    automemberdefaultgroup=u'No default (fallback) group set',
-                    cn=([u'Group'])
+                    automemberdefaultgroup='No default (fallback) group set',
+                    cn=(['Group'])
                     ),
-                value=u'group',
-                summary=u'Removed default (fallback) group'
+                value='group',
+                summary='Removed default (fallback) group'
                         ' for automember "group"'),
             result)
 
         result = api.Command['automember_default_group_remove'](
-            type=u'hostgroup',
+            type='hostgroup',
         )
 
         assert_deepequal(
             dict(
                 result=dict(
-                    automemberdefaultgroup=u'No default (fallback) group set',
-                    cn=([u'Hostgroup'])
+                    automemberdefaultgroup='No default (fallback) group set',
+                    cn=(['Hostgroup'])
                     ),
-                value=u'hostgroup',
-                summary=u'Removed default (fallback) group'
+                value='hostgroup',
+                summary='Removed default (fallback) group'
                         ' for automember "hostgroup"'),
             result)
 
@@ -1475,10 +1475,10 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         # Manually create automember rule and condition, racker will try to
         # remove the automember rule in the end, which is failing as the rule
         # is already removed
-        api.Command['automember_add'](hostgroup1.cn, type=u'hostgroup')
+        api.Command['automember_add'](hostgroup1.cn, type='hostgroup')
         api.Command['automember_add_condition'](
             hostgroup1.cn,
-            key=u'fqdn', type=u'hostgroup',
+            key='fqdn', type='hostgroup',
             automemberinclusiveregex=[hostgroup_include_regex]
         )
 
@@ -1491,28 +1491,28 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         hostgroup1.ensure_missing()
 
         # Rebuild with a missing hostgroup
-        api.Command['automember_rebuild'](type=u'hostgroup')
+        api.Command['automember_rebuild'](type='hostgroup')
 
         # Find obsolete automember rules
-        result = api.Command['automember_find_orphans'](type=u'hostgroup')
+        result = api.Command['automember_find_orphans'](type='hostgroup')
         assert result['count'] == 1
 
         # Find and remove obsolete automember rules
-        result = api.Command['automember_find_orphans'](type=u'hostgroup',
+        result = api.Command['automember_find_orphans'](type='hostgroup',
                                                         remove=True)
         assert result['count'] == 1
 
         # Find obsolete automember rules
-        result = api.Command['automember_find_orphans'](type=u'hostgroup')
+        result = api.Command['automember_find_orphans'](type='hostgroup')
         assert result['count'] == 0
 
         # Test rebuild (may not be failing)
         try:
-            api.Command['automember_rebuild'](type=u'hostgroup')
+            api.Command['automember_rebuild'](type='hostgroup')
         except errors.DatabaseError:
             assert False
 
         # Final cleanup of automember rule if it still exists
         with raises_exact(errors.NotFound(
-                reason=u'%s: Automember rule not found' % hostgroup1.cn)):
-            api.Command['automember_del'](hostgroup1.cn, type=u'hostgroup')
+                reason='%s: Automember rule not found' % hostgroup1.cn)):
+            api.Command['automember_del'](hostgroup1.cn, type='hostgroup')
