@@ -24,8 +24,8 @@ from ipatests.util import assert_equal
 from ipalib import api, errors
 from ipapython.ipautil import run
 
-testuser = u'tuser'
-password = u'password'
+testuser = 'tuser'
+password = 'password'
 
 
 @pytest.mark.tier1
@@ -36,7 +36,7 @@ class test_login_password(XMLRPC_test, Unauthorized_HTTP_test):
     def login_setup(self, request):
         ccache = os.path.join('/tmp', str(uuid.uuid4()))
         try:
-            api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
+            api.Command['user_add'](uid=testuser, givenname='Test', sn='User')
             api.Command['passwd'](testuser, password=password)
             run(['kinit', testuser], stdin='{0}\n{0}\n{0}\n'.format(password),
                 env={"KRB5CCNAME": ccache})
@@ -88,7 +88,7 @@ class test_login_password(XMLRPC_test, Unauthorized_HTTP_test):
         assert response.getheader('X-IPA-Rejection-Reason') is None
 
     def test_success_realm_principal(self):
-        principal = u'%s@%s' % (testuser, api.env.realm)
+        principal = '%s@%s' % (testuser, api.env.realm)
         response = self._login(principal, password)
 
         assert_equal(response.status, 200)

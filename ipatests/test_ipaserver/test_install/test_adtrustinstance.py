@@ -20,12 +20,8 @@
 Test `adtrustinstance`
 """
 import pytest
-import six
 
 from ipaserver.install import adtrustinstance
-
-if six.PY3:
-    unicode = str
 
 
 @pytest.mark.tier0
@@ -37,8 +33,8 @@ class test_adtrustinstance:
     def test_make_netbios_name(self):
         s = adtrustinstance.make_netbios_name("ABCDEF")
         assert s == 'ABCDEF' and isinstance(s, str)
-        s = adtrustinstance.make_netbios_name(U"ABCDEF")
-        assert s == 'ABCDEF' and isinstance(s, unicode)
+        s = adtrustinstance.make_netbios_name("ABCDEF")
+        assert s == 'ABCDEF' and isinstance(s, str)
         s = adtrustinstance.make_netbios_name("abcdef")
         assert s == 'ABCDEF'
         s = adtrustinstance.make_netbios_name("abc.def")
@@ -57,7 +53,7 @@ class test_adtrustinstance:
         assert not adtrustinstance.check_netbios_name("ABCDE12345ABCDE1")
         assert not adtrustinstance.check_netbios_name("")
 
-        assert adtrustinstance.check_netbios_name(U"ABCDEF")
-        assert not adtrustinstance.check_netbios_name(U"abcdef")
-        assert adtrustinstance.check_netbios_name(U"ABCDE12345ABCDE")
-        assert not adtrustinstance.check_netbios_name(U"ABCDE12345ABCDE1")
+        assert adtrustinstance.check_netbios_name("ABCDEF")
+        assert not adtrustinstance.check_netbios_name("abcdef")
+        assert adtrustinstance.check_netbios_name("ABCDE12345ABCDE")
+        assert not adtrustinstance.check_netbios_name("ABCDE12345ABCDE1")

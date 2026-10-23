@@ -29,7 +29,6 @@ import struct
 import re
 import socket
 
-import six
 
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -49,8 +48,6 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +145,7 @@ class ADTRUSTInstance(service.Service):
     OBJC_USER = "ipaNTUserAttrs"
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
-    FALLBACK_GROUP_NAME = u'Default SMB Group'
+    FALLBACK_GROUP_NAME = 'Default SMB Group'
     SERVER_ROLE_OLD = "CLASSIC PRIMARY DOMAIN CONTROLLER"
     SERVER_ROLE_NEW = "IPA PRIMARY DOMAIN CONTROLLER"
 
@@ -171,7 +168,7 @@ class ADTRUSTInstance(service.Service):
         if self.fulltrust:
             super(ADTRUSTInstance, self).__init__(
                 "smb", service_desc="CIFS", fstore=fstore,
-                service_prefix=u'cifs',
+                service_prefix='cifs',
                 keytab=paths.SAMBA_KEYTAB)
         else:
             super(ADTRUSTInstance, self).__init__("SID generation")
@@ -707,7 +704,7 @@ class ADTRUSTInstance(service.Service):
                     managedBy = entry.single_value.get('managedBy')
                     if managedBy:
                         fqdn = DN(managedBy)['fqdn']
-                        if fqdn != unicode(self.fqdn):
+                        if fqdn != str(self.fqdn):
                             # this is CIFS service of a different host in our
                             # REALM, we need to remember it to announce via
                             # SRV records for _msdcs

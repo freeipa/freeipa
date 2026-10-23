@@ -23,14 +23,10 @@ from io import StringIO
 import shutil
 import errno
 
-import six
 
 from ipalib import api, errors
 from ipaserver.plugins.user import user_add
 import pytest
-
-if six.PY3:
-    unicode = str
 
 
 pytestmark = pytest.mark.needs_ipaapi
@@ -143,7 +139,7 @@ def test_command_help():
     assert h_ctx.stderr == ''
 
     assert h_ctx.stdout == help_ctx.stdout
-    assert unicode(user_add.doc) in help_ctx.stdout
+    assert str(user_add.doc) in help_ctx.stdout
 
 
 def test_ambiguous_command_or_topic():
@@ -168,9 +164,9 @@ def test_multiline_description():
     """Test that all of a multi-line command description appears in output
     """
     # This assumes trust_add has multiline doc. Ensure it is so.
-    assert '\n\n' in unicode(api.Command.trust_add.doc).strip()
+    assert '\n\n' in str(api.Command.trust_add.doc).strip()
 
     with CLITestContext(exception=SystemExit) as help_ctx:
         api.Backend.cli.run(['trust-add', '-h'])
 
-    assert unicode(api.Command.trust_add.doc).strip() in help_ctx.stdout
+    assert str(api.Command.trust_add.doc).strip() in help_ctx.stdout

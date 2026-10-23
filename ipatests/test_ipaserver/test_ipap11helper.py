@@ -36,16 +36,16 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('t')
 
 
-master_key_label = u"master-ž"  # random non-ascii character to test unicode
+master_key_label = "master-ž"  # random non-ascii character to test unicode
 master_key_id = "m"
-replica1_key_label = u"replica1"
+replica1_key_label = "replica1"
 replica1_key_id = "id1"
-replica1_import_label = u"replica1-import"
+replica1_import_label = "replica1-import"
 replica1_import_id = "id1-import"
-replica1_new_label = u"replica1-new-label-ž"
-replica2_key_label = u"replica2"
+replica1_new_label = "replica1-new-label-ž"
+replica2_key_label = "replica2"
 replica2_key_id = "id2"
-replica_non_existent_label = u"replica-nonexistent"
+replica_non_existent_label = "replica-nonexistent"
 
 
 @pytest.fixture(scope="module")
@@ -197,7 +197,7 @@ class test_p11helper:
             f.write(wrapped_priv)
 
         assert p11.import_wrapped_private_key(
-            u'test_import_wrapped_priv',
+            'test_import_wrapped_priv',
             '1',
             wrapped_priv,
             master_key,
@@ -220,7 +220,7 @@ class test_p11helper:
 
         log.debug("wrapped key MECH_RSA_PKCS (secret master wrapped by pub "
                   "key): %s", hexlify(wrapped))
-        assert p11.import_wrapped_secret_key(u'test_import_wrapped',
+        assert p11.import_wrapped_secret_key('test_import_wrapped',
                                              '2',
                                              wrapped,
                                              rep2_priv,
@@ -243,7 +243,7 @@ class test_p11helper:
         log.debug("wrapped key MECH_RSA_PKCS_OAEP (secret master wrapped by "
                   "pub key): %s", hexlify(wrapped))
 
-        assert p11.import_wrapped_secret_key(u'test_import_wrapped',
+        assert p11.import_wrapped_secret_key('test_import_wrapped',
                                              '3',
                                              wrapped,
                                              rep2_priv,

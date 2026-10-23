@@ -75,7 +75,7 @@ class test_Plugin(ClassChecker):
         class another_subclass(self.cls):
             pass
         o = another_subclass(api)
-        assert o.summary == u'<%s.%s>' % (another_subclass.__module__,
+        assert o.summary == '<%s.%s>' % (another_subclass.__module__,
                                           another_subclass.__name__)
 
     def test_finalize(self):

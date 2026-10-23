@@ -22,7 +22,7 @@ from __future__ import print_function
 
 # WARNING: Do not import ipa modules, this is also used as a
 # stand-alone script (invoked from po Makefile).
-import optparse  # pylint: disable=deprecated-module
+import optparse
 import sys
 import gettext
 import re
@@ -31,7 +31,6 @@ import traceback
 import polib
 from collections import namedtuple
 
-import six
 
 '''
 We test our translations by taking the original untranslated string
@@ -57,9 +56,9 @@ pedantic = False
 show_strings = True
 
 # Unicode right pointing arrow
-prefix = u'\u2192'               # utf-8 == '\xe2\x86\x92'
+prefix = '\u2192'               # utf-8 == '\xe2\x86\x92'
 # Unicode left pointing arrow
-suffix = u'\u2190'               # utf-8 == '\xe2\x86\x90'
+suffix = '\u2190'               # utf-8 == '\xe2\x86\x90'
 
 page_width = 80
 section_seperator = '=' * page_width
@@ -623,12 +622,8 @@ def test_translations(po_file, lang, domain, locale_dir):
 
     t = gettext.translation(domain, locale_dir)
 
-    if six.PY2:
-        get_msgstr = t.ugettext
-        get_msgstr_plural = t.ungettext
-    else:
-        get_msgstr = t.gettext
-        get_msgstr_plural = t.ngettext
+    get_msgstr = t.gettext
+    get_msgstr_plural = t.ngettext
 
     return po_file_iterate(po_file, get_msgstr, get_msgstr_plural)
 

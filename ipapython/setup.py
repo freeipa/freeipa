@@ -43,7 +43,6 @@ if __name__ == '__main__':
             # "ipalib",  # circular dependency
             "ipaplatform",
             "netaddr",
-            "six",
         ],
         extras_require={
             "ldap": ["python-ldap"],  # ipapython.ipaldap
