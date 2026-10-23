@@ -63,15 +63,15 @@ class server_role(Object):
             cli_name='role',
             label=_("Role name"),
             doc=_("IPA server role name"),
-            flags={u'virtual_attribute'}
+            flags={'virtual_attribute'}
         ),
         StrEnum(
             'status?',
             cli_name='status',
             label=_('Role status'),
             doc=_('Status of the role'),
-            values=(u'enabled', u'configured', u'hidden', u'absent'),
-            default=u'enabled',
+            values=('enabled', 'configured', 'hidden', 'absent'),
+            default='enabled',
             flags={'virtual_attribute', 'no_create', 'no_update'}
         )
     )
@@ -96,7 +96,7 @@ class server_role_show(Retrieve):
             yield arg
 
         for param in self.obj.params():
-            if param.name != u'status':
+            if param.name != 'status':
                 yield param.clone()
 
     def execute(self, *keys, **options):
@@ -168,7 +168,7 @@ class server_role_find(Search):
         else:
             result = [
                 r for r in role_status
-                if r[u'role_servrole'] != "IPA master"
+                if r['role_servrole'] != "IPA master"
             ]
         return dict(
             result=result,
@@ -190,6 +190,6 @@ class servrole(Object):
             primary_key=True,
             label=_("Role name"),
             doc=_("IPA role name"),
-            flags=(u'virtual_attribute',)
+            flags=('virtual_attribute',)
         ),
     )

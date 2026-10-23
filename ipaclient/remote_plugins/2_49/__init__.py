@@ -8,7 +8,7 @@ Object = CompatObject
 
 
 class Command(CompatCommand):
-    api_version = u'2.49'
+    api_version = '2.49'
 
 
 class Method(Command, CompatMethod):

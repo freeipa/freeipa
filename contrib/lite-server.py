@@ -9,7 +9,7 @@ See README.md for more details.
 import logging
 import linecache
 import os
-import optparse  # pylint: disable=deprecated-module
+import optparse
 import ssl
 import sys
 import time

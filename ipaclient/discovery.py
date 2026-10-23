@@ -21,7 +21,6 @@ from __future__ import absolute_import
 
 import logging
 
-import six
 
 from dns import rdatatype
 from dns.exception import DNSException
@@ -464,8 +463,7 @@ class IPADiscovery:
             for lres in lret:
                 logger.debug("Found: %s", lres.dn)
                 [cn] = lres.raw['cn']
-                if six.PY3:
-                    cn = cn.decode('utf-8')
+                cn = cn.decode('utf-8')
                 lrealms.append(cn)
 
             if trealm:

@@ -20,7 +20,6 @@
 import logging
 
 import dbus
-import six
 
 from cryptography import x509 as crypto_x509
 
@@ -43,9 +42,6 @@ from .baseldap import (
 from ipalib import _, ngettext
 from ipalib import output
 
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -626,7 +622,7 @@ class certmap_match(Search):
         # own, nothing else constrains who may turn a certificate into the
         # set of users it maps to. Require the Certificate Identity Mapping
         # Administrators privilege up front, before invoking the helper.
-        privilege = u'Certificate Identity Mapping Administrators'
+        privilege = 'Certificate Identity Mapping Administrators'
         op_account = getattr(context, 'principal', None)
         if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(

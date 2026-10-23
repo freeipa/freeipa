@@ -29,7 +29,7 @@ class ODSExporterInstance(service.Service):
             service_desc="IPA OpenDNSSEC exporter daemon",
             fstore=fstore,
             keytab=paths.IPA_ODS_EXPORTER_KEYTAB,
-            service_prefix=u'ipa-ods-exporter'
+            service_prefix='ipa-ods-exporter'
         )
         self.enable_if_exists = False
 

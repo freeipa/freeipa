@@ -11,9 +11,8 @@ import re
 
 from jwcrypto.common import json_encode
 
-import six
 
-from .log import CustodiaLoggingAdapter, auditlog, getLogger
+from ipaserver.custodia.log import CustodiaLoggingAdapter, auditlog, getLogger
 
 
 logger = getLogger(__name__)
@@ -284,8 +283,7 @@ class CustodiaPluginMeta(abc.ABCMeta):
         return ncls
 
 
-@six.add_metaclass(CustodiaPluginMeta)
-class CustodiaPlugin:
+class CustodiaPlugin(metaclass=CustodiaPluginMeta):
     """Abstract base class for all Custodia plugins
     """
     _options = ()
@@ -465,7 +463,7 @@ class HTTPConsumer(CustodiaPlugin):
         response['output'] = output
 
         if output is not None and not hasattr(output, 'read') \
-                and not isinstance(output, six.binary_type):
+                and not isinstance(output, bytes):
             msg = "Handler {} returned unsupported type {} ({}):\n{!r}"
             raise TypeError(msg.format(handler, type(output), ct, output))
 

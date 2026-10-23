@@ -27,7 +27,6 @@ import traceback
 import tempfile
 import warnings
 
-import six
 
 from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
@@ -46,8 +45,6 @@ from ipaserver.install.ldapupdate import LDAPUpdate, run_ldapi_reload_task
 
 logger = logging.getLogger(__name__)
 
-if six.PY3:
-    unicode = str
 
 
 def print_msg(message, output_fd=sys.stdout):
@@ -216,7 +213,7 @@ def sync_services_state(fqdn):
     """
     result = api.Command.server_role_find(
         server_server=fqdn,
-        role_servrole=u'IPA master',
+        role_servrole='IPA master',
         status=HIDDEN
     )
     if result['count']:
@@ -330,7 +327,7 @@ class Service:
                                          self.service_prefix)):
             return None
 
-        return unicode(
+        return str(
             kerberos.Principal(
                 (self.service_prefix, self.fqdn), realm=self.realm))
 
@@ -741,7 +738,7 @@ class Service:
 
     def _ldap_enable(self, value, name, fqdn, ldap_suffix, config):
         extra_config_opts = [
-            u'startOrder {}'.format(SERVICE_LIST[name].startorder),
+            'startOrder {}'.format(SERVICE_LIST[name].startorder),
         ]
         extra_config_opts.extend(config)
 

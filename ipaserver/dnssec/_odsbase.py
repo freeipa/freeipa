@@ -2,7 +2,6 @@
 # Copyright (C) 2020  FreeIPA Contributors see COPYING for license
 #
 
-import six
 import abc
 import sqlite3
 from ipaplatform.paths import paths
@@ -10,8 +9,7 @@ from ipaplatform.paths import paths
 ODS_SE_MAXLINE = 1024  # from ODS common/config.h
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AbstractODSDBConnection():
+class AbstractODSDBConnection(metaclass=abc.ABCMeta):
     """Abstract class representing the Connection to ODS database."""
     def __init__(self):
         """Creates a connection to the kasp database."""
@@ -36,8 +34,7 @@ class AbstractODSDBConnection():
         self._db.close()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AbstractODSSignerConn():
+class AbstractODSSignerConn(metaclass=abc.ABCMeta):
     """Abstract class representing the Connection to ods-signer."""
     def __init__(self, conn):
         """Initializes the object with a socket conn."""

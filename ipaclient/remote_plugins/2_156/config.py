@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Server configuration
@@ -70,105 +62,119 @@ class config(Object):
     takes_params = (
         parameters.Int(
             'ipamaxusernamelength',
-            label=_(u'Maximum username length'),
+            label=_('Maximum username length'),
         ),
         parameters.Str(
             'ipahomesrootdir',
-            label=_(u'Home directory base'),
-            doc=_(u'Default location of home directories'),
+            label=_('Home directory base'),
+            doc=_('Default location of home directories'),
         ),
         parameters.Str(
             'ipadefaultloginshell',
-            label=_(u'Default shell'),
-            doc=_(u'Default shell for new users'),
+            label=_('Default shell'),
+            doc=_('Default shell for new users'),
         ),
         parameters.Str(
             'ipadefaultprimarygroup',
-            label=_(u'Default users group'),
-            doc=_(u'Default group for new users'),
+            label=_('Default users group'),
+            doc=_('Default group for new users'),
         ),
         parameters.Str(
             'ipadefaultemaildomain',
             required=False,
-            label=_(u'Default e-mail domain'),
+            label=_('Default e-mail domain'),
         ),
         parameters.Int(
             'ipasearchtimelimit',
-            label=_(u'Search time limit'),
-            doc=_(u'Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)'),
+            label=_('Search time limit'),
+            doc=_(
+                'Maximum amount of time (seconds) for a search (-1 or 0 is '
+                'unlimited)'
+            ),
         ),
         parameters.Int(
             'ipasearchrecordslimit',
-            label=_(u'Search size limit'),
-            doc=_(u'Maximum number of records to search (-1 or 0 is unlimited)'),
+            label=_('Search size limit'),
+            doc=_('Maximum number of records to search (-1 or 0 is unlimited)'),
         ),
         parameters.Str(
             'ipausersearchfields',
-            label=_(u'User search fields'),
-            doc=_(u'A comma-separated list of fields to search in when searching for users'),
+            label=_('User search fields'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for users'
+            ),
         ),
         parameters.Str(
             'ipagroupsearchfields',
-            label=_(u'Group search fields'),
-            doc=_(u'A comma-separated list of fields to search in when searching for groups'),
+            label=_('Group search fields'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
+            ),
         ),
         parameters.Bool(
             'ipamigrationenabled',
-            label=_(u'Enable migration mode'),
+            label=_('Enable migration mode'),
         ),
         parameters.DNParam(
             'ipacertificatesubjectbase',
-            label=_(u'Certificate Subject base'),
-            doc=_(u'Base for certificate subjects (OU=Test,O=Example)'),
+            label=_('Certificate Subject base'),
+            doc=_('Base for certificate subjects (OU=Test,O=Example)'),
         ),
         parameters.Str(
             'ipagroupobjectclasses',
             multivalue=True,
-            label=_(u'Default group objectclasses'),
-            doc=_(u'Default group objectclasses (comma-separated list)'),
+            label=_('Default group objectclasses'),
+            doc=_('Default group objectclasses (comma-separated list)'),
         ),
         parameters.Str(
             'ipauserobjectclasses',
             multivalue=True,
-            label=_(u'Default user objectclasses'),
-            doc=_(u'Default user objectclasses (comma-separated list)'),
+            label=_('Default user objectclasses'),
+            doc=_('Default user objectclasses (comma-separated list)'),
         ),
         parameters.Int(
             'ipapwdexpadvnotify',
-            label=_(u'Password Expiration Notification (days)'),
-            doc=_(u"Number of days's notice of impending password expiration"),
+            label=_('Password Expiration Notification (days)'),
+            doc=_("Number of days's notice of impending password expiration"),
         ),
         parameters.Str(
             'ipaconfigstring',
             required=False,
             multivalue=True,
-            label=_(u'Password plugin features'),
-            doc=_(u'Extra hashes to generate in password plug-in'),
+            label=_('Password plugin features'),
+            doc=_('Extra hashes to generate in password plug-in'),
         ),
         parameters.Str(
             'ipaselinuxusermaporder',
-            label=_(u'SELinux user map order'),
-            doc=_(u'Order in increasing priority of SELinux users, delimited by $'),
+            label=_('SELinux user map order'),
+            doc=_(
+                'Order in increasing priority of SELinux users, delimited by $'
+            ),
         ),
         parameters.Str(
             'ipaselinuxusermapdefault',
             required=False,
-            label=_(u'Default SELinux user'),
-            doc=_(u'Default SELinux user when no match is found in SELinux map rule'),
+            label=_('Default SELinux user'),
+            doc=_(
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
+            ),
         ),
         parameters.Str(
             'ipakrbauthzdata',
             required=False,
             multivalue=True,
-            label=_(u'Default PAC types'),
-            doc=_(u'Default types of PAC supported for services'),
+            label=_('Default PAC types'),
+            doc=_('Default types of PAC supported for services'),
         ),
         parameters.Str(
             'ipauserauthtype',
             required=False,
             multivalue=True,
-            label=_(u'Default user authentication types'),
-            doc=_(u'Default types of supported user authentication'),
+            label=_('Default user authentication types'),
+            doc=_('Default types of supported user authentication'),
         ),
     )
 
@@ -182,111 +188,125 @@ class config_mod(Method):
             'ipamaxusernamelength',
             required=False,
             cli_name='maxusername',
-            label=_(u'Maximum username length'),
+            label=_('Maximum username length'),
         ),
         parameters.Str(
             'ipahomesrootdir',
             required=False,
             cli_name='homedirectory',
-            label=_(u'Home directory base'),
-            doc=_(u'Default location of home directories'),
+            label=_('Home directory base'),
+            doc=_('Default location of home directories'),
         ),
         parameters.Str(
             'ipadefaultloginshell',
             required=False,
             cli_name='defaultshell',
-            label=_(u'Default shell'),
-            doc=_(u'Default shell for new users'),
+            label=_('Default shell'),
+            doc=_('Default shell for new users'),
         ),
         parameters.Str(
             'ipadefaultprimarygroup',
             required=False,
             cli_name='defaultgroup',
-            label=_(u'Default users group'),
-            doc=_(u'Default group for new users'),
+            label=_('Default users group'),
+            doc=_('Default group for new users'),
         ),
         parameters.Str(
             'ipadefaultemaildomain',
             required=False,
             cli_name='emaildomain',
-            label=_(u'Default e-mail domain'),
+            label=_('Default e-mail domain'),
         ),
         parameters.Int(
             'ipasearchtimelimit',
             required=False,
             cli_name='searchtimelimit',
-            label=_(u'Search time limit'),
-            doc=_(u'Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)'),
+            label=_('Search time limit'),
+            doc=_(
+                'Maximum amount of time (seconds) for a search (-1 or 0 is '
+                'unlimited)'
+            ),
         ),
         parameters.Int(
             'ipasearchrecordslimit',
             required=False,
             cli_name='searchrecordslimit',
-            label=_(u'Search size limit'),
-            doc=_(u'Maximum number of records to search (-1 or 0 is unlimited)'),
+            label=_('Search size limit'),
+            doc=_('Maximum number of records to search (-1 or 0 is unlimited)'),
         ),
         parameters.Str(
             'ipausersearchfields',
             required=False,
             cli_name='usersearch',
-            label=_(u'User search fields'),
-            doc=_(u'A comma-separated list of fields to search in when searching for users'),
+            label=_('User search fields'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for users'
+            ),
         ),
         parameters.Str(
             'ipagroupsearchfields',
             required=False,
             cli_name='groupsearch',
-            label=_(u'Group search fields'),
-            doc=_(u'A comma-separated list of fields to search in when searching for groups'),
+            label=_('Group search fields'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
+            ),
         ),
         parameters.Bool(
             'ipamigrationenabled',
             required=False,
             cli_name='enable_migration',
-            label=_(u'Enable migration mode'),
+            label=_('Enable migration mode'),
         ),
         parameters.Str(
             'ipagroupobjectclasses',
             required=False,
             multivalue=True,
             cli_name='groupobjectclasses',
-            label=_(u'Default group objectclasses'),
-            doc=_(u'Default group objectclasses (comma-separated list)'),
+            label=_('Default group objectclasses'),
+            doc=_('Default group objectclasses (comma-separated list)'),
         ),
         parameters.Str(
             'ipauserobjectclasses',
             required=False,
             multivalue=True,
             cli_name='userobjectclasses',
-            label=_(u'Default user objectclasses'),
-            doc=_(u'Default user objectclasses (comma-separated list)'),
+            label=_('Default user objectclasses'),
+            doc=_('Default user objectclasses (comma-separated list)'),
         ),
         parameters.Int(
             'ipapwdexpadvnotify',
             required=False,
             cli_name='pwdexpnotify',
-            label=_(u'Password Expiration Notification (days)'),
-            doc=_(u"Number of days's notice of impending password expiration"),
+            label=_('Password Expiration Notification (days)'),
+            doc=_("Number of days's notice of impending password expiration"),
         ),
         parameters.Str(
             'ipaconfigstring',
             required=False,
             multivalue=True,
             cli_metavar="['AllowNThash', 'KDC:Disable Last Success', 'KDC:Disable Lockout']",
-            label=_(u'Password plugin features'),
-            doc=_(u'Extra hashes to generate in password plug-in'),
+            label=_('Password plugin features'),
+            doc=_('Extra hashes to generate in password plug-in'),
         ),
         parameters.Str(
             'ipaselinuxusermaporder',
             required=False,
-            label=_(u'SELinux user map order'),
-            doc=_(u'Order in increasing priority of SELinux users, delimited by $'),
+            label=_('SELinux user map order'),
+            doc=_(
+                'Order in increasing priority of SELinux users, delimited by $'
+            ),
         ),
         parameters.Str(
             'ipaselinuxusermapdefault',
             required=False,
-            label=_(u'Default SELinux user'),
-            doc=_(u'Default SELinux user when no match is found in SELinux map rule'),
+            label=_('Default SELinux user'),
+            doc=_(
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
+            ),
         ),
         parameters.Str(
             'ipakrbauthzdata',
@@ -294,8 +314,8 @@ class config_mod(Method):
             multivalue=True,
             cli_name='pac_type',
             cli_metavar="['MS-PAC', 'PAD', 'nfs:NONE']",
-            label=_(u'Default PAC types'),
-            doc=_(u'Default types of PAC supported for services'),
+            label=_('Default PAC types'),
+            doc=_('Default types of PAC supported for services'),
         ),
         parameters.Str(
             'ipauserauthtype',
@@ -303,47 +323,66 @@ class config_mod(Method):
             multivalue=True,
             cli_name='user_auth_type',
             cli_metavar="['password', 'radius', 'otp', 'disabled']",
-            label=_(u'Default user authentication types'),
-            doc=_(u'Default types of supported user authentication'),
+            label=_('Default user authentication types'),
+            doc=_('Default types of supported user authentication'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -352,15 +391,15 @@ class config_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -372,21 +411,30 @@ class config_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -395,14 +443,14 @@ class config_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

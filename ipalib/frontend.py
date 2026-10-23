@@ -22,7 +22,6 @@ Base classes for all front-end plugins.
 """
 import logging
 
-import six
 
 from ipapython.version import API_VERSION
 from ipapython.ipautil import APIVersion
@@ -45,9 +44,6 @@ from ipalib import errors, messages
 from ipalib.request import context, context_frame
 from ipalib.util import classproperty, classobjectproperty, json_serialize
 from ipalib.constants import SD_IPA_API_MESSAGE_ID
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +332,7 @@ class HasParam(Plugin):
         >>> bar = Env(context='bar')
         >>> another = Env(context='another')
         >>> (foo.context, bar.context, another.context)
-        (u'foo', u'bar', u'another')
+        ('foo', 'bar', 'another')
         >>> list(eg._filter_param_by_context('args', foo))
         [Str('foo_only', include=['foo']), Str('not_bar', exclude=['bar']), Str('both')]
         >>> list(eg._filter_param_by_context('args', bar))
@@ -514,9 +510,9 @@ class Command(HasParam):
     def __do_call(self, *args, **options):
         self.context.__messages = []
         if 'version' in options:
-            self.verify_client_version(unicode(options['version']))
+            self.verify_client_version(str(options['version']))
         elif self.api.env.skip_version_check and not self.api.env.in_server:
-            options['version'] = u'2.0'
+            options['version'] = '2.0'
         else:
             options['version'] = self.api_version
             if self.api.env.in_server:
@@ -598,8 +594,8 @@ class Command(HasParam):
         ...
         >>> c = my_cmd()
         >>> c.finalize()
-        >>> list(c._repr_iter(login=u'Okay.', passwd=u'Private!'))
-        ["u'Okay.'", "passwd=u'********'"]
+        >>> list(c._repr_iter(login='Okay.', passwd='Private!'))
+        ["'Okay.'", "passwd='********'"]
         """
         for arg in self.args():
             value = params.get(arg.name, None)
@@ -718,8 +714,9 @@ class Command(HasParam):
                 return param(raw, **kw)
             except (ValidationError, ConversionError) as e:
                 # Display error and prompt again
-                self.Backend.textui.print_prompt_attribute_error(unicode(label),
-                                                             unicode(e.error))
+                self.Backend.textui.print_prompt_attribute_error(
+                    str(label), str(e.error)
+                )
 
     def normalize(self, **kw):
         """
@@ -735,8 +732,8 @@ class Command(HasParam):
         ...
         >>> c = my_command()
         >>> c.finalize()
-        >>> c.normalize(first=u'JOHN', last=u'DOE')
-        {'last': u'DOE', 'first': u'john'}
+        >>> c.normalize(first='JOHN', last='DOE')
+        {'last': 'DOE', 'first': 'john'}
         """
         return dict(
             (k, self.params[k].normalize(v)) for (k, v) in kw.items()
@@ -756,7 +753,7 @@ class Command(HasParam):
         >>> c = my_command()
         >>> c.finalize()
         >>> c.convert(one=1, two=2)
-        {'two': u'2', 'one': 1}
+        {'two': '2', 'one': 1}
         """
         return dict(
             (k, self.params[k].convert(v)) for (k, v) in kw.items()
@@ -770,13 +767,13 @@ class Command(HasParam):
 
         >>> from ipalib import Str
         >>> class my_command(Command):
-        ...     takes_args = Str('color', default=u'Red')
+        ...     takes_args = Str('color', default='Red')
         ...
         >>> c = my_command()
         >>> c.finalize()
         >>> c.get_default()
-        {'color': u'Red'}
-        >>> c.get_default(color=u'Yellow')
+        {'color': 'Red'}
+        >>> c.get_default(color='Yellow')
         {}
         """
         if _params is None:
@@ -1131,7 +1128,7 @@ class Command(HasParam):
 
         for p in self.output_params():
             order.append(p.name)
-            labels[p.name] = unicode(p.label)
+            labels[p.name] = str(p.label)
             flags[p.name] = p.flags
 
         if options.get('all', False):
@@ -1167,7 +1164,7 @@ class Command(HasParam):
                 textui.print_entry(result, order, labels, flags, print_all)
             elif isinstance(result, dict):
                 textui.print_entry(result, order, labels, flags, print_all)
-            elif isinstance(result, unicode):
+            elif isinstance(result, str):
                 if o == 'summary':
                     textui.print_summary(result)
                 else:
@@ -1177,7 +1174,7 @@ class Command(HasParam):
                 # success or failure. Ignore these.
                 pass
             elif isinstance(result, int):
-                textui.print_count(result, '%s %%d' % unicode(self.output[o].doc))
+                textui.print_count(result, '%s %%d' % str(self.output[o].doc))
 
         return rv
 
@@ -1484,7 +1481,7 @@ class Method(Attribute, Command):
 
     >>> list(api.Method)
     [<class '__main__.user_add'>]
-    >>> api.Method.user_add(version=u'2.88')  # Will call user_add.run()
+    >>> api.Method.user_add(version='2.88')  # Will call user_add.run()
     {'result': 'Added the user!'}
 
     (The "version" argument is the API version to use.
@@ -1495,7 +1492,7 @@ class Method(Attribute, Command):
 
     >>> list(api.Command)
     [<class '__main__.user_add'>]
-    >>> api.Command.user_add(version=u'2.88') # Will call user_add.run()
+    >>> api.Command.user_add(version='2.88') # Will call user_add.run()
     {'result': 'Added the user!'}
 
     And third, ``user_add`` can be accessed as an attribute on the ``user``
@@ -1505,7 +1502,7 @@ class Method(Attribute, Command):
     [<class '__main__.user'>]
     >>> list(api.Object.user.methods)
     ['add']
-    >>> api.Object.user.methods.add(version=u'2.88') # Will call user_add.run()
+    >>> api.Object.user.methods.add(version='2.88') # Will call user_add.run()
     {'result': 'Added the user!'}
 
     The `Attribute` base class implements the naming convention for the

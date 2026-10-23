@@ -66,7 +66,6 @@ if __name__ == '__main__':
             "psutil",
             "pyasn1",
             "requests",
-            "six",
             "python-augeas",
             "python-ldap",
         ],

@@ -578,9 +578,9 @@ def main():
                     try:
                         result = api.Backend.rpcclient.forward(
                             'server_conncheck',
-                            ipautil.fsdecode(options.master),
-                            ipautil.fsdecode(options.hostname),
-                            version=u'2.162',
+                            os.fsdecode(options.master),
+                            os.fsdecode(options.hostname),
+                            version='2.162',
                         )
                     except (errors.CommandError, errors.NetworkError) as e:
                         logger.info(

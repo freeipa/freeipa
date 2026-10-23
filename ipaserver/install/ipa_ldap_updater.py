@@ -28,7 +28,6 @@ from __future__ import print_function, absolute_import
 import logging
 import os
 
-import six
 
 from ipalib import api
 from ipapython import admintool
@@ -37,8 +36,6 @@ from ipaserver.install import installutils, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR, BadSyntax
 from ipaserver.install.upgradeinstance import IPAUpgrade
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 

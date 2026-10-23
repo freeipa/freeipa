@@ -22,14 +22,14 @@ from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 
 @pytest.fixture(scope='function')
 def krb_user(request):
-    tracker = UserTracker(u'krb_user', u'krb', u'test_user')
+    tracker = UserTracker('krb_user', 'krb', 'test_user')
 
     return tracker.make_fixture(request)
 
 
 @pytest.fixture
 def krb_host(request):
-    tracker = HostTracker(u'krb-host')
+    tracker = HostTracker('krb-host')
 
     return tracker.make_fixture(request)
 
@@ -38,7 +38,7 @@ def krb_host(request):
 def krb_service(request, krb_host):
     krb_host.ensure_exists()
 
-    tracker = ServiceTracker(name=u'SERVICE', host_fqdn=krb_host.name)
+    tracker = ServiceTracker(name='SERVICE', host_fqdn=krb_host.name)
 
     return tracker.make_fixture(request)
 
@@ -49,7 +49,7 @@ class test_whoami(XMLRPC_test):
     Test the 'whoami' plugin.
     """
 
-    oldpw, newpw = u"Secret1234", u"Secret123"
+    oldpw, newpw = "Secret1234", "Secret123"
 
     def test_whoami_users(self, krb_user):
         """
@@ -64,9 +64,9 @@ class test_whoami(XMLRPC_test):
 
         with change_principal(krb_user.name, self.newpw):
             result = api.Command.whoami()
-            expected = {u'object': u'user',
-                        u'command': u'user_show/1',
-                        u'arguments': (krb_user.name,)}
+            expected = {'object': 'user',
+                        'command': 'user_show/1',
+                        'arguments': (krb_user.name,)}
             assert_deepequal(expected, result)
 
     def test_whoami_hosts(self, krb_host):
@@ -78,9 +78,9 @@ class test_whoami(XMLRPC_test):
             with change_principal(krb_host.attrs['krbcanonicalname'][0],
                                   keytab=keytab_filename):
                 result = api.Command.whoami()
-                expected = {u'object': u'host',
-                            u'command': u'host_show/1',
-                            u'arguments': (krb_host.fqdn,)}
+                expected = {'object': 'host',
+                            'command': 'host_show/1',
+                            'arguments': (krb_host.fqdn,)}
                 assert_deepequal(expected, result)
 
     def test_whoami_kerberos_services(self, krb_host, krb_service):
@@ -92,7 +92,7 @@ class test_whoami(XMLRPC_test):
             with change_principal(krb_service.attrs['krbcanonicalname'][0],
                                   keytab=keytab):
                 result = api.Command.whoami()
-                expected = {u'object': u'service',
-                            u'command': u'service_show/1',
-                            u'arguments': (krb_service.name,)}
+                expected = {'object': 'service',
+                            'command': 'service_show/1',
+                            'arguments': (krb_service.name,)}
                 assert_deepequal(expected, result)

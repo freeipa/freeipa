@@ -28,7 +28,7 @@ from ipaserver.install.bindinstance import dns_container_exists
 
 logger = logging.getLogger(__name__)
 
-replica_keylabel_template = u"dnssec-replica:%s"
+replica_keylabel_template = "dnssec-replica:%s"
 
 
 def dnssec_container_exists(suffix):
@@ -51,10 +51,10 @@ class DNSKeySyncInstance(service.Service):
             "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
             fstore=fstore,
-            service_prefix=u'ipa-dnskeysyncd',
+            service_prefix='ipa-dnskeysyncd',
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
-        self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
+        self.extra_config = ['dnssecVersion 1', ]  # DNSSEC enabled
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -83,7 +83,7 @@ class DNSKeySyncInstance(service.Service):
             make_absolute().canonicalize().ToASCII()
         # get old keys from LDAP
         search_kw = {
-            'objectclass': u"ipaPublicKeyObject",
+            'objectclass': "ipaPublicKeyObject",
             'ipk11Label': keylabel,
             'ipk11Wrap': True,
         }
@@ -414,7 +414,7 @@ class DNSKeySyncInstance(service.Service):
             ]
             kw = {
                 'objectclass': replica_pubkey_objectclass,
-                'ipk11UniqueId': [u'autogenerate'],
+                'ipk11UniqueId': ['autogenerate'],
                 'ipk11Label': [keylabel],
                 'ipaPublicKey': [public_key_blob],
                 'ipk11Id': [key_id],
@@ -447,7 +447,7 @@ class DNSKeySyncInstance(service.Service):
 
             # get old keys from LDAP
             search_kw = {
-                'objectclass': u"ipaPublicKeyObject",
+                'objectclass': "ipaPublicKeyObject",
                 'ipk11Label': keylabel,
                 'ipk11Wrap': True,
             }

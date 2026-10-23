@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import six
 
 from ipalib import errors, api, _
 from ipapython.dn import DN
@@ -27,14 +26,11 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc import objectclasses
 import pytest
 
-if six.PY3:
-    unicode = str
-
-radius1 = u'testradius'
-radius1_fqdn = u'testradius.test'
+radius1 = 'testradius'
+radius1_fqdn = 'testradius.test'
 radius1_dn = DN(('cn=testradius'), ('cn=radiusproxy'), api.env.basedn)
-user1 = u'tuser1'
-password1 = u'very*secure123'
+user1 = 'tuser1'
+password1 = 'very*secure123'
 password1_bytes = password1.encode('ascii')
 
 
@@ -52,7 +48,7 @@ class test_raduisproxy(Declarative):
             desc='Try to retrieve non-existent %r' % radius1,
             command=('radiusproxy_show', [radius1], {}),
             expected=errors.NotFound(
-                reason=u'%s: RADIUS proxy server not found' % radius1),
+                reason='%s: RADIUS proxy server not found' % radius1),
         ),
 
 
@@ -77,7 +73,7 @@ class test_raduisproxy(Declarative):
             command=('radiusproxy_add', [radius1],
                      dict(
                      ipatokenradiusserver=radius1_fqdn,
-                     addattr=u'ipatokenradiusserver=radius1_fqdn',
+                     addattr='ipatokenradiusserver=radius1_fqdn',
                      ipatokenradiussecret=password1,
                      ),
                      ),
@@ -95,7 +91,7 @@ class test_raduisproxy(Declarative):
             ),
             expected=dict(
                 value=radius1,
-                summary=u'Added RADIUS proxy server "%s"' % radius1,
+                summary='Added RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     dn=radius1_dn,
@@ -159,11 +155,11 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenradiustimeout=num)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    ipatokenradiustimeout=[unicode(num)],
+                    ipatokenradiustimeout=[str(num)],
                 ),
             ),
         )
@@ -184,7 +180,7 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenradiustimeout=None)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
@@ -199,11 +195,11 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenradiusretries=num)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    ipatokenradiusretries=[unicode(num)],
+                    ipatokenradiusretries=[str(num)],
                 ),
             ),
         )
@@ -227,7 +223,7 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenradiusretries=None)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
@@ -242,14 +238,14 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenradiusserver=fqdn)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[fqdn],
                 ),
             ),
         )
-        for fqdn in (radius1_fqdn + u':12345', radius1_fqdn)
+        for fqdn in (radius1_fqdn + ':12345', radius1_fqdn)
     ] + [
         dict(
             desc='Set server string of %s to %s (invalid)' % (radius1, fqdn),
@@ -259,11 +255,11 @@ class test_raduisproxy(Declarative):
                                             error=error),
         )
         for fqdn, error in (
-            (radius1_fqdn + u':0x5a', 'invalid port number'),
-            (radius1_fqdn + u':1:2:3',
+            (radius1_fqdn + ':0x5a', 'invalid port number'),
+            (radius1_fqdn + ':1:2:3',
              "only letters, numbers, '_', '-' are allowed. DNS label may not "
              "start or end with '-'"),
-            (u'bogus', 'not fully qualified'),
+            ('bogus', 'not fully qualified'),
         )
     ] + [
 
@@ -275,26 +271,26 @@ class test_raduisproxy(Declarative):
         ),
 
         dict(
-            desc='Set userattr of %s to %s (valid)' % (radius1, u'cn'),
+            desc='Set userattr of %s to %s (valid)' % (radius1, 'cn'),
             command=('radiusproxy_mod', [radius1],
-                     dict(ipatokenusermapattribute=u'cn')),
+                     dict(ipatokenusermapattribute='cn')),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    ipatokenusermapattribute=[u'cn'],
+                    ipatokenusermapattribute=['cn'],
                 ),
             ),
         ),
 
         dict(
-            desc='Set userattr of %s to %s (invalid)' % (radius1, u'$%^&*'),
+            desc='Set userattr of %s to %s (invalid)' % (radius1, '$%^&*'),
             command=('radiusproxy_mod', [radius1],
-                     dict(ipatokenusermapattribute=u'$%^&*')),
+                     dict(ipatokenusermapattribute='$%^&*')),
             expected=errors.ValidationError(name='ipatokenusermapattribute',
-                                            error=u'invalid attribute name'),
+                                            error='invalid attribute name'),
         ),
 
         dict(
@@ -303,7 +299,7 @@ class test_raduisproxy(Declarative):
                      dict(ipatokenusermapattribute=None)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
@@ -314,14 +310,14 @@ class test_raduisproxy(Declarative):
         dict(
             desc='Set desc of %s' % radius1,
             command=('radiusproxy_mod', [radius1],
-                     dict(description=u'a virtual radius server')),
+                     dict(description='a virtual radius server')),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    description=[u'a virtual radius server'],
+                    description=['a virtual radius server'],
                 ),
             ),
         ),
@@ -332,7 +328,7 @@ class test_raduisproxy(Declarative):
                      dict(description=None)),
             expected=dict(
                 value=radius1,
-                summary=u'Modified RADIUS proxy server "%s"' % radius1,
+                summary='Modified RADIUS proxy server "%s"' % radius1,
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
@@ -343,12 +339,12 @@ class test_raduisproxy(Declarative):
         dict(
             desc='Create "%s"' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [user1], dict(givenname='Test', sn='User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
+                summary='Added user "%s"' % user1,
+                result=get_user_result(user1, 'Test', 'User1', 'add'),
             ),
         ),
 
@@ -358,7 +354,7 @@ class test_raduisproxy(Declarative):
             command=('user_mod', [user1],
                 dict(ipatokenradiusconfiglink=radius1,)),
             expected=dict(
-                result=get_user_result(user1, u'Test', u'User1', 'mod',
+                result=get_user_result(user1, 'Test', 'User1', 'mod',
                                        ipatokenradiusconfiglink=[radius1]),
                 value=user1,
                 summary='Modified user "%s"' % user1,
@@ -385,7 +381,7 @@ class test_raduisproxy(Declarative):
             expected=dict(
                 value=user1,
                 summary=None,
-                result=get_user_result(user1, u'Test', u'User1', 'show',
+                result=get_user_result(user1, 'Test', 'User1', 'show',
                                        ipatokenradiusconfiglink=[radius1]),
             ),
         ),
@@ -395,7 +391,7 @@ class test_raduisproxy(Declarative):
             command=('radiusproxy_del', [radius1], {}),
             expected=dict(
                 value=[radius1],
-                summary=u'Deleted RADIUS proxy server "%s"' % radius1,
+                summary='Deleted RADIUS proxy server "%s"' % radius1,
                 result=dict(failed=[]),
             ),
         ),
@@ -406,7 +402,7 @@ class test_raduisproxy(Declarative):
             expected=dict(
                 value=user1,
                 summary=None,
-                result=get_user_result(user1, u'Test', u'User1', 'show'),
+                result=get_user_result(user1, 'Test', 'User1', 'show'),
             ),
         ),
 

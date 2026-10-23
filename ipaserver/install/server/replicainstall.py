@@ -19,7 +19,6 @@ import textwrap
 import traceback
 
 from packaging.version import parse as parse_version
-import six
 
 from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
 import ipaclient.install.timeconf
@@ -51,8 +50,6 @@ from ipaserver.masters import find_providing_servers, find_providing_server
 import SSSDConfig
 from subprocess import CalledProcessError
 
-if six.PY3:
-    unicode = str
 
 NoneType = type(None)
 
@@ -525,7 +522,7 @@ def check_remote_fips_mode(client, local_fips_mode):
     :param local_fips_mode: boolean indicating whether FIPS mode is turned on
     :raises: ScriptError: if the checks fails
     """
-    env = client.forward(u'env', u'fips_mode')['result']
+    env = client.forward('env', 'fips_mode')['result']
     remote_fips_mode = env.get('fips_mode', False)
     if local_fips_mode != remote_fips_mode:
         if local_fips_mode:
@@ -546,7 +543,7 @@ def check_remote_version(client, local_version):
     :param local_version: API version of local server
     :raises: ScriptError: if the checks fails
     """
-    env = client.forward(u'env', u'version')['result']
+    env = client.forward('env', 'version')['result']
     remote_version = parse_version(env['version'])
     if remote_version > local_version:
         raise ScriptError(
@@ -632,20 +629,19 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
 
     try:
         installer._enrollment_performed = True
-        # pylint: disable=E0606
         host_result = remote_api.Command.host_add(
-            unicode(config.host_name), force=installer.no_host_dns
+            str(config.host_name), force=installer.no_host_dns
         )['result']
         # pylint: enable=E0606
 
-        host_princ = unicode(host_result['krbcanonicalname'][0])
+        host_princ = str(host_result['krbcanonicalname'][0])
         purge_host_keytab(config.realm_name)
 
         getkeytab_args = [
             paths.IPA_GETKEYTAB,
             '-s', config.master_host_name,
             '-p', host_princ,
-            '-D', unicode(ipaldap.DIRMAN_DN),
+            '-D', str(ipaldap.DIRMAN_DN),
             '-w', config.dirman_password,
             '-k', paths.KRB5_KEYTAB,
             '--cacert', os.path.join(config.dir, 'ca.crt')
@@ -750,7 +746,7 @@ def promotion_check_ipa_domain(master_ldap_conn, basedn):
         raise RuntimeError(
             'Multiple IPA domains found in LDAP database ({domains}). '
             'Only one domain is allowed.'.format(
-                domains=u', '.join(entry['associatedDomain'])
+                domains=', '.join(entry['associatedDomain'])
             ))
 
     if entry['associatedDomain'][0] != api.env.domain:
@@ -1043,8 +1039,8 @@ def promote_check(installer):
 
         # Check authorization
         result = remote_api.Command['hostgroup_find'](
-            cn=u'ipaservers',
-            host=[unicode(api.env.host)]
+            cn='ipaservers',
+            host=[str(api.env.host)]
         )['result']
         add_to_ipaservers = not result
 
@@ -1068,7 +1064,7 @@ def promote_check(installer):
 
             try:
                 result = remote_api.Command['hostgroup_show'](
-                    u'ipaservers',
+                    'ipaservers',
                     all=True,
                     rights=True
                 )['result']
@@ -1335,8 +1331,8 @@ def install(installer):
         try:
             conn.connect(ccache=installer._ccache)
             remote_api.Command['hostgroup_add_member'](
-                u'ipaservers',
-                host=[unicode(api.env.host)],
+                'ipaservers',
+                host=[str(api.env.host)],
             )
         finally:
             if conn.isconnected():
@@ -1486,7 +1482,7 @@ def install(installer):
 
     # Print a warning if CA role is only installed on one server
     if len(ca_servers) == 1:
-        msg = textwrap.dedent(u'''
+        msg = textwrap.dedent('''
             WARNING: The CA service is only installed on one server ({}).
             It is strongly recommended to install it on another server.
             Run ipa-ca-install(1) on another master to accomplish this.

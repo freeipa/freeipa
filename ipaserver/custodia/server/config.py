@@ -47,18 +47,18 @@ class CustodiaConfig:
         parser.optionxform = str
 
         # add env
-        parser.add_section(u'ENV')
+        parser.add_section('ENV')
         for k, v in os.environ.items():
             if set(v).intersection('\r\n\x00'):
                 continue
-            parser.set(u'ENV', k, v.replace(u'$', u'$$'))
+            parser.set('ENV', k, v.replace('$', '$$'))
 
         # default globals
-        parser.add_section(u'global')
-        parser.set(u'global', u'auditlog', u'${logdir}/audit.log')
-        parser.set(u'global', u'debug', u'false')
-        parser.set(u'global', u'umask', u'027')
-        parser.set(u'global', u'makedirs', u'false')
+        parser.add_section('global')
+        parser.set('global', 'auditlog', '${logdir}/audit.log')
+        parser.set('global', 'debug', 'false')
+        parser.set('global', 'umask', '027')
+        parser.set('global', 'makedirs', 'false')
 
         return parser
 
@@ -68,7 +68,7 @@ class CustodiaConfig:
 
         configfiles = [self.args.configfile.name]
 
-        pattern = self.parser.get(u'DEFAULT', u'confdpattern')
+        pattern = self.parser.get('DEFAULT', 'confdpattern')
         if pattern:
             confdfiles = glob.glob(pattern)
             confdfiles.sort()
@@ -81,7 +81,7 @@ class CustodiaConfig:
 
     def makedirs(self):
         for name, _path in self.DEFAULT_PATHS:
-            path = self.parser.get(u'DEFAULT', name)
+            path = self.parser.get('DEFAULT', name)
             parent = os.path.dirname(path)
             # create parents according to umask
             if not os.path.isdir(parent):
@@ -96,7 +96,7 @@ class CustodiaConfig:
         for s in self.CONFIG_SPECIALS:
             config[s] = {}
 
-        for opt, val in self.parser.items(u'global'):
+        for opt, val in self.parser.items('global'):
             if opt in self.CONFIG_SPECIALS:
                 raise ValueError('"%s" is an invalid '
                                  '[global] option' % opt)
@@ -123,7 +123,7 @@ class CustodiaConfig:
 
         if not url and not sock:
             # no option but, use default socket path
-            socketdir = self.parser.get(u'DEFAULT', u'socketdir')
+            socketdir = self.parser.get('DEFAULT', 'socketdir')
             name = self.args.instance if self.args.instance else 'custodia'
             sock = os.path.join(socketdir, name + '.sock')
 
@@ -137,7 +137,7 @@ class CustodiaConfig:
         self.parser = self.create_parser()
         self.config['configfiles'] = self.read_configs()
         self.populate_config()
-        if self.config[u'makedirs']:
+        if self.config['makedirs']:
             self.makedirs()
         return self.parser, self.config
 
