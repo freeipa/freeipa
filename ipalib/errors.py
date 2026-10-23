@@ -104,6 +104,8 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
+import re
+
 import six
 
 from ipalib.text import ngettext as ungettext
@@ -1916,6 +1918,22 @@ class SchemaUpToDate(ExecutionError):
 
     errno = 4311
     format = _("Schema is up to date (FP '%(fingerprint)s', TTL %(ttl)s s)")
+
+    def __init__(self, fingerprint=None, ttl=None, message=None, **kw):
+        if message is not None and fingerprint is None:
+            # When this exception is reconstructed from an XML-RPC fault
+            # string (via rpc.py's `raise error(message=faultString)`),
+            # fingerprint and ttl are not passed as kwargs -- they're embedded
+            # in the message text.  Parse them back out so callers can use
+            # e.fingerprint and e.ttl normally.
+            m = re.search(r"FP '([^']+)',\s*TTL\s+(\d+)", message)
+            if m:
+                fingerprint = m.group(1)
+                ttl = int(m.group(2))
+                message = None  # let parent format via the format string
+        super(SchemaUpToDate, self).__init__(
+            fingerprint=fingerprint, ttl=ttl, message=message, **kw
+        )
 
 
 class DNSError(ExecutionError):
