@@ -239,7 +239,6 @@ class test_selfservice(UI_driver):
                         dialog_btn=None)
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.ENTER).perform()
-        self.wait()
         self.assert_notification(assert_text=SERVICE_ADDED)
         self.assert_record(data_selfservice.DATA1['pkey'])
         self.close_notifications()
@@ -250,7 +249,6 @@ class test_selfservice(UI_driver):
         self.facet_button_click('remove')
         actions = ActionChains(self.driver)
         actions.send_keys(Keys.ENTER).perform()
-        self.wait()
         self.assert_notification(assert_text='1 item(s) deleted')
         self.close_notifications()
 
