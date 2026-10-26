@@ -23,8 +23,8 @@ ipa_ca_signing_algorithm=SHA512withRSA
 HSM_OVERRIDE = """
 [CA]
 pki_hsm_enable = True
-pki_hsm_libfile = /usr/lib64/pkcs11/libsofthsm2.so
-pki_hsm_modulename = libsofthsm2
+pki_hsm_libfile = /usr/lib64/pkcs11/libkryoptic_pkcs11.so
+pki_hsm_modulename = kryoptic
 pki_token_name = ipa_token
 pki_token_password = Secret123
 """

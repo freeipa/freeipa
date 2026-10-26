@@ -100,7 +100,7 @@ dist_app_DATA =				\
 	ipa-rewrite.conf.template	\
 	ipaca_default.ini		\
 	ipaca_customize.ini		\
-	ipaca_softhsm2.ini		\
+	ipaca_kryoptic.ini		\
 	pki-acme-configsources.conf.template	\
 	pki-acme-database.conf.template	\
 	pki-acme-engine.conf.template	\

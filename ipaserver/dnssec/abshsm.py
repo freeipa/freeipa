@@ -63,7 +63,8 @@ wrappingmech_name2id = {
         "rsaPkcs": _ipap11helper.MECH_RSA_PKCS,
         "rsaPkcsOaep": _ipap11helper.MECH_RSA_PKCS_OAEP,
         "aesKeyWrap": _ipap11helper.MECH_AES_KEY_WRAP,
-        "aesKeyWrapPad": _ipap11helper.MECH_AES_KEY_WRAP_PAD
+        "aesKeyWrapPad": _ipap11helper.MECH_AES_KEY_WRAP_PAD,
+        "aesKeyWrapKwp": _ipap11helper.MECH_AES_KEY_WRAP_KWP,
         }
 
 wrappingmech_id2name = {v: k for k, v in wrappingmech_name2id.items()}

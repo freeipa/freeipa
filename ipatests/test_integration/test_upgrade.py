@@ -540,3 +540,206 @@ class TestUpgrade(IntegrationTest):
         result = tasks.ldapsearch_dm(self.master, str(dn),
                                      ["ipaKrbAuthzData"])
         assert 'ipaKrbAuthzData: MS-PAC' in result.stdout_text
+
+
+class TestKryopticMigration(IntegrationTest):
+    """Test SoftHSM to Kryoptic DNSSEC token migration during upgrade."""
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master)
+        tasks.install_dns(cls.master)
+
+    def _create_legacy_softhsm_state(self):
+        """Simulate a pre-migration SoftHSM environment.
+
+        Creates legacy SoftHSM config and PIN files that the migration
+        function expects to find during upgrade.  Does NOT create actual
+        SoftHSM token objects — the migration function handles this case
+        gracefully (logs a warning and skips softhsm_migrate, but still
+        performs PIN rename, sysconfig update, and cleanup).
+        """
+        master = self.master
+
+        # Save current Kryoptic state so we can restore after the test
+        kryoptic_db = os.path.join(
+            paths.DNSSEC_TOKENS_DIR, 'kryoptic.sql')
+        master.run_command([
+            'cp', '-a',
+            paths.DNSSEC_KRYOPTIC_CONF,
+            paths.DNSSEC_KRYOPTIC_CONF + '.saved',
+        ])
+        master.run_command([
+            'cp', '-a', kryoptic_db, kryoptic_db + '.saved',
+        ])
+
+        # Remove current Kryoptic DB to simulate pre-migration state
+        master.run_command(['rm', '-f', kryoptic_db])
+
+        # Read current PINs — we'll write them as legacy softhsm_pin files
+        pin = master.get_file_contents(
+            paths.DNSSEC_HSM_PIN, encoding='utf-8'
+        )
+        so_pin = master.get_file_contents(
+            paths.DNSSEC_HSM_PIN_SO, encoding='utf-8'
+        )
+
+        # Create legacy softhsm2.conf (triggers migration detection)
+        softhsm2_conf = textwrap.dedent("""\
+            directories.tokendir = {tokens_dir}
+            objectstore.backend = file
+            log.level = INFO
+        """).format(tokens_dir=paths.DNSSEC_TOKENS_DIR)
+        master.put_file_contents(
+            paths.DNSSEC_SOFTHSM2_CONF, softhsm2_conf
+        )
+
+        # Create legacy PIN files at old paths
+        old_pin_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN
+        old_pin_so_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN_SO
+        master.put_file_contents(old_pin_path, pin)
+        master.put_file_contents(old_pin_so_path, so_pin)
+        master.run_command(['chmod', '0660', old_pin_path])
+        master.run_command(['chmod', '0400', old_pin_so_path])
+
+        # Remove current Kryoptic config so upgrade recreates it
+        master.run_command(['rm', '-f', paths.DNSSEC_KRYOPTIC_CONF])
+
+        # Inject old SoftHSM directives into sysconfig to simulate
+        # pre-migration state
+        for sysconfig in (paths.SYSCONFIG_NAMED,
+                          paths.SYSCONFIG_IPA_DNSKEYSYNCD):
+            master.run_command([
+                'bash', '-c',
+                'echo "SOFTHSM2_CONF=%s" >> %s'
+                % (paths.DNSSEC_SOFTHSM2_CONF, sysconfig),
+            ])
+            master.run_command([
+                'bash', '-c',
+                'echo "DNSSEC_SOFTHSM_PIN=%s" >> %s'
+                % (old_pin_path, sysconfig),
+            ])
+
+        # Clear the kryoptic_migration upgrade state
+        clear_sysupgrade(master, 'dns')
+
+    def _restore_state(self):
+        """Clean up after the test."""
+        master = self.master
+        old_pin_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN
+        old_pin_so_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN_SO
+        kryoptic_db = os.path.join(
+            paths.DNSSEC_TOKENS_DIR, 'kryoptic.sql')
+        master.run_command(
+            ['rm', '-f', old_pin_path, old_pin_so_path,
+             paths.DNSSEC_SOFTHSM2_CONF],
+            raiseonerr=False,
+        )
+        # Restore saved Kryoptic config if migration didn't recreate it
+        master.run_command(
+            ['bash', '-c',
+             'test -f %s || mv %s.saved %s'
+             % (paths.DNSSEC_KRYOPTIC_CONF,
+                paths.DNSSEC_KRYOPTIC_CONF,
+                paths.DNSSEC_KRYOPTIC_CONF)],
+            raiseonerr=False,
+        )
+        master.run_command(
+            ['rm', '-f', paths.DNSSEC_KRYOPTIC_CONF + '.saved'],
+            raiseonerr=False,
+        )
+        # Restore saved Kryoptic DB
+        master.run_command(
+            ['bash', '-c',
+             'test -f %s.saved && mv %s.saved %s'
+             % (kryoptic_db, kryoptic_db, kryoptic_db)],
+            raiseonerr=False,
+        )
+
+    def test_softhsm_to_kryoptic_migration(self):
+        """Verify ipa-server-upgrade migrates DNSSEC from SoftHSM to Kryoptic.
+
+        Simulates a pre-migration state with legacy SoftHSM artifacts,
+        then runs ipa-server-upgrade and verifies:
+        - Kryoptic config file is created
+        - PIN files are renamed from softhsm_pin to hsm_pin
+        - Sysconfig references KRYOPTIC_CONF, not SOFTHSM2_CONF
+        - Old softhsm2.conf is removed
+        - Upgrade state is marked as done
+        """
+        try:
+            self._create_legacy_softhsm_state()
+
+            result = self.master.run_command(['ipa-server-upgrade'])
+            assert result.returncode == 0
+
+            # Kryoptic config must exist after migration
+            assert self.master.transport.file_exists(
+                paths.DNSSEC_KRYOPTIC_CONF
+            )
+
+            # PIN files must be at new paths
+            assert self.master.transport.file_exists(
+                paths.DNSSEC_HSM_PIN
+            )
+
+            # Old softhsm_pin must be gone (renamed)
+            result = self.master.run_command(
+                ['test', '-f', paths.LEGACY_DNSSEC_SOFTHSM_PIN],
+                raiseonerr=False,
+            )
+            assert result.returncode != 0, \
+                "Legacy softhsm_pin should have been renamed to hsm_pin"
+
+            # Old softhsm2.conf must be removed
+            result = self.master.run_command(
+                ['test', '-f', paths.DNSSEC_SOFTHSM2_CONF],
+                raiseonerr=False,
+            )
+            assert result.returncode != 0, \
+                "Legacy softhsm2.conf should have been removed"
+
+            # Sysconfig must reference KRYOPTIC_CONF, not old SoftHSM keys
+            named_sysconfig = self.master.get_file_contents(
+                paths.SYSCONFIG_NAMED, encoding='utf-8'
+            )
+            assert 'KRYOPTIC_CONF=' in named_sysconfig
+            assert 'SOFTHSM2_CONF=' not in named_sysconfig
+            assert 'DNSSEC_SOFTHSM_PIN=' not in named_sysconfig
+
+            dnskeysyncd_sysconfig = self.master.get_file_contents(
+                paths.SYSCONFIG_IPA_DNSKEYSYNCD, encoding='utf-8'
+            )
+            assert 'KRYOPTIC_CONF=' in dnskeysyncd_sysconfig
+            assert 'SOFTHSM2_CONF=' not in dnskeysyncd_sysconfig
+            assert 'DNSSEC_SOFTHSM_PIN=' not in dnskeysyncd_sysconfig
+            assert 'DNSSEC_HSM_PIN=' in dnskeysyncd_sysconfig
+
+            # Upgrade state must be set
+            statefile = os.path.join(
+                paths.STATEFILE_DIR, STATEFILE_FILE
+            )
+            state = self.master.get_file_contents(
+                statefile, encoding='utf-8'
+            )
+            parser = configparser.ConfigParser()
+            parser.optionxform = str
+            parser.read_string(state)
+            assert parser.getboolean('dns', 'kryoptic_migration')
+
+        finally:
+            self._restore_state()
+
+    def test_migration_idempotent(self):
+        """Verify re-running upgrade after migration is a no-op.
+
+        After the previous test marked kryoptic_migration as done,
+        running upgrade again should not fail or re-trigger migration.
+        """
+        result = self.master.run_command(['ipa-server-upgrade'])
+        assert result.returncode == 0
+
+        # Kryoptic config must still exist
+        assert self.master.transport.file_exists(
+            paths.DNSSEC_KRYOPTIC_CONF
+        )
