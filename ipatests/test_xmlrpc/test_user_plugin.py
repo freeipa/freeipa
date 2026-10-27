@@ -592,11 +592,11 @@ class TestCreate(XMLRPC_test):
     def test_create_default_login_strips_spaces_in_lastname(self):
         """Default uid from last name must not contain spaces (issue 10034)."""
         result = api.Command.user_add(
-            givenname=u'Johan', sn=u'Van der Meer'
+            givenname='Johan', sn='Van der Meer'
         )['result']
         uid = result['uid'][0]
         try:
-            assert uid == u'jvandermeer'
+            assert uid == 'jvandermeer'
         finally:
             api.Command.user_del(uid)
 
