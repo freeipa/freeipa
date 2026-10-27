@@ -57,7 +57,7 @@ class CACertManage(admintool.AdminTool):
         super(CACertManage, cls).add_options(parser)
 
         parser.add_option(
-            "-p", "--password", dest='password',
+            "-p", "--password", dest='password', sensitive=True,
             help="Directory Manager password")
 
         renew_group = config.OptionGroup(parser, "Renew options")
