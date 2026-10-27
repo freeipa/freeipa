@@ -74,6 +74,29 @@ class TestInstallMasterClient(IntegrationTest):
         result = cls.clients[0].run_command(['date', '+%Y-%m-%d %H:%M:%S'])
         cls.since = result.stdout_text.strip()
 
+    def _cleanup_getcert_request(
+            self, host, req_id=None, certfile=None, extra_files=None):
+        cmd = ['getcert', 'stop-tracking']
+        if req_id:
+            cmd.extend(['-i', req_id])
+        if certfile:
+            cmd.extend(['-f', certfile])
+        if req_id or certfile:
+            host.run_command(cmd, raiseonerr=False)
+
+        files = []
+        if req_id:
+            files.extend([
+                os.path.join(paths.OPENSSL_CERTS_DIR, '%s.pem' % req_id),
+                os.path.join(paths.OPENSSL_PRIVATE_DIR, '%s.key' % req_id),
+            ])
+        if certfile:
+            files.append(certfile)
+        if extra_files:
+            files.extend(extra_files)
+        if files:
+            host.run_command(['rm', '-f'] + files, raiseonerr=False)
+
     def test_cacert_file_appear_with_option_F(self):
         """Test if getcert creates cacert file with -F option
 
@@ -84,23 +107,29 @@ class TestInstallMasterClient(IntegrationTest):
 
         related: https://codeberg.org/freeipa/freeipa/issues/8105
         """
-        cmd_arg = [
-            "ipa-getcert", "request",
-            "-f", os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem"),
-            "-k", os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key"),
-            "-K", "test/%s" % self.clients[0].hostname,
-            "-F", os.path.join(paths.OPENSSL_DIR, "test.CA"),
-        ]
-        result = self.clients[0].run_command(cmd_arg)
-        request_id = re.findall(r'\d+', result.stdout_text)
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "test.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, "test.key")
+        cafile = os.path.join(paths.OPENSSL_DIR, "test.CA")
+        try:
+            cmd_arg = [
+                "ipa-getcert", "request",
+                "-f", certfile,
+                "-k", keyfile,
+                "-K", "test/%s" % self.clients[0].hostname,
+                "-F", cafile,
+            ]
+            result = self.clients[0].run_command(cmd_arg)
+            request_id = re.findall(r'\d+', result.stdout_text)
 
-        # check if certificate is in MONITORING state
-        status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
-        assert status == "MONITORING"
+            # check if certificate is in MONITORING state
+            status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
+            assert status == "MONITORING"
 
-        self.clients[0].run_command(
-            ["ls", "-l", os.path.join(paths.OPENSSL_DIR, "test.CA")]
-        )
+            self.clients[0].run_command(["ls", "-l", cafile])
+        finally:
+            self._cleanup_getcert_request(
+                self.clients[0], certfile=certfile,
+                extra_files=[keyfile, cafile])
 
     def test_certmonger_ipa_responder_jsonrpc(self):
         """Test certmonger IPA responder switched to JSONRPC
@@ -128,49 +157,68 @@ class TestInstallMasterClient(IntegrationTest):
         """
         hostname = self.clients[0].hostname
         certfile = os.path.join(paths.OPENSSL_CERTS_DIR, "test2.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, "test2.key")
+        rev_zone = None
+        rec = None
 
-        tasks.kinit_admin(self.master)
+        try:
+            tasks.kinit_admin(self.master)
 
-        zone = tasks.prepare_reverse_zone(self.master, self.clients[0].ip)[0]
+            zone = tasks.prepare_reverse_zone(
+                self.master, self.clients[0].ip)[0]
+            rev_zone = zone
 
-        # add PTR dns record for cert request with SAN extention
-        rec = str(self.clients[0].ip).split('.')[3]
-        result = self.master.run_command(
-            ['ipa', 'dnsrecord-add', zone, rec, '--ptr-rec', hostname]
-        )
-        assert 'Record name: {}'.format(rec) in result.stdout_text
-        assert 'PTR record: {}'.format(hostname) in result.stdout_text
+            # add PTR dns record for cert request with SAN extention
+            rec = str(self.clients[0].ip).split('.')[3]
+            result = self.master.run_command(
+                ['ipa', 'dnsrecord-add', zone, rec, '--ptr-rec', hostname]
+            )
+            assert 'Record name: {}'.format(rec) in result.stdout_text
+            assert 'PTR record: {}'.format(hostname) in result.stdout_text
 
-        name, zone = hostname.split('.', 1)
-        self.master.run_command(['ipa', 'dnsrecord-show', zone, name])
-        tasks.kdestroy_all(self.master)
+            name, zone = hostname.split('.', 1)
+            self.master.run_command(['ipa', 'dnsrecord-show', zone, name])
+            tasks.kdestroy_all(self.master)
 
-        cmd_arg = [
-            'ipa-getcert', 'request', '-v', '-w',
-            '-f', certfile,
-            '-k', os.path.join(paths.OPENSSL_PRIVATE_DIR, "test2.key"),
-            '-K', f'test/{hostname}',
-            '-D', hostname,
-            '-A', self.clients[0].ip,
-        ]
-        result = self.clients[0].run_command(cmd_arg)
-        request_id = re.findall(r'\d+', result.stdout_text)
+            cmd_arg = [
+                'ipa-getcert', 'request', '-v', '-w',
+                '-f', certfile,
+                '-k', keyfile,
+                '-K', f'test/{hostname}',
+                '-D', hostname,
+                '-A', self.clients[0].ip,
+            ]
+            result = self.clients[0].run_command(cmd_arg)
+            request_id = re.findall(r'\d+', result.stdout_text)
 
-        # check if certificate is in MONITORING state
-        status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
-        assert status == "MONITORING"
+            # check if certificate is in MONITORING state
+            status = tasks.wait_for_request(self.clients[0], request_id[0], 50)
+            assert status == "MONITORING"
 
-        certdata = self.clients[0].get_file_contents(certfile)
-        cert = x509.load_pem_x509_certificate(
-            certdata, default_backend()
-        )
-        ext = cert.extensions.get_extension_for_oid(
-            ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-        )
-        dnsnames = ext.value.get_values_for_type(x509.DNSName)
-        assert dnsnames == [self.clients[0].hostname]
-        ipaddrs = ext.value.get_values_for_type(x509.IPAddress)
-        assert ipaddrs == [ipaddress.ip_address(self.clients[0].ip)]
+            certdata = self.clients[0].get_file_contents(certfile)
+            cert = x509.load_pem_x509_certificate(
+                certdata, default_backend()
+            )
+            ext = cert.extensions.get_extension_for_oid(
+                ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+            )
+            dnsnames = ext.value.get_values_for_type(x509.DNSName)
+            assert dnsnames == [self.clients[0].hostname]
+            ipaddrs = ext.value.get_values_for_type(x509.IPAddress)
+            assert ipaddrs == [ipaddress.ip_address(self.clients[0].ip)]
+        finally:
+            self._cleanup_getcert_request(
+                self.clients[0], certfile=certfile,
+                extra_files=[keyfile])
+            if rev_zone is not None and rec is not None:
+                tasks.kinit_admin(self.master)
+                try:
+                    self.master.run_command(
+                        ['ipa', 'dnsrecord-del', rev_zone, rec,
+                         '--ptr-rec', hostname],
+                        raiseonerr=False)
+                finally:
+                    tasks.kdestroy_all(self.master)
 
     def test_getcert_list_profile(self):
         """
