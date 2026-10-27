@@ -99,24 +99,24 @@ def test_validate_domain_name(domain_input, expected_valid, description):
 
 
 @pytest.mark.parametrize('principal_str', [
-    u'HTTP/host.example.com@REALM',
-    u'host/host.example.com@REALM',
-    u'ldap/host.example.com@REALM',
-    u'cifs/host.example.com@REALM',
-    u'HTTP/host.example.com',
-    u'user@REALM',
-    u'admin',
+    'HTTP/host.example.com@REALM',
+    'host/host.example.com@REALM',
+    'ldap/host.example.com@REALM',
+    'cifs/host.example.com@REALM',
+    'HTTP/host.example.com',
+    'user@REALM',
+    'admin',
 ])
 def test_validate_principal_chars_valid(principal_str):
     validate_principal_chars(Principal(principal_str))
 
 
 @pytest.mark.parametrize('principal_str', [
-    u'HT(TP/host.example.com@REALM',
-    u'HTTP/host.example.com)',
-    u'HT*P/host.example.com@REALM',
-    u'HTTP/host*.example.com@REALM',
-    u'us\\er@REALM',
+    'HT(TP/host.example.com@REALM',
+    'HTTP/host.example.com)',
+    'HT*P/host.example.com@REALM',
+    'HTTP/host*.example.com@REALM',
+    'us\\er@REALM',
 ])
 def test_validate_principal_chars_invalid(principal_str):
     with pytest.raises(ValueError):
