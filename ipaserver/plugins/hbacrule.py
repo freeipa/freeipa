@@ -335,7 +335,12 @@ class hbacrule_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            entry_attrs = ldap.get_entry(dn, attrs_list)
+            # If the command was called with --no-members, entry_attrs
+            # contains the default_attributes but not attribute_members
+            # attribute_members are needed for MutuallyExclusive checks
+            required = {'memberuser', 'memberhost', 'memberservice'}
+            lookup_attrs = list(set(attrs_list or []) | required)
+            entry_attrs = ldap.get_entry(dn, lookup_attrs)
             dn = entry_attrs.dn
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
