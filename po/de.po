@@ -40,7 +40,8 @@ msgstr "Lesefehler\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr "Initialisierung des Kerberos-Kontexts: %1$s (%2$d) ist fehlgeschlagen\n"
+msgstr ""
+"Initialisierung des Kerberos-Kontexts: %1$s (%2$d) ist fehlgeschlagen\n"
 
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
@@ -1487,7 +1488,8 @@ msgid "User-friendly description of action performed"
 msgstr "Benutzerfreundliche Beschreibung der ausgeführten Aktion"
 
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
-msgstr "Der Wert von »primary_key« des Eintrags, z.B. »jdoe« für einen Benutzer"
+msgstr ""
+"Der Wert von »primary_key« des Eintrags, z.B. »jdoe« für einen Benutzer"
 
 #, fuzzy
 #| msgid "Delete a CA ACL."
@@ -7567,7 +7569,8 @@ msgid "Rebuild auto membership."
 msgstr "Auto-Mitgliedschaft neu erstellen"
 
 msgid "Rebuild membership for all members of a grouping"
-msgstr "Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
+msgstr ""
+"Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
 
 msgid "Rebuild membership for specified users"
 msgstr "Auto-Mitgliedschaft für ausgewählte Benutzer neu erstellen"
@@ -12982,8 +12985,8 @@ msgstr "%(attr)s enthält nicht »%(value)s«"
 msgid ""
 "The search criteria was not specific enough. Expected 1 and found %(found)d."
 msgstr ""
-"Die Suchkriterien waren nicht spezifisch genug. 1 wurde erwartet, aber %"
-"(found)d gefunden."
+"Die Suchkriterien waren nicht spezifisch genug. 1 wurde erwartet, aber "
+"%(found)d gefunden."
 
 msgid "This group already allows external members"
 msgstr "Diese Gruppe erlaubt bereits externe Mitglieder"
@@ -13195,8 +13198,8 @@ msgid ""
 msgstr ""
 "Die Forward Zone \"%(fwzone)s\" ist nicht aktiv, da eine ordnungsgemäße NS "
 "Delegation in der autoritativen Zone \"%(authzone)s\" nicht vorhanden ist. "
-"Bitte fügen Sie den NS Record \"%(ns_rec)s\" zur übergeordneten Zone \"%"
-"(authzone)s\" hinzu."
+"Bitte fügen Sie den NS Record \"%(ns_rec)s\" zur übergeordneten Zone "
+"\"%(authzone)s\" hinzu."
 
 #, python-format
 msgid ""
@@ -14698,7 +14701,8 @@ msgid ""
 "\n"
 " Rebuild membership for all users:\n"
 "    ipa automember-rebuild --type=group\n"
-msgstr "Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
+msgstr ""
+"Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
 
 #, fuzzy
 #| msgid "Rebuild membership for all members of a grouping"
@@ -14706,7 +14710,8 @@ msgid ""
 "\n"
 " Rebuild membership for all hosts:\n"
 "    ipa automember-rebuild --type=hostgroup\n"
-msgstr "Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
+msgstr ""
+"Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
 
 msgid ""
 "\n"
@@ -26036,8 +26041,8 @@ msgid ""
 " Alternatively, following servers are capable of running this command: "
 "%(masters)s"
 msgstr ""
-" Alternativ sind folgende Server in der Lage den Befehl auszuführen: %"
-"(masters)s"
+" Alternativ sind folgende Server in der Lage den Befehl auszuführen: "
+"%(masters)s"
 
 msgid "AD Trust setup"
 msgstr ""
