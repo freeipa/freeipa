@@ -1,0 +1,28 @@
+[global]
+server_version = "IPAKeys/0.0.1"
+server_socket = $IPA_CUSTODIA_SOCKET
+auditlog = $IPA_CUSTODIA_AUDIT_LOG
+
+[auth:simple]
+handler = ipaserver.custodia.httpd.authenticators.SimpleCredsAuth
+uid = $UID
+gid = $GID
+
+[auth:header]
+handler = ipaserver.custodia.httpd.authenticators.SimpleHeaderAuth
+header = GSS_NAME
+
+[authz:kemkeys]
+handler = ipaserver.secrets.kem.IPAKEMKeys
+paths = /keys
+store = ipa
+server_keys = $IPA_CUSTODIA_KEYS
+
+[store:ipa]
+handler = ipaserver.secrets.store.IPASecStore
+ldap_uri = $LDAP_URI
+
+[/keys]
+handler = ipaserver.custodia.secrets.Secrets
+allowed_keytypes = kem
+store = ipa

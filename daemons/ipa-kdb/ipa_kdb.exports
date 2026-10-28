@@ -1,0 +1,12 @@
+EXPORTED {
+
+	# public symbols
+	global:
+		kdb_function_table;
+		certauth_ipakdb_initvt;
+		kdcpolicy_ipakdb_initvt;
+
+	# everything else is local
+	local:
+		*;
+};

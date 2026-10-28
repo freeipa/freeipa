@@ -1,0 +1,14 @@
+dn: cn=whoami,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: whoami
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginDescription: whoami extended operation plugin
+default:nsslapd-pluginEnabled: on
+default:nsslapd-pluginId: whoami-plugin
+default:nsslapd-pluginInitfunc: whoami_init
+default:nsslapd-pluginPath: libwhoami-plugin
+default:nsslapd-pluginType: extendedop
+default:nsslapd-pluginVendor: 389 Project
+default:nsslapd-pluginVersion: 1.0

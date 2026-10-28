@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+    <title>Identity Management</title>
+    <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
+    <script type="text/javascript" src="../ui/js/inline/ssbrowser_inline.js"></script>
+</head>
+
+<body class="info-page">
+
+    <nav class="navbar navbar-default navbar-pf" role="navigation">
+    <div class="navbar-header">
+        <a class="brand" href="../ui/index.html"><img src="../ui/images/header-logo.png" alt="Identity Management"></a>
+    </div>
+    </nav>
+
+    <div class="container-fluid">
+    <div class="row">
+    <div class="col-sm-12">
+    <div class="ssbrowser" id="ssbrowser-msg">
+    <noscript>
+        <h1>Browser Kerberos Setup</h1>
+
+        <h2>Firefox</h2>
+
+        <p>
+            You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.
+        </p>
+
+        <ol>
+            <li>
+                <p>
+                    <a href="ca.crt" id="ca-link" class="btn btn-default">Import Certificate Authority certificate</a>
+                </p>
+                <p>
+                    Make sure you select <b>all three</b> checkboxes.
+                </p>
+            </li>
+            <li>
+                In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
+            </li>
+            <li>
+                In the Filter field, type <code>negotiate</code> to restrict the list of options.
+            </li>
+            <li>
+                Double-click the <code>network.negotiate-auth.trusted-uris</code> entry to display the Enter string value dialog box.
+            </li>
+            <li>
+                Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com</code>.
+            </li>
+            <li><a href="../ui/index.html" id="return-link" class="btn btn-default">Return to Web UI</a></li>
+        </ol>
+
+        <h2>Chrome</h2>
+
+        <p>
+            You can configure Chrome to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.
+        </p>
+
+        <h3>Import CA Certificate</h3>
+        <ol>
+            <li>
+                Download the <a href="ca.crt">CA certificate</a>. Alternatively, if the host is also an IdM client, you can find the certificate in /etc/ipa/ca.crt.
+            </li>
+            <li>
+                Click the menu button with the <em>Customize and control Google Chrome</em> tooltip, which is by default in the top right-hand corner of Chrome, and click <em>Settings</em>.
+            </li>
+            <li>
+                Click <em>Show advanced settings</em> to display more options, and then click the <em>Manage certificates</em> button located under the HTTPS/SSL heading.
+            </li>
+            <li>
+                In the <em>Authorities</em> tab, click the <em>Import</em> button at the bottom.
+            </li>
+            <li>Select the CA certificate file that you downloaded in the first step.</li>
+        </ol>
+
+        <h3>
+            Enable SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) to Use Kerberos Authentication
+            in Chrome
+        </h3>
+        <ol>
+            <li>
+                Make sure you have the necessary directory created by running:
+                <div><code>
+                    [root@client]# mkdir -p /etc/opt/chrome/policies/managed/
+                </code></div>
+            </li>
+            <li>
+                Create a new <code>/etc/opt/chrome/policies/managed/mydomain.json</code> file with write privileges limited to the system administrator or root, and include the following line:
+                <div><code>
+                    { "AuthServerAllowlist": "*<span class="example-domain">.example.com</span>" }
+                </code></div>
+                <div>
+                    You can do this by running:
+                </div>
+                <div><code>
+                    [root@server]# echo '{ "AuthServerAllowlist": "*<span class="example-domain">.example.com</span>" }' > /etc/opt/chrome/policies/managed/mydomain.json
+                </code></div>
+            </li>
+        </ol>
+        <ol>
+            <p>
+                <strong>Note:</strong> If using Chromium, use <code>/etc/chromium/policies/managed/</code> instead of <code>/etc/opt/chrome/policies/managed/</code> for the two SPNEGO Chrome configuration steps above.
+            </p>
+        </ol>
+
+        <h2>Internet Explorer</h2>
+        <p><strong>WARNING:</strong> Internet Explorer is no longer a supported browser.</p>
+        <p>
+            Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer.
+        </p>
+        <p>
+            <strong>Log into the Windows machine using an account of your Kerberos realm (administrative domain)</strong>
+        </p>
+        <p>
+            <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
+        </p>
+        <div>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Sites </li>
+                <li>Click Advanced </li>
+                <li>Add your domain to the list</li>
+            </ol>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Custom Level</li>
+                <li>Select Automatic logon only in Intranet zone</li>
+            </ol>
+
+            <ol>
+                <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
+                <li><strong> You are all set.</strong></li>
+            </ol>
+        </div>
+
+    </noscript>
+    </div>
+    </div>
+    </div>
+    </div>
+
+</body>
+
+</html>
+

@@ -1,0 +1,15 @@
+# IPA Topology Plugin schema
+# BaseOID: 2.16.840.1.113730.3.8.20
+dn: cn=schema
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.1 NAME 'ipaReplTopoConfRoot' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.2 NAME 'ipaReplTopoSegmentDirection' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.3 NAME 'ipaReplTopoSegmentLeftNode' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.4 NAME 'ipaReplTopoSegmentRightNode' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.5 NAME 'ipaReplTopoSegmentStatus' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.6 NAME 'ipaReplTopoSegmentGenerated' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.7 NAME 'ipaReplTopoManagedAgreementState' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+attributetypes: ( 2.16.840.1.113730.3.8.20.2.8 NAME 'ipaReplTopoManagedSuffix' DESC 'IPA defined attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'FreeIPA' )
+objectclasses: ( 2.16.840.1.113730.3.8.20.1.1 NAME 'ipaReplTopoConf' DESC 'IPA defined objectclass' SUP top STRUCTURAL MUST ipaReplTopoConfRoot MAY ( cn $ nsDS5ReplicaRoot $ nsDS5ReplicatedAttributeList $ nsDS5ReplicatedAttributeListTotal $ nsds5ReplicaStripAttrs) X-ORIGIN 'Free IPA' )
+objectclasses: ( 2.16.840.1.113730.3.8.20.1.2 NAME 'ipaReplTopoSegment' DESC 'IPA defined objectclass' SUP top STRUCTURAL MUST ( ipaReplTopoSegmentDirection $ ipaReplTopoSegmentLeftNode $ ipaReplTopoSegmentRightNode) MAY ( cn $ ipaReplTopoSegmentStatus $ ipaReplTopoSegmentGenerated $ nsDS5ReplicatedAttributeList $ nsDS5ReplicatedAttributeListTotal $ nsds5BeginReplicaRefresh $ description $ nsds5replicaTimeout $ nsds5ReplicaEnabled  $ nsds5ReplicaStripAttrs $ nsds5replicaSessionPauseTime $ nsds5ReplicaProtocolTimeout ) X-ORIGIN 'Free IPA' )
+objectclasses: ( 2.16.840.1.113730.3.8.20.1.3 NAME 'ipaReplTopoManagedAgreement' DESC 'marker objectclass for managed replication agreements' SUP top AUXILIARY MAY ( ipaReplTopoManagedAgreementState ) X-ORIGIN 'Free IPA' )
+objectclasses: ( 2.16.840.1.113730.3.8.20.1.4 NAME 'ipaReplTopoManagedServer' DESC 'part of managed replication topology' SUP top AUXILIARY MAY ( ipaReplTopoManagedSuffix ) X-ORIGIN 'Free IPA' )

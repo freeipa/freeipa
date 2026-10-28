@@ -1,0 +1,17 @@
+dn: cn=ipa_pwd_extop,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa_pwd_extop
+nsslapd-pluginpath: libipa_pwd_extop
+nsslapd-plugininitfunc: ipapwd_init
+nsslapd-plugintype: extendedop
+nsslapd-pluginbetxn: on
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_pwd_extop
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: RedHat
+nsslapd-plugindescription: Support saving passwords in multiple formats for different consumers (krb5, samba, freeradius, etc.)
+nsslapd-plugin-depends-on-type: database
+nsslapd-realmTree: $SUFFIX

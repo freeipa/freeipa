@@ -1,0 +1,8 @@
+#
+# Add CA renewal container if not available
+#
+
+dn: cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: ca_renewal

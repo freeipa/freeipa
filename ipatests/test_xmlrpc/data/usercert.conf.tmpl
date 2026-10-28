@@ -1,0 +1,12 @@
+[ req ]
+prompt = no
+encrypt_key = no
+
+distinguished_name = dn
+req_extensions = exts
+
+[ dn ]
+commonName = "{username}"
+
+[ exts ]
+subjectAltName=email:{username}@{ipadomain}

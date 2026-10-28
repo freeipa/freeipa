@@ -1,0 +1,56 @@
+.\" A man page for ipa-managed-entries
+.\" Copyright (C) 2011 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Jr Aquino <jr.aquino@citrix.com>
+.\"
+.TH "ipa-managed-entries" "1" "Feb 06 2012" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-managed\-entries \- Enables or disables the schema Managed Entry plugins
+.SH "SYNOPSIS"
+ipa\-managed\-entries [options] <enable|disable|status>
+.SH "DESCRIPTION"
+Run the command with the \fBenable\fR option to enable the Managed Entry plugin.
+
+Run the command with the \fBdisable\fR option to disable the Managed Entry plugin.
+
+Run the command with the \fBstatus\fR to determine the current status of the Managed Entry plugin.
+
+In all cases the user will be prompted to provide the Directory Manager's password unless option \fB\-p\fR is used.
+
+Directory Server will need to be restarted after the Managed Entry plugin has been enabled.
+
+.SH "OPTIONS"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show a help message and exit
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-e\fR \fIMANAGED_ENTRY\fR, \fB\-\-entry\fR=\fIMANAGED_ENTRY\fR
+DN for the Managed Entry Definition
+.TP
+\fB\-l\fR, \fB-\-list\fR
+List available Managed Entries
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+The Directory Manager password to use for authentication
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+2 if the plugin is already in the required status (enabled or disabled)

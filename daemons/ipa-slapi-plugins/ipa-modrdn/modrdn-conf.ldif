@@ -1,0 +1,16 @@
+dn: cn=IPA MODRDN,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: IPA MODRDN
+nsslapd-pluginpath: libipa_modrdn
+nsslapd-plugininitfunc: ipamodrdn_init
+nsslapd-plugintype: betxnpostoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipamodrdn_version
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-plugindescription: IPA MODRDN plugin
+nsslapd-plugin-depends-on-type: database
+nsslapd-pluginPrecedence: 60

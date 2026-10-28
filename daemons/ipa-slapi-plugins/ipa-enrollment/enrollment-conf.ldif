@@ -1,0 +1,16 @@
+dn: cn=ipa_enrollment_extop,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa_enrollment_extop
+nsslapd-pluginpath: libipa_enrollment_extop
+nsslapd-plugininitfunc: ipaenrollment_init
+nsslapd-plugintype: extendedop
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_enrollment_extop
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: RedHat
+nsslapd-plugindescription: Enroll hosts into the IPA domain
+nsslapd-plugin-depends-on-type: database
+nsslapd-realmTree: $SUFFIX

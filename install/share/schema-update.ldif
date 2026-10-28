@@ -1,0 +1,7 @@
+# FIXME: https://fedorahosted.org/389/ticket/47490
+
+dn: cn=schema
+changetype: modify
+add: objectClasses
+objectClasses: ( 2.16.840.1.113730.3.2.41 NAME 'nsslapdPlugin' DESC 'Netscape defined objectclass' SUP top MUST ( cn $ nsslapd-pluginPath $ nsslapd-pluginInitFunc $ nsslapd-pluginType $ nsslapd-pluginId $ nsslapd-pluginVersion $ nsslapd-pluginVendor $ nsslapd-pluginDescription $ nsslapd-pluginEnabled ) MAY ( nsslapd-pluginConfigArea $ nsslapd-plugin-depends-on-type ) X-ORIGIN 'Netscape Directory Server' )
+objectClasses: ( 2.16.840.1.113730.3.2.317 NAME 'nsSaslMapping' DESC 'Netscape defined objectclass' SUP top MUST ( cn $ nsSaslMapRegexString $ nsSaslMapBaseDNTemplate $ nsSaslMapFilterTemplate ) MAY ( nsSaslMapPriority ) X-ORIGIN 'Netscape Directory Server' )

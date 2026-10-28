@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+# Based heavily on
+# https://github.com/gssapi/mod_auth_gssapi/blob/master/contrib/sweeper.py
+
+# Copyright (C) 2016 mod_auth_gssapi contributors - See COPYING for (C) terms
+
+# If one uses both sessions and unique ccache names, then the filesystem will
+# become littered with ccache files unless the accessed application cleans
+# them up itself.  This script will minimize ccache file proliferation by
+# removing any ccaches that have expired from the filesystem, and serves as an
+# example of how this cleaning can be performed.
+
+import argparse
+import os
+import stat
+import sys
+import time
+
+from ipalib.krb_utils import get_credentials_if_valid
+from ipaplatform.paths import paths
+
+
+def should_delete(fname, t, minlife):
+    """Process file as a ccache and indicate whether it is expired"""
+    # skip directories and other non-files
+    st = os.stat(fname)
+    if not stat.S_ISREG(st.st_mode):
+        return False
+
+    # ignore files that are newer than minlife minutes
+    if t - st.st_mtime < minlife * 60:
+        return False
+
+    # gssproxy inquires input credentials. If they are expired
+    # then gssproxy acquires creds from cred_store according to
+    # the configuration of gssproxy's service, which in this case
+    # hasn't cred_store(besides `keytab:`, used for decryption of
+    # ccache). If there is no ccache within cred_store then gssproxy
+    # adds its own one("MEMORY:internal_%d"), which hasn't
+    # any credentials, thus, scan_ccache fails with KRB5_FCC_NOFILE.
+    # Since the caller requires INITIATE-ONLY and the client keytab
+    # is not provided in cred_store the result of gss_acquire_cred_from
+    # is KRB5_FCC_NOFILE, which is mapped by gssproxy to
+    # 0x04200000 + KRB5_FCC_NOFILE.
+    creds = get_credentials_if_valid(ccache_name=fname)
+    return creds is None
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Sweep expired ccaches")
+    parser.add_argument("-m", dest="minlife", type=int,
+                        help="ignore newer files than this (default: 30)",
+                        default=30)
+    args = parser.parse_args()
+
+    os.environ["GSS_USE_PROXY"] = "yes"
+    os.environ["GSSPROXY_BEHAVIOR"] = "REMOTE_ONLY"
+    os.environ["GSSPROXY_SOCKET"] = paths.IPA_CCACHE_SWEEPER_GSSPROXY_SOCK
+
+    print("Running sweeper...")
+
+    t = time.time()
+
+    os.chdir(paths.IPA_CCACHES)
+    for fname in os.listdir(paths.IPA_CCACHES):
+        try:
+            if should_delete(fname, t, args.minlife):
+                os.unlink(fname)
+        except FileNotFoundError:
+            # someone else did the work for us
+            pass
+
+    print("Sweeper finished successfully!")
+    sys.exit(0)

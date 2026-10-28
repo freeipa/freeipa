@@ -1,0 +1,108 @@
+.\" A man page for epn.conf
+.\" Copyright (C) 2020 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@@redhat.com>
+.\"
+.TH "EPN.CONF" "5" "April 28, 2020" "IPA" "IPA Manual Pages"
+.SH "NAME"
+epn.conf \- Expiring Password Notification configuration file
+.SH "SYNOPSIS"
+/etc/ipa/epn.conf
+.SH "DESCRIPTION"
+The \fIepn.conf \fRconfiguration file is used to set the options for the ipa-epn tool to notify users of upcoming password expiration.
+
+.SH "SYNTAX"
+The configuration options are not case sensitive. The values may be case sensitive, depending on the option.
+
+Blank lines are ignored.
+Lines beginning with # are comments and are ignored.
+
+Valid lines consist of an option name, an equals sign and a value. Spaces surrounding equals sign are ignored. An option terminates at the end of a line.
+
+Values should not be quoted, the quotes will not be stripped.
+
+.RS 4
+    # Wrong \- don't include quotes
+    verbose = "True"
+
+    # Right \- Properly formatted options
+    verbose = True
+    verbose=True
+.RE
+
+Options must appear in the section named [global]. There are no other sections defined or used currently.
+
+Options may be defined that are not used by IPA. Be careful of misspellings, they will not be rejected.
+.SH "OPTIONS"
+.TP
+.B smtp_server\fR <fqdn>
+Specifies the SMTP server to use. The default is localhost.
+.TP
+.B smtp_port <port>
+Specifies the SMTP port. The default is 25.
+.TP
+.B smtp_user <user>
+Specifies the id of the user to authenticate with the SMTP server. Default None.
+.TP
+.B smtp_password <password>
+Specifies the password for the authorized user. Default None.
+.TP
+.B smtp_client_cert <certificate>
+Specifies the path to a single file in PEM format containing the certificate. Default None.
+.TP
+.B smtp_client_key <private key>
+Specifies the path to a file containing the private key in. Otherwise the private key will be taken from certfile as well. Default None.
+.TP
+.B smtp_client_key_pass <private key password>
+Specifies the password for decrypting the private key. Default None.
+.TP
+.B smtp_timeout <seconds>
+Specifies the number of seconds to wait for SMTP to respond. Default 60.
+.TP
+.B smtp_security <security>
+Specifies the type of secure connection to make. Options are: none, starttls and ssl. The default is none.
+.TP
+.B smtp_admin <address>
+Specifies the From e-mail address value in the e-mails sent. The default is
+root@localhost. Bounces will be sent here.
+.TP
+.B smtp_delay <milliseconds>
+Time to wait, in milliseconds, between each e-mail sent to try to avoid overloading the mail queue. The default is 0.
+.TP
+.B mail_from <address>
+Specifies the From: e-mail address value in the e-mails sent. The default is noreply@ipadefaultemaildomain. This value can be found by running
+.I ipa config-show
+.TP
+.B mail_from_name <name>
+Specifies the From: name value in the e-mails sent. The default is IPA-EPN.
+.TP
+.B notify_ttls <list of days>
+This is the list of days before a password expiration when ipa-epn should notify a user that their password will soon require a reset. If this value is not specified then the default list will be used: 28, 14, 7, 3, 1.
+.TP
+.B msg_subject <subject>
+Specifies the subject of the e-mails sent. The default is "Your password will expire soon."
+.TP
+.B msg_charset <type>
+Set the character set of the message. The default is utf8. This will result in he body of the message being base64-encoded.
+.TP
+.B msg_subtype <type>
+Set the message's MIME sub-content type. The default is plain.
+.SH "FILES"
+.TP
+.I /etc/ipa/epn.conf
+Configuration file
+.SH "SEE ALSO"
+.BR ipa-epn (1)

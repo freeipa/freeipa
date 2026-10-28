@@ -1,0 +1,4 @@
+dn: cn=certificates,cn=ipa,cn=etc,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: certificates

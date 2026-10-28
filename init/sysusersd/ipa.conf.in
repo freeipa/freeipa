@@ -1,0 +1,8 @@
+# IPA KDC Proxy user and group
+u!  kdcproxy    -   "IPA KDC Proxy User"
+
+# IPA API user and group
+u!  ipaapi      -   "IPA API User"
+
+# - add Apache system account to ipaapi group (platform-specific)
+m   @HTTPD_USER@      ipaapi

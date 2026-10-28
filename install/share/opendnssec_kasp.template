@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<KASP>
+
+	<Policy name="default">
+		<Description>IPA default policy</Description>
+		<Signatures>
+			<Resign>PT2H</Resign>
+			<Refresh>P3D</Refresh>
+			<Validity>
+				<Default>P14D</Default>
+				<Denial>P14D</Denial>
+			</Validity>
+			<Jitter>PT12H</Jitter>
+			<InceptionOffset>PT3600S</InceptionOffset>
+		</Signatures>
+
+		<Denial>
+			<NSEC3>
+				<!-- <TTL>PT0S</TTL> -->
+				<!-- <OptOut/> -->
+				<Resalt>P100D</Resalt>
+				<Hash>
+					<Algorithm>1</Algorithm>
+					<Iterations>5</Iterations>
+					<Salt length="8"/>
+				</Hash>
+			</NSEC3>
+		</Denial>
+
+		<Keys>
+			<!-- Parameters for both KSK and ZSK -->
+			<TTL>PT3600S</TTL>
+			<RetireSafety>PT3600S</RetireSafety>
+			<PublishSafety>PT3600S</PublishSafety>
+			<!-- <ShareKeys/> -->
+			<Purge>P14D</Purge>
+
+			<!-- Parameters for KSK only -->
+			<KSK>
+				<Algorithm length="3072">8</Algorithm>
+				<Lifetime>P2Y</Lifetime>
+				<Repository>SoftHSM</Repository>
+			</KSK>
+
+			<!-- Parameters for ZSK only -->
+			<ZSK>
+				<Algorithm length="2048">8</Algorithm>
+				<Lifetime>P90D</Lifetime>
+				<Repository>SoftHSM</Repository>
+				<!-- <ManualRollover/> -->
+			</ZSK>
+		</Keys>
+
+		<Zone>
+			<PropagationDelay>PT43200S</PropagationDelay>
+			<SOA>
+				<TTL>PT3600S</TTL>
+				<Minimum>PT3600S</Minimum>
+				<Serial>unixtime</Serial>
+			</SOA>
+		</Zone>
+
+		<Parent>
+			<PropagationDelay>PT9999S</PropagationDelay>
+			<DS>
+				<TTL>PT3600S</TTL>
+			</DS>
+			<SOA>
+				<TTL>PT172800S</TTL>
+				<Minimum>PT10800S</Minimum>
+			</SOA>
+		</Parent>
+
+	</Policy>
+
+</KASP>

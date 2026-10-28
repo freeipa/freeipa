@@ -1,0 +1,32 @@
+# -*- shell-script -*-
+# Programmable completion for the IPA ipa command under bash. Source
+# this file (or on some systems add it to ~/.bash_completion and start a new
+# shell) and bash's completion mechanism will know all about ipa's options!
+
+# Known to work with bash 2.05a with programmable completion and extended
+# pattern matching enabled (use 'shopt -s extglob progcomp' to enable
+# these if they are not already enabled).
+
+# based on the bzr bash completion script by Martin Pool
+
+_ipa_commands()
+{
+    ipa help commands 2>/dev/null | sed -r 's/^([-[:alnum:]]*).*/\1/' | grep '^[[:alnum:]]'
+}
+
+_ipa()
+{
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+    if [ $COMP_CWORD -eq 1 ]; then
+        COMPREPLY=( $( compgen -W "$(_ipa_commands)" $cur ) )
+    elif [ $COMP_CWORD -eq 2 ]; then
+        case "$prev" in
+        help)
+            COMPREPLY=( $( compgen -W "$(_ipa_commands) commands" $cur ) )
+            ;;
+        esac
+    fi
+}
+
+complete -F _ipa -o default ipa

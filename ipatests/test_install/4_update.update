@@ -1,0 +1,4 @@
+# Replace the existing SINGLE-VALUE gecos with a new value thru add
+dn: uid=tuser, cn=test, cn=accounts, $SUFFIX
+add:gecos: Test User New2
+

@@ -1,0 +1,7 @@
+# Do not edit. Created by IPA installer.
+
+# Some platforms allow parallel installation of Python 2 and 3 mod_wsgi
+# modules, but the modules can't coexist. Enforce loading of correct
+# WSGI module before the package's default config.
+
+LoadModule wsgi_module $WSGI_MODULE

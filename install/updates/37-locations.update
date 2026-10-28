@@ -1,0 +1,4 @@
+dn: cn=locations,cn=etc,$SUFFIX
+default: objectClass: nsContainer
+default: objectClass: top
+default: cn: locations

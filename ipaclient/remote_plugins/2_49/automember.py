@@ -1,0 +1,830 @@
+#
+# Copyright (C) 2016  FreeIPA Contributors see COPYING for license
+#
+
+
+from . import Method, Object
+from ipalib import parameters, output
+from ipalib.plugable import Registry
+from ipalib.text import _
+
+__doc__ = _(r"""
+Auto Membership Rule.
+
+Bring clarity to the membership of hosts and users by configuring inclusive
+or exclusive regex patterns, you can automatically assign a new entries into
+a group or hostgroup based upon attribute information.
+
+A rule is directly associated with a group by name, so you cannot create
+a rule without an accompanying group or hostgroup.
+
+A condition is a regular expression used by 389-ds to match a new incoming
+entry with an automember rule. If it matches an inclusive rule then the
+entry is added to the appropriate group or hostgroup.
+
+A default group or hostgroup could be specified for entries that do not
+match any rule. In case of user entries this group will be a fallback group
+because all users are by default members of group specified in IPA config.
+
+
+EXAMPLES:
+
+ Add the initial group or hostgroup:
+   ipa hostgroup-add --desc="Web Servers" webservers
+   ipa group-add --desc="Developers" devel
+
+ Add the initial rule:
+   ipa automember-add --type=hostgroup webservers
+   ipa automember-add --type=group devel
+
+ Add a condition to the rule:
+   ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
+   ipa automember-add-condition --key=manager --type=group --inclusive-regex=^uid=mscott devel
+
+ Add an exclusive condition to the rule to prevent auto assignment:
+   ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-regex=^web5\.example\.com webservers
+
+ Add a host:
+    ipa host-add web1.example.com
+
+ Add a user:
+    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott
+
+ Verify automembership:
+    ipa hostgroup-show webservers
+      Host-group: webservers
+      Description: Web Servers
+      Member hosts: web1.example.com
+
+    ipa group-show devel
+      Group name: devel
+      Description: Developers
+      GID: 1004200000
+      Member users: tuser
+
+ Remove a condition from the rule:
+   ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
+
+ Modify the automember rule:
+    ipa automember-mod
+
+ Set the default (fallback) target group:
+    ipa automember-default-group-set --default-group=webservers --type=hostgroup
+    ipa automember-default-group-set --default-group=ipausers --type=group
+
+ Remove the default (fallback) target group:
+    ipa automember-default-group-remove --type=hostgroup
+    ipa automember-default-group-remove --type=group
+
+ Show the default (fallback) target group:
+    ipa automember-default-group-show --type=hostgroup
+    ipa automember-default-group-show --type=group
+
+ Find all of the automember rules:
+    ipa automember-find
+
+ Display a automember rule:
+    ipa automember-show --type=hostgroup webservers
+    ipa automember-show --type=group devel
+
+ Delete an automember rule:
+    ipa automember-del --type=hostgroup webservers
+    ipa automember-del --type=group devel
+""")
+
+register = Registry()
+
+
+@register()
+class automember(Object):
+    takes_params = (
+        parameters.Str(
+            'description',
+            required=False,
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'automemberdefaultgroup',
+            required=False,
+            label=_('Default (fallback) Group'),
+            doc=_('Default group for entries to land'),
+        ),
+    )
+
+
+@register()
+class automember_add(Method):
+    __doc__ = _("Add an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'setattr',
+            required=False,
+            multivalue=True,
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
+            exclude=('webui',),
+        ),
+        parameters.Str(
+            'addattr',
+            required=False,
+            multivalue=True,
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
+            exclude=('webui',),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_add_condition(Method):
+    __doc__ = _("Add conditions to an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'automemberinclusiveregex',
+            required=False,
+            multivalue=True,
+            cli_name='inclusive_regex',
+            label=_('Inclusive Regex'),
+            alwaysask=True,
+        ),
+        parameters.Str(
+            'automemberexclusiveregex',
+            required=False,
+            multivalue=True,
+            cli_name='exclusive_regex',
+            label=_('Exclusive Regex'),
+            alwaysask=True,
+        ),
+        parameters.Str(
+            'key',
+            label=_('Attribute Key'),
+            doc=_(
+                'Attribute to filter via regex. '
+                'For example fqdn for a host, or manager for a user'
+            ),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+        output.Output(
+            'failed',
+            dict,
+            doc=_('Conditions that could not be added'),
+        ),
+        output.Output(
+            'completed',
+            int,
+            doc=_('Number of conditions added'),
+        ),
+    )
+
+
+@register()
+class automember_default_group_remove(Method):
+    __doc__ = _("Remove default (fallback) group for all unmatched entries.")
+
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_default_group_set(Method):
+    __doc__ = _("Set default (fallback) group for all unmatched entries.")
+
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'automemberdefaultgroup',
+            cli_name='default_group',
+            label=_('Default (fallback) Group'),
+            doc=_('Default (fallback) group for entries to land'),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_default_group_show(Method):
+    __doc__ = _("Display information about the default (fallback) automember groups.")
+
+    takes_options = (
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_del(Method):
+    __doc__ = _("Delete an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Output(
+            'result',
+            dict,
+            doc=_('List of deletions that failed'),
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_find(Method):
+    __doc__ = _("Search for automember rules.")
+
+    takes_args = (
+        parameters.Str(
+            'criteria',
+            required=False,
+            doc=_('A string searched in all relevant object attributes'),
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.ListOfEntries(
+            'result',
+        ),
+        output.Output(
+            'count',
+            int,
+            doc=_('Number of entries returned'),
+        ),
+        output.Output(
+            'truncated',
+            bool,
+            doc=_('True if not all results were returned'),
+        ),
+    )
+
+
+@register()
+class automember_mod(Method):
+    __doc__ = _("Modify an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'setattr',
+            required=False,
+            multivalue=True,
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
+            exclude=('webui',),
+        ),
+        parameters.Str(
+            'addattr',
+            required=False,
+            multivalue=True,
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
+            exclude=('webui',),
+        ),
+        parameters.Str(
+            'delattr',
+            required=False,
+            multivalue=True,
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
+            exclude=('webui',),
+        ),
+        parameters.Flag(
+            'rights',
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class automember_remove_condition(Method):
+    __doc__ = _("Remove conditions from an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'description',
+            required=False,
+            cli_name='desc',
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
+        ),
+        parameters.Str(
+            'automemberinclusiveregex',
+            required=False,
+            multivalue=True,
+            cli_name='inclusive_regex',
+            label=_('Inclusive Regex'),
+            alwaysask=True,
+        ),
+        parameters.Str(
+            'automemberexclusiveregex',
+            required=False,
+            multivalue=True,
+            cli_name='exclusive_regex',
+            label=_('Exclusive Regex'),
+            alwaysask=True,
+        ),
+        parameters.Str(
+            'key',
+            label=_('Attribute Key'),
+            doc=_(
+                'Attribute to filter via regex. '
+                'For example fqdn for a host, or manager for a user'
+            ),
+        ),
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+        output.Output(
+            'failed',
+            dict,
+            doc=_('Conditions that could not be removed'),
+        ),
+        output.Output(
+            'completed',
+            int,
+            doc=_('Number of conditions removed'),
+        ),
+    )
+
+
+@register()
+class automember_show(Method):
+    __doc__ = _("Display information about an automember rule.")
+
+    takes_args = (
+        parameters.Str(
+            'cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'type',
+            cli_metavar="['group', 'hostgroup']",
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Entry(
+            'result',
+        ),
+        output.Output(
+            'value',
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )

@@ -1,0 +1,15 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-entryusn-global
+nsslapd-entryusn-global: on
+
+dn: cn=config
+changetype: modify
+replace: nsslapd-entryusn-import-initval
+nsslapd-entryusn-import-initval: next
+
+dn: cn=USN,cn=plugins,cn=config
+changetype: modify
+replace: nsslapd-pluginenabled
+nsslapd-pluginenabled: on
+

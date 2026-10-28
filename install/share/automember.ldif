@@ -1,0 +1,32 @@
+# Configuration for Auto Membership Plugin for Master
+# installation.  This method should be revisted for
+# optimization due to a bug within 389 DS which prevents
+# the definition files from being added seperatly after
+# the insertion of cn=Auto Membership Plugin,cn=plugins,cn=config
+# and subsequent 389 DS restart.
+dn: cn=Auto Membership Plugin,cn=plugins,cn=config
+changetype: modify
+add: nsslapd-pluginConfigArea
+nsslapd-pluginConfigArea: cn=automember,cn=etc,$SUFFIX
+
+dn: cn=automember,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: automember
+
+dn: cn=Hostgroup,cn=automember,cn=etc,$SUFFIX
+changetype: add
+objectclass: autoMemberDefinition
+cn: Hostgroup
+autoMemberScope: cn=computers,cn=accounts,$SUFFIX
+autoMemberFilter: objectclass=ipaHost
+autoMemberGroupingAttr: member:dn
+
+dn: cn=Group,cn=automember,cn=etc,$SUFFIX
+changetype: add
+objectclass: autoMemberDefinition
+cn: Group
+autoMemberScope: cn=users,cn=accounts,$SUFFIX
+autoMemberFilter: objectclass=posixAccount
+autoMemberGroupingAttr: member:dn

@@ -1,0 +1,10 @@
+#
+# Schema from RFC 2247 and related pilot schema
+#	"Using Domains in LDAP/X.500 Distinguished Names"
+#
+dn: cn=schema
+attributeTypes: ( 0.9.2342.19200300.100.1.25 NAME ( 'dc' 'domaincomponent' ) DESC 'Standard LDAP attribute type' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'RFC 2247' )
+attributeTypes: ( 0.9.2342.19200300.100.1.38 NAME 'associatedName' DESC 'Standard LDAP attribute type' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'RFC 1274' )
+objectClasses: ( 1.3.6.1.4.1.1466.344 NAME 'dcObject' DESC 'Standard LDAP objectclass' SUP top AUXILIARY MUST dc X-ORIGIN 'RFC 2247' )
+objectClasses: ( 0.9.2342.19200300.100.4.13 NAME 'domain' DESC 'Standard LDAP objectclass' SUP top STRUCTURAL MUST dc MAY ( associatedName $ businessCategory $ description $ destinationIndicator $ facsimileTelephoneNumber $ internationalISDNNumber $ l $ o $ physicalDeliveryOfficeName $ postOfficeBox $ postalAddress $ postalCode $ preferredDeliveryMethod $ registeredAddress $ searchGuide $ seeAlso $ st $ street $ telephoneNumber $ teletexTerminalIdentifier $ telexNumber $ userPassword $ x121Address ) X-ORIGIN 'RFC 2247' )
+objectClasses: ( 0.9.2342.19200300.100.4.14 NAME 'RFC822localPart' DESC 'Pilot objectclass' SUP domain MAY ( cn $ sn ) X-ORIGIN 'Internet directory pilot' )

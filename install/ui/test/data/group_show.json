@@ -1,0 +1,22 @@
+{
+   "result" : {
+      "result" : {
+         "dn" : "cn=ipausers,cn=groups,cn=accounts,dc=dom,dc=example,dc=com",
+         "cn" : [
+            "ipausers"
+         ],
+         "description" : [
+            "Default group for all users"
+         ],
+         "member_user" : [
+            "kfrog"
+         ]
+      },
+      "summary" : null,
+      "value" : "ipausers"
+   },
+   "id" : null,
+   "principal" : "admin@DOM.EXAMPLE.COM",
+   "error" : null,
+   "version" : "4.5.90.dev201706131442+gitd665224"
+}

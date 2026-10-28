@@ -1,0 +1,69 @@
+# subordinate ids
+
+# create memberOf attributes for ipaOwner
+dn: cn=MemberOf Plugin,cn=plugins,cn=config
+add: memberofgroupattr: ipaOwner
+
+# container
+dn: cn=subids,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: subids
+
+# self-service RBAC
+dn: cn=Subordinate ID Selfservice User,cn=roles,cn=accounts,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:objectClass: top
+default:cn: Subordinate ID Selfservice User
+default:description: User that can self-request subordinate ids
+replace:description: User that can self-request subordiante ids::User that can self-request subordinate ids
+# default: member: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Subordinate ID Selfservice Users,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Subordinate ID Selfservice Users
+default:description: Subordinate ID Selfservice User
+default:member: cn=Subordinate ID Selfservice User,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Self-service subordinate ID
+default:ipapermissiontype: SYSTEM
+default:member: cn=Subordinate ID Selfservice Users,cn=privileges,cn=pbac,$SUFFIX
+
+# Administrator RBAC
+dn: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Subordinate ID Administrators
+default:description: Subordinate ID Administrators
+default:member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=Manage subordinate ID,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Manage subordinate ID
+default:ipapermissiontype: SYSTEM
+default:member: cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+# ACIs (in domain database root so they also apply to staging area)
+#
+# - allow users to request new subid with DNA_MAGIC value, subid count=65536,
+#   and subgid == subuid.
+# - allow user admins to set subids. count=65536 and subgid == subuid
+#   properties are enforced as wel.
+#
+# The delete-when-empty check is required because IPA uses MOD_REPLACE to
+# set attributes, see https://github.com/389ds/389-ds-base/issues/4597.
+#
+dn: cn=subids,cn=accounts,$SUFFIX
+add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(ipasubuidnumber=-1) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(ipasubgidnumber=-1) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "selfservice: Add subordinate id";allow (add, write) userattr = "ipaowner#SELFDN" and groupdn="ldap:///cn=Self-service subordinate ID,cn=permissions,cn=pbac,$SUFFIX";)
+add: aci: (targetfilter = "(objectclass=ipasubordinateidentry)")(targetattr="description || ipaowner || ipauniqueid")(targattrfilters = "add=objectClass:(|(objectClass=top)(objectClass=ipasubordinateid)(objectClass=ipasubordinateidentry)(objectClass=ipasubordinategid)(objectClass=ipasubordinateuid)) && ipasubuidnumber:(|(ipasubuidnumber>=1)(ipasubuidnumber=-1)) && ipasubuidcount:(ipasubuidcount=eval($SUBID_COUNT)) && ipasubgidnumber:(|(ipasubgidnumber>=1)(ipasubgidnumber=-1)) && ipasubgidcount:(ipasubgidcount=eval($SUBID_COUNT)), del=ipasubuidnumber:(!(ipasubuidnumber=*)) && ipasubuidcount:(!(ipasubuidcount=*)) && ipasubgidnumber:(!(ipasubgidnumber=*)) && ipasubgidcount:(!(ipasubgidcount=*))")(version 3.0;acl "Add subordinate ids to any user";allow (add, write) groupdn="ldap:///cn=Subordinate ID Administrators,cn=privileges,cn=pbac,$SUFFIX";)
+

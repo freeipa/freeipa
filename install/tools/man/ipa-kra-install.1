@@ -1,0 +1,69 @@
+.\" A man page for ipa-kra-install
+.\" Copyright (C) 2014 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Ade Lee <alee@redhat.com>
+.\"
+.TH "ipa-kra-install" "1" "May 10 2017" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-kra\-install \- Install a KRA on a server
+.SH "SYNOPSIS"
+.TP
+ipa\-kra\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Adds a KRA as an IPA\-managed service. This requires that the IPA server is already installed and configured, including a CA.
+
+The KRA (Key Recovery Authority) is a component used to securely store secrets such as passwords, symmetric keys and private asymmetric keys.  It is used as the back-end repository for the IPA Password Vault.
+
+Domain level 0 is not supported anymore.
+
+ipa\-kra\-install can be used to add KRA to the existing CA, or to install the KRA service on a replica.
+
+KRA can only be removed along with the entire server using ipa\-server\-install \-\-uninstall.
+.SH "OPTIONS"
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+Directory Manager (existing master) password
+.TP
+\fB\-\-no-host-dns\fR
+Do not use DNS for hostname lookup during installation
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Enable debug output when more verbose output is needed
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+.TP
+\fB\-\-log-file\fR=\fRFILE\fR
+Log to the given file
+.TP
+\fB\-\-pki\-config\-override\fR=\fIFILE\fR
+File containing overrides for KRA installation.
+.SS "HSM OPTIONS"
+The token name and library path are retrieved from the existing
+installation.
+.TP 
+\fB\-\-token\-password\fR=\fITOKEN_PASSWORD\fR
+The PKCS#11 token password for the HSM.
+.TP 
+\fB\-\-token\-password\-file\fR=\fITOKEN_PASSWORD_FILE\fR
+The full path to a file containing the PKCS#11 token password.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

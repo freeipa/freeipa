@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
+
+    <script type="text/javascript" src="qunit.js"></script>
+    <script type="text/javascript" src="../js/libs/loader.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.js"></script>
+    <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
+    <script type="text/javascript" src="../js/libs/bootstrap.js"></script>
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="../js/dojo/dojo.js"></script>
+
+    <script type="text/javascript">
+        QUnit.config.autostart = false;
+
+        require([
+            'test/ordered_map_tests',
+            'test/ipa_tests',
+            'test/details_tests',
+            'test/entity_tests',
+            'test/association_tests',
+            'test/certificate_tests',
+            'test/aci_tests',
+            'test/widget_tests',
+            'test/ip_tests',
+            'test/utils_tests',
+            'test/build_tests',
+            'test/binding_tests',
+            'test/topology_tests',
+        ], function(om, ipa, details, entity, as, cert, aci, wid, ip, ut, bt, bi, topo){
+            om();
+            ipa();
+            details();
+            entity();
+            as();
+            cert();
+            aci();
+            wid();
+            ip();
+            ut();
+            bt();
+            bi();
+            topo();
+            QUnit.start();
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">Complete Test Suite</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-fixture"></div>
+</body>
+</html>

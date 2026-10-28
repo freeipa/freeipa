@@ -1,0 +1,162 @@
+[MASTER]
+# Pickle collected data for later comparisons.
+persistent=no
+
+# List of plugins (as comma separated values of python modules names) to load,
+# usually to register additional checkers.
+# FIXME: has to be specified on the command line otherwise pylint fails with
+#        DuplicateSectionError for the IPA section
+#load-plugins=pylint_plugins
+
+# A list of packages with safe C extensions to load
+extension-pkg-allow-list=
+    _ldap,
+    cryptography,
+    gssapi,
+    lxml.etree,
+    pysss_murmur,
+
+# We want to ignore freeipa-webui, linting is handled separately there
+ignore=freeipa-webui
+
+[CLASSES]
+
+# List of valid names for the first argument in a metaclass class method.
+# This can be removed after upgrading to pylint 2.0
+valid-metaclass-classmethod-first-arg=cls
+
+[MESSAGES CONTROL]
+
+enable=
+    all,
+    python3,
+    useless-suppression,
+
+disable=
+    bad-inline-option,
+    c-extension-no-member,
+    deprecated-pragma,
+    file-ignored,
+    locally-disabled,
+    raw-checker-failed,
+    suppressed-message,
+    use-symbolic-message-instead,
+    duplicate-code,
+    interface-not-implemented,
+    no-self-use,
+    redefined-variable-type,
+    too-few-public-methods,
+    too-many-ancestors,
+    too-many-arguments,
+    too-many-boolean-expressions,
+    too-many-branches,
+    too-many-instance-attributes,
+    too-many-locals,
+    too-many-nested-blocks,
+    too-many-positional-arguments,
+    too-many-public-methods,
+    too-many-return-statements,
+    too-many-statements,
+    abstract-method,
+    anomalous-backslash-in-string,
+    arguments-differ,
+    attribute-defined-outside-init,
+    bad-builtin,
+    bad-indentation,
+    broad-except,
+    dangerous-default-value,
+    eval-used,
+    exec-used,
+    fixme,
+    global-statement,
+    no-init,
+    pointless-string-statement,
+    protected-access,
+    redefined-builtin,
+    redefined-outer-name,
+    super-init-not-called,
+    undefined-loop-variable,
+    unnecessary-lambda,
+    unused-argument,
+    useless-else-on-loop,
+    bad-continuation,
+    bad-whitespace,
+    blacklisted-name,
+    invalid-name,
+    line-too-long,
+    missing-docstring,
+    multiple-statements,
+    superfluous-parens,
+    too-many-lines,
+    unidiomatic-typecheck,
+    no-absolute-import,
+    wrong-import-order,
+    ungrouped-imports,
+    wrong-import-position,
+    unsubscriptable-object,
+    unsupported-membership-test,
+    not-an-iterable,
+    singleton-comparison,
+    misplaced-comparison-constant,
+    not-a-mapping,
+    singleton-comparison,
+    len-as-condition,  # new in pylint 1.7
+    no-else-return,  # new in pylint 1.7
+    single-string-used-for-slots,  # new in pylint 1.7
+    useless-super-delegation,  # new in pylint 1.7
+    redefined-argument-from-local,  # new in pylint 1.7
+    consider-merging-isinstance,  # new in pylint 1.7
+    bad-option-value,  # required to support upgrade to pylint 2.0
+    assignment-from-no-return,  # new in pylint 2.0
+    keyword-arg-before-vararg,  # pylint 2.0, remove after dropping Python 2
+    consider-using-enumerate,  # pylint 2.1, clean up tests later
+    no-else-raise, # python 2.4.0
+    import-outside-toplevel, # pylint 2.4.2
+    f-string-without-interpolation,  # pylint 2.5.0, bare f-strings are ok
+    super-with-arguments,  # pylint 2.6.0, zero-length form is syntactic sugar
+    raise-missing-from,  # pylint 2.6.0, implicit exception chaining is ok
+    consider-using-with,  # pylint 2.8.0, contextmanager is not mandatory
+    consider-using-max-builtin,  # pylint 2.8.0, can be more readable
+    consider-using-min-builtin,  # pylint 2.8.0, can be more readable
+    consider-using-f-string,  # pylint 2.11.0, format can be more readable
+    use-dict-literal,  # pylint 2.10.0 dict vs {}
+    use-list-literal,  # pylint 2.10.0 list() vs []
+    unspecified-encoding,  # pylint 2.10.0, ASCII or UTF8 and platform-specific
+    use-implicit-booleaness-not-comparison,  # pylint 2.12.2, weak comparison
+    use-implicit-booleaness-not-comparison-to-string,
+    use-implicit-booleaness-not-comparison-to-zero,
+    broad-exception-raised,
+    possibly-used-before-assignment,
+    use-yield-from
+    
+
+[REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, msvs
+# (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format=colorized
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details
+msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
+
+
+[VARIABLES]
+dummy-variables-rgx=(_.+|unused)
+
+[IPA]
+forbidden-imports=
+    client/:ipaserver,
+    ipaclient/:ipaclient.install:ipalib.install:ipaserver,
+    ipaclient/install/:ipaserver,
+    ipalib/:ipaclient.install:ipalib.install:ipaserver,
+    ipalib/install/:ipaserver,
+    ipaplatform/:ipaclient:ipalib:ipaserver,
+    ipapython/:ipaclient:ipalib:ipaserver
+    ipatests/pytest_ipa:ipaserver:ipaclient.install:ipalib.install
+    ipatests/test_integration:ipaserver,
+    ipatests/i18n.py:ipapython

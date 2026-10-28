@@ -1,0 +1,64 @@
+@startuml
+title AS-REQ password expiration — FreeIPA KDB plugin (ENCR_REP stage)
+
+participant "Client" as C
+participant "KDC\n(do_as_req)" as KDC
+participant "ipa_kdcpolicy_check_as()\n[IPA]" as POL
+
+C -> KDC : AS-REQ
+activate KDC
+
+ref over C, POL
+    principal lookup,
+    validate_as_request(),
+    check_padata()
+end ref
+
+== Stage: ENCR_REP ==
+
+KDC -> POL : check_as(client, server, auth_indicators)
+activate POL
+
+POL -> POL : Determine passwordless_auth\nfrom auth indicators
+
+alt passwordless_auth == true\n(pkinit, radius, idp, passkey)
+    note right of POL
+        Password expiration not enforced.
+        Passwordless method doesn't use
+        the password, so expiration is
+        irrelevant.
+    end note
+    POL --> KDC : OK
+    KDC --> C : AS-REP (ticket)
+else passwordless_auth == false\n(password, hardened, otp, or no indicator)
+
+    alt server->attributes & KRB5_KDB_PWCHANGE_SERVICE
+        note right of POL
+            Exempt kadmin/changepw from
+            password expiration, mirroring
+            validate_as_request() behavior.
+        end note
+        POL --> KDC : OK
+        KDC --> C : AS-REP (ticket)
+    else client->attributes & KRB5_KDB_REQUIRES_PWCHANGE
+        note right of POL
+            Enforce REQUIRES_PWCHANGE,
+            mirroring validate_as_request().
+            Server is not a pwchange service
+            (already checked above).
+        end note
+        POL --> KDC : KRB5KDC_ERR_KEY_EXP\n"REQUIRED PWCHANGE"
+        KDC --> C : KRB_ERROR(KEY_EXP)
+    else ied->pw_expiration == 0 OR now <= ied->pw_expiration
+        POL --> KDC : OK
+        KDC --> C : AS-REP (ticket)
+    else now > ied->pw_expiration
+        POL --> KDC : KRB5KDC_ERR_KEY_EXP\n"CLIENT KEY EXPIRED"
+        KDC --> C : KRB_ERROR(KEY_EXP)
+    end
+
+end
+
+deactivate POL
+deactivate KDC
+@enduml

@@ -1,0 +1,4 @@
+dn: cn=views,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: views

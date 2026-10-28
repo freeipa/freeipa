@@ -1,0 +1,6 @@
+# Config winsync plugin according to DNA
+dn: cn=ipa-winsync,cn=plugins,cn=config
+remove:ipaWinSyncUserAttr: uidNumber 999
+remove:ipaWinSyncUserAttr: gidNumber 999
+add:ipaWinSyncUserAttr: uidNumber -1
+add:ipaWinSyncUserAttr: gidNumber -1

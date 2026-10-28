@@ -1,0 +1,6 @@
+dn: cn=Default Trust View,cn=views,cn=accounts,$SUFFIX
+changetype: add
+cn: Default Trust View
+description: Default Trust View for AD users. Should not be deleted.
+objectclass: top
+objectclass: ipaIDView

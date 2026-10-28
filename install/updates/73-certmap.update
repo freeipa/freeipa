@@ -1,0 +1,23 @@
+# Configuration for Certificate Identity Mapping
+dn: cn=certmap,$SUFFIX
+default:objectclass: top
+default:objectclass: nsContainer
+default:objectclass: ipaCertMapConfigObject
+default:cn: certmap
+default:ipaCertMapPromptUsername: FALSE
+
+dn: cn=certmaprules,cn=certmap,$SUFFIX
+default:objectclass: top
+default:objectclass: nsContainer
+default:cn: certmaprules
+
+# Certificate Identity Mapping Administrators
+dn: cn=Certificate Identity Mapping Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Certificate Identity Mapping Administrators
+default:description: Certificate Identity Mapping Administrators
+
+dn: $SUFFIX
+add:aci: (targetattr = "ipacertmapdata")(targattrfilters="add=objectclass:(objectclass=ipacertmapobject)")(version 3.0;acl "selfservice:Users can manage their own X.509 certificate identity mappings";allow (write) userdn = "ldap:///self";)

@@ -1,0 +1,144 @@
+.\" A man page for ipa-join
+.\" Copyright (C) 2009 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-join" "1" "Oct 8 2009" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-join \- Join a machine to an IPA realm and get a keytab for the host service principal
+.SH "SYNOPSIS"
+ipa\-join [\fB\-d\fR|\fB\-\-debug\fR] [\fB\-q\fR|\fB\-\-quiet\fR] [\fB\-u\fR|\fB\-\-unenroll\fR] [\fB\-h\fR|\fB\-\-hostname\fR hostname] [\fB\-s\fR|\fB\-\-server\fR hostname] [\fB\-k\fR|\fB\-\-keytab\fR filename] [\fB\-w\fR|\fB\-\-bindpw\fR password] [\fB-b\fR|\-\-\fBbasedn\fR basedn] [\fB\-?\fR|\fB\-\-help\fR] [\fB\-\-usage\fR]
+
+.SH "DESCRIPTION"
+Joins a host to an IPA realm and retrieves a kerberos \fIkeytab\fR for the host service principal, or unenrolls an enrolled host from an IPA server.
+
+Kerberos keytabs are used for services (like sshd) to perform kerberos authentication. A keytab is a file with one or more secrets (or keys) for a kerberos principal.
+
+The ipa\-join command will create and retrieve a service principal for host/foo.example.com@EXAMPLE.COM and place it by default into /etc/krb5.keytab. The location can be overridden with the \-k option.
+
+The IPA server to contact is set in /etc/ipa/default.conf by default and can be overridden using the \-s,\-\-server option.
+
+In order to join the machine needs to be authenticated. This can happen in one of two ways:
+
+* Authenticate using the current kerberos principal
+
+* Provide a password to authenticate with
+
+If a client host has already been joined to the IPA realm the ipa\-join command will fail. The host will need to be removed from the server using `ipa host\-del FQDN` in order to join the client to the realm.
+
+This command is normally executed by the ipa\-client\-install command as part of the enrollment process.
+
+The reverse is unenrollment. Unenrolling a host removes the Kerberos key on the IPA server. This prepares the host to be re\-enrolled. This uses the host principal stored in /etc/krb5.keytab to authenticate to the IPA server to perform the unenrollment.
+
+Please note that while the \-\-unenroll option removes the client from the domain, it does not actually uninstall the client or properly remove all of the IPA\-related configuration. The only way to uninstall a client completely is to use ipa\-client\-install \-\-uninstall
+(see
+.BR ipa\-client\-install (1)).
+
+.SH "OPTIONS"
+.TP
+\fB\-h,\-\-hostname hostname\fR
+The hostname of this server (FQDN). By default the canonical name from getaddrinfo(3) for gethostname(2) is used.
+.TP
+\fB\-s,\-\-server server\fR
+The hostname of the IPA server (FQDN). Note that by default there is no /etc/ipa/default.conf, in most cases it needs to be supplied.
+.TP
+\fB\-k,\-\-keytab keytab\-file\fR
+The keytab file where to append the new key (will be created if it does not exist). Default: /etc/krb5.keytab
+.TP
+\fB\-w,\-\-bindpw password\fR
+The password to use if not using Kerberos to authenticate. Use a password of this particular host (one time password created on IPA server)
+.TP
+\fB\-b,\-\-basedn basedn\fR
+The basedn of the IPA server (of the form dc=example,dc=com). This is only needed when not using Kerberos to authenticate and anonymous binds are disallowed in the IPA LDAP server.
+.TP
+\fB\-f,\-\-force\fR
+Force enrolling the host even if host entry exists.
+.TP
+\fB\-u,\-\-unenroll\fR
+Unenroll this host from the IPA server. No keytab entry is removed in the process
+(see
+.BR ipa-rmkeytab (1)).
+.TP
+\fB\-q,\-\-quiet\fR
+Quiet mode. Only errors are displayed.
+.TP
+\fB\-d,\-\-debug\fR
+Print the raw RPC output in GSSAPI mode.
+.SH "EXAMPLES"
+Join IPA domain and retrieve a keytab with kerberos credentials.
+
+  # kinit admin
+  # ipa\-join
+
+Join IPA domain and retrieve a keytab using a one\-time password.
+
+  # ipa\-join \-w secret123
+
+Join IPA domain and save the keytab in another location.
+
+  # ipa\-join \-k /tmp/host.keytab
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.
+
+0 Success
+
+1 Kerberos context initialization failed
+
+2 Incorrect usage
+
+3 Out of memory
+
+4 Invalid service principal name
+
+5 No Kerberos credentials cache
+
+6 No Kerberos principal and no bind DN and password
+
+7 Failed to open keytab
+
+8 Failed to create key material
+
+9 Setting keytab failed
+
+10 Bind password required when using a bind DN
+
+11 Failed to add key to keytab
+
+12 Failed to close keytab
+
+13 Host is already enrolled
+
+14 LDAP failure
+
+15 Incorrect bulk password
+
+16 Host name must be fully\-qualified
+
+17 RPC fault
+
+18 Principal not found in host entry
+
+19 Unable to generate Kerberos credentials cache
+
+20 Unenrollment result not in RPC response
+
+21 Failed to get default Kerberos realm
+
+22 Unable to auto-detect fully\-qualified hostname
+
+.SH "SEE ALSO"
+.BR ipa-rmkeytab (1)
+.BR ipa-client-install (1)

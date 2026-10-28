@@ -1,0 +1,41 @@
+dn: cn=schema
+##
+## IPA SUDO schema (added in IPA v2)
+##
+## Attributes:          2.16.840.1.113730.3.8.7.x
+## ObjectClasses:       2.16.840.1.113730.3.8.8.x
+##
+## Attribute to store DN of an allowed SUDO command or a group of SUDO commands
+attributeTypes: (2.16.840.1.113730.3.8.7.1 NAME 'memberAllowCmd' DESC 'Reference to a command or group of commands that are allowed by the rule.' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
+## Attribute to store DN of a prohibited SUDO command or a group of SUDO commands
+attributeTypes: (2.16.840.1.113730.3.8.7.2 NAME 'memberDenyCmd' DESC 'Reference to a command or group of commands that are denied by the rule.' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
+## Attribute to store command category
+attributeTypes: (2.16.840.1.113730.3.8.7.3 NAME 'cmdCategory' DESC 'Additional classification for commands' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store user not managed by the central server
+attributeTypes: (2.16.840.1.113730.3.8.7.4 NAME 'externalUser' DESC 'Multivalue string attribute that allows storing user names.' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store sudo options
+attributeTypes: (2.16.840.1.113730.3.8.7.5 NAME 'ipaSudoOpt' DESC 'Options(s) followed by sudo' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'IPA v2' )
+## Attribute to store the reference identity under which the command should be run
+attributeTypes: (2.16.840.1.113730.3.8.7.6 NAME 'ipaSudoRunAs' DESC 'Reference to a user or group that the commands can be run as.' SUP memberUser EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
+## Attribute to store a name of the user not managed by IPA. Command witll be executed under his identity.
+attributeTypes: (2.16.840.1.113730.3.8.7.7 NAME 'ipaSudoRunAsExtUser' DESC 'Multivalue string attribute that allows storing user name the command can be run as' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to express category of identities that the command can be run under
+attributeTypes: (2.16.840.1.113730.3.8.7.8 NAME 'ipaSudoRunAsUserCategory' DESC 'Additional classification for users' SUP userCategory EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store a reference to the "run as group" identitity
+attributeTypes: (2.16.840.1.113730.3.8.7.9 NAME 'ipaSudoRunAsGroup' DESC 'Reference to group that the commands can be run as.' SUP memberUser EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
+## Attribute to store a name of the "run as group" identitity if this group is not directly managed by IPA
+attributeTypes: (2.16.840.1.113730.3.8.7.10 NAME 'ipaSudoRunAsExtGroup' DESC 'Multivalue string attribute that allows storing group name the command can be run as' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to express category of group identities that the command can be run under
+attributeTypes: (2.16.840.1.113730.3.8.7.11 NAME 'ipaSudoRunAsGroupCategory' DESC 'Additional classification for groups' SUP userCategory EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store host mask
+attributeTypes: (2.16.840.1.113730.3.8.7.12 NAME 'hostMask' DESC 'IP mask to identify a subnet.' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store sudo command
+attributeTypes: (2.16.840.1.113730.3.8.7.13 NAME 'sudoCmd' DESC 'Command(s) to be executed by sudo' EQUALITY caseExactMatch ORDERING caseExactMatch SUBSTR caseExactSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+## Attribute to store a name of the user not managed by IPA. Command witll be executed under his identity.
+attributeTypes: (2.16.840.1.113730.3.8.7.14 NAME 'ipaSudoRunAsExtUserGroup' DESC 'Multivalue string attribute that allows storing groups of users that are not managed by IPA the command can be run as' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+## Object class for SUDO rules
+objectClasses: (2.16.840.1.113730.3.8.8.1 NAME 'ipaSudoRule' SUP ipaAssociation STRUCTURAL MAY ( externalUser $ externalHost $ hostMask $ memberAllowCmd $ memberDenyCmd $ cmdCategory $ ipaSudoOpt $ ipaSudoRunAs $ ipaSudoRunAsExtUser $ ipaSudoRunAsUserCategory $ ipaSudoRunAsGroup $ ipaSudoRunAsExtGroup $ ipaSudoRunAsGroupCategory $ sudoNotBefore $ sudoNotAfter $ sudoOrder $ ipaSudoRunAsExtUserGroup ) X-ORIGIN 'IPA v2' )
+## Object class for SUDO commands
+objectClasses: (2.16.840.1.113730.3.8.8.2 NAME 'ipaSudoCmd' DESC 'IPA object class for SUDO command' STRUCTURAL MUST ( ipaUniqueID $ sudoCmd ) MAY  ( memberOf $ description ) X-ORIGIN 'IPA v2' )
+## Object class for groups of the SUDO commands
+objectClasses: (2.16.840.1.113730.3.8.8.3 NAME 'ipaSudoCmdGrp' DESC 'IPA object class to store groups of SUDO commands' SUP groupOfNames MUST ( ipaUniqueID ) STRUCTURAL X-ORIGIN 'IPA v2' )

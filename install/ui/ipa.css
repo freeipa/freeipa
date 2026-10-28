@@ -1,0 +1,563 @@
+
+/* Authors:
+*   Pavel Zuna <pzuna@redhat.com>
+*   Adam Young <ayoung@redhat.com>
+*   Endi Sukma Dewata <edewata@redhat.com>
+*   Kyle Baker <kybaker@redhat.com>
+*   Petr Vobornik <pvoborni@redhat.com>
+*
+* Copyright (C) 2010 Red Hat
+*/
+
+
+html {
+    height: 100%;
+}
+
+body {
+    overflow: auto;
+    position: relative;
+    height: 100%;
+}
+
+textarea[readonly] {
+    color: Gray;
+}
+
+/* ---- Container ---- */
+
+.app-container {
+    height: 100%;
+}
+
+/* ---- Password expiration */
+
+.header-passwordexpires {
+    color: red;
+    font-weight: bold;
+    padding: 7px 10px;
+    line-height: 1;
+}
+
+/* ---- Notification area ---- */
+
+.notification-area {
+    position: fixed;
+    left: 50%;
+    right: 50%;
+    top: 15px;
+}
+
+.notification-area div {
+    position: relative;
+    margin-left: -200px;
+    margin-right: -200px;
+    z-index: 20;
+    word-wrap: break-word;
+    max-width: 400px;
+}
+
+/* ---- Facet ---- */
+
+.facet {
+    position: relative;
+    display: none;
+}
+
+.active-facet {
+    display: block;
+}
+
+.facet-title {
+    color: gray;
+}
+
+.facet-title.no-pkey {
+    color: inherit;
+}
+
+.facet-pkey {
+    color:black;
+    text-transform: none;
+}
+
+.breadcrumb {
+    padding: 0;
+    margin: 5px 0 0 0;
+}
+
+.breadcrumb a {
+    cursor: pointer;
+}
+
+/* ---- Facet Tabs ---- */
+
+.facet-group {
+    float: left;
+    margin-right: 1em;
+}
+
+.facet-group-label {
+    height: 20px;
+}
+
+.facet-tab {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.facet-tab li {
+    display: inline-block;
+    padding-right: 1px;
+}
+
+.facet-tab li a {
+    background-color: #dedbde;
+    border-left: 1px solid #c9c3ba;
+    border-right: 1px solid #c9c3ba;
+    margin: 0 0 0;
+    padding: 8px 16px 4px 16px;
+    text-decoration: none;
+    display: inline-block;
+    line-height: 19px;
+    color: #666666;
+}
+
+.facet-tab li a.selected {
+    color: #6C6F73;
+    background-color: #f1f0ee;
+    font-weight: bold;
+}
+
+.facet-tab li.settings {
+    margin-left:1em;  margin-right:1em;
+}
+
+
+/* Facet tabs coloring */
+
+.facet-group li a {
+    background-image: url(images/facet-tab-off.png);
+    background-repeat: repeat-x;
+    background-position: 0px -33px;
+}
+
+.facet-group li a.selected {
+    background-image: url(images/facet-tab-on.png);
+}
+
+div[name=settings].facet-group li a {
+    background-position: 0px -66px;
+}
+
+.facet-group li[name^=member] a,
+.facet-group li[name^=managedby] a {
+    background-position: 0px 0px;
+}
+
+.facet-group li[name^=memberof] a {
+    background-position: 0px -33px;
+}
+
+/* ---- Facet Controls ---- */
+
+.facet-controls {
+    padding: 5px 0px;
+    clear: both;
+}
+
+.facet-controls-left {
+    float: left;
+}
+
+.facet-controls-right {
+    float: right;
+}
+
+.facet-controls-right .fa.fa-user {
+    color: #aaa;
+}
+
+.control-buttons {
+    display: inline-block;
+}
+
+.control-buttons button {
+    margin-right: 5px;
+}
+
+.facet-actions {
+    display: inline-block;
+}
+
+/* --- Facet error --- */
+
+.facet-error {
+    background-color: white;
+}
+
+.facet-error h1 {
+    text-align: center;
+}
+
+.facet-error .error-details {
+    margin-top: 2em;
+}
+
+.facet-error .error-details code {
+    white-space: pre;
+}
+
+/* ---- Search Facet ---- */
+
+.search-option {
+    margin-right: 8px;
+    width: 178px;
+    display: inline-block;
+}
+
+.search-filter {
+    display: inline-block;
+}
+
+.search-filter input {
+    width: 178px;
+    display: inline-block;
+}
+
+.search-filter a {
+    position: relative;
+    margin: 0 0 0 -20px;
+    padding-right: 10px;
+}
+
+.pagination-control {
+    float: right;
+}
+
+.pagination-control a {
+    cursor:pointer;
+}
+
+.pagination-control input[name=current_page] {
+    width: 22px;
+    padding: 0 6px;
+    margin: 0;
+}
+
+/* ---- Details Facet ---- */
+
+.details-content {
+    border-top: 1px solid #DFDFDF;
+}
+
+/* ---- Dialog ---- */
+
+.modal code {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.aci-attribute-table tbody {
+    height: 10em;
+}
+
+.aci-attribute-table .aci-attribute-column {
+    width: 200em; /* it will fit actual width */
+}
+
+.aci-attribute-table-container {
+    height: 13.5em;
+    overflow: hidden;
+}
+
+.strikethrough { text-decoration: line-through; }
+
+textarea.certificate {
+    font-family: monospace;
+    width: 100%;
+    height: 250px;
+}
+
+.error-message-hinted {
+    color: red;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    font-family: monospace;
+}
+
+/* ---- Table ---- */
+
+/* Used in association tables */
+th div[name="buttons"] .btn-link {
+    padding-top: 0;
+    padding-bottom: 0;
+    border: 0;
+}
+
+table.scrollable thead {
+    display: block;
+}
+
+table.scrollable tbody {
+    display: block;
+    overflow: auto;
+}
+
+.adder-dialog-content {
+    max-height: 400px;
+    overflow: auto;
+}
+
+.adder-dialog-buttons {
+    text-align: center;
+    margin-top: 9.5px;
+}
+
+/* remove padding to enlarge the tiny width of the button column */
+.adder-dialog-buttons .row .col-sm-12 {
+    padding: 0;
+}
+
+/* add some space for vertical layout (sm and bigger) */
+/* 768px == @screen-sm-min */
+@media (min-width: 768px) {
+    .adder-dialog-buttons {
+        margin-top: 34px;
+    }
+
+    .adder-dialog-buttons button {
+        margin-bottom: 20px;
+    }
+}
+
+/* ---- Widgets ---- */
+
+.multivalued-widget [name=value] {
+    margin-bottom: 1em;
+}
+
+.multivalued-widget a[name=add] {
+    margin-right: 5px;
+}
+
+.option_widget {
+    list-style-type: none;
+    margin: 0;
+    padding: 0 0 0 1px;
+}
+
+.option_widget.nested {
+    padding-left: 40px;
+}
+
+.option_widget.inline,
+.option_widget.inline > li {
+    display: inline;
+    margin-right: 8px;
+}
+
+.option_widget.columns > li {
+    float: left;
+    width: 33%;
+    min-width: 90px;
+    max-width: 150px;
+}
+
+.option_widget.columns.attribute_widget {
+    position: relative;
+    overflow-y: auto;
+    max-height: 36em;
+}
+
+.option_widget.columns.attribute_widget > li {
+    float: left;
+    width: 50%;
+    min-width: 90px;
+    max-width: 200px;
+}
+
+.combobox-widget-input {
+    position: relative;
+}
+
+.combobox-widget-input input {
+    padding-right: 20px;
+}
+
+.combobox-widget-input a i {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin-top: 4px;
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+.combobox-widget-list {
+    border: 1px solid #A0A0A0;
+    background: #EEEEEE;
+    padding: 5px;
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+.combobox-widget-list a {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.combobox-widget-list a i {
+    margin-right: 5px;
+}
+
+.combobox-widget-list select {
+    margin-top: 3px;
+}
+
+.input-group .combobox-widget-input .form-control {
+    position: initial;
+    float: inherit;
+}
+
+/* ---- HBAC Test ---- */
+
+.hbac-test-header .search-filter {
+    float: right;
+}
+
+.hbac-test-title {
+    font-size: 1.8em;
+    text-transform: uppercase;
+    margin:  0;
+}
+
+.hbac-test-title,
+.hbac-test-title ~ label {
+    margin-right: 5px !important;
+}
+
+.hbac-test-top-panel {
+    position: relative;;
+}
+
+.hbac-test-navigation-buttons {
+    float: right;
+}
+
+/* ---- DNS ---- */
+
+.dnstype-table div[name=position] {
+
+    padding-right: 9px;
+}
+
+.dnstype-table td {
+    font-weight: normal;
+}
+
+
+/* --- Automember --- */
+
+.automember-header {
+    margin-bottom: 5px;
+}
+
+.automember-header-label {
+    display: inline-block;
+    font-weight: 600;
+    margin-right: 20px;
+}
+
+.automember-header-control {
+    display: inline-block;
+    width: 200px;
+}
+
+/* --- Facet title states --- */
+
+.facet-title h1 {
+    display: inline-block;
+}
+
+.facet-title .header-icon {
+    display: none;
+    font-size: 70%;
+    vertical-align: 20%;
+    /* Font awesome style, TODO: use mixin */
+    display: inline-block;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.facet-title.enabled .header-icon:before {
+    content: "\f00c";
+    margin-right: 5px;
+}
+
+.facet-title.disabled .header-icon:before {
+    content: "\f068";
+    margin-right: 5px;
+}
+
+.facet-title.preserved .header-icon:before {
+    content: "\f014";
+    margin-right: 5px;
+}
+
+.facet-title.staging .header-icon:before {
+    content: "\f0ad";
+    margin-right: 5px;
+}
+
+.facet-title.disabled h1,
+.facet-title.disabled h1 .facet-pkey{
+    color: gray;
+}
+
+.action-panel {
+    position: absolute;
+    right: 0;
+    top: -30px;
+
+    width: 150px;
+
+    -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    -webkit-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+}
+
+.action-panel-list {
+    margin: 0 0 10px 0;
+    list-style: none;
+    padding: 0 0 0 15px;
+}
+
+.action-title {
+    font-size: 1em;
+    font-weight: bold;
+    margin: 15px 0 5px 15px;
+    line-height: 1em;
+}
+
+.disabled {
+    color: gray;
+    cursor: default;
+}
+
+/* --- Multiple choice widget --- */
+
+.multiple-choice-section-header {
+    font-weight: bold;
+    font-size: 1.1em;
+}

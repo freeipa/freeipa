@@ -1,0 +1,16 @@
+bn_IN: Bengali India
+    sankarshan mukhopadhyay <sankarshan@fedoraproject.org>
+es: Spanish
+    Héctor Daniel Cabrera <logan@fedoraproject.org>
+id: Indonesian
+    Teguh DC <dheche@songolimo.net>
+kn: Kannada
+    gundachandru <gundachandru@gmail.com>
+pl: Polish
+    Piotr Drąg <piotrdrag@gmail.com>
+ru: Russian
+    Andrew Martynov <andrewm@inventa.ru>
+uk: Ukrainian
+    Yuri Chornoivan <yurchor@ukr.net>
+zh_CN: Chinese Simplified
+    Jake Li <gnozil@gmail.com>

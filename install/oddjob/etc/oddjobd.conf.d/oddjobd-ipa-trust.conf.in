@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<oddjobconfig>
+  <service name="com.redhat.idm.trust">
+    <allow user="root"/>
+    <allow user="ipaapi"/>
+    <object name="/">
+      <interface name="org.freedesktop.DBus.Introspectable">
+        <allow min_uid="0" max_uid="0"/>
+        <!-- <method name="Introspect"/> -->
+      </interface>
+      <interface name="com.redhat.idm.trust">
+        <method name="fetch_domains">
+          <helper exec="@ODDJOBDIR@/com.redhat.idm.trust-fetch-domains"
+		  arguments="30"
+                  argument_passing_method="cmdline"
+		  prepend_user_name="no"/>
+        </method>
+      </interface>
+    </object>
+  </service>
+</oddjobconfig>

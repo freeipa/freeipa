@@ -1,0 +1,248 @@
+
+
+#simple-container {
+
+    .global-activity-indicator {
+
+        bottom: auto;
+        height: auto;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: white;
+        width: 200px;
+        text-align: left;
+
+        .activity-row {
+            background-color: transparent;
+            display: block;
+            padding: 10px 20px;
+        }
+
+        .activity-text {
+            padding: 0px;
+        }
+
+        .activity-text {
+            background-color: transparent;
+        }
+    }
+
+    .slider {
+        transition-property: all;
+        transition-duration: .5s;
+        transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+    }
+}
+
+.global-activity-indicator {
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-shadow: none;
+    color: black;
+    font-size: 20px;
+    font-weight: 300;
+    height: 80px;
+    margin: auto;
+    text-align: center;
+
+    .activity-row {
+        display: inline-block;
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 7px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .activity-text {
+        padding: 3px 14px;
+        background-color: white;
+    }
+}
+
+.slider {
+    overflow-y: hidden;
+}
+
+#simple-container .slider.closed,
+.slider.closed {
+    max-height: 0;
+    padding: 0;
+}
+
+// Rule Details Widget
+
+.rule-enable-radio {
+    // make some space for 'Undo' button
+    line-height: @input-height-base + 2;
+    margin-bottom: 2px;
+}
+
+// SSH Key Widget
+
+.sshkey-status {
+    margin-right: 5px;
+}
+
+// Make bootstrap tooltips wider
+.tooltip-inner {
+    min-width: 200px;
+    max-width: 400px;
+}
+
+// Datetime widget
+.input-group .form-control.datetime-hour,
+.input-group .form-control.datetime-minutes {
+    width: 30px;
+}
+
+.datetime-widget .time-cnt {
+    width: 1%;
+    display: table-cell;
+
+    .input-group-addon {
+        border: 0;
+        background: transparent;
+    }
+
+    .time-separator {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+}
+
+.datetime-widget .time-group {
+    display: table;
+    padding-left: 10px
+}
+
+.apibrowser {
+    .item-select input[type=text] {
+        width: 100%;
+        padding-left: 5px;
+    }
+    .label {
+        margin-left: 5px; // spacing between param flags
+    }
+    .prop-label {
+        text-align: right;
+        font-weight: 300;
+    }
+}
+
+// Certificate Widget
+
+.certificate-widget {
+    padding: 5px 5px 5px 5px;
+    border: 1px dashed #DDD;
+    label {
+        padding-right: 10px;
+    }
+    .cert-value {
+        padding-left: 5px;
+    }
+    .certificate {
+        word-wrap: break-word;
+        padding-bottom: 10px;
+    }
+    .dropdown {
+        float:right;
+    }
+    ul.dropdown-menu {
+        min-width: 100px;
+    }
+    .watermark {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        opacity:0.5;
+        font-size: 150%;
+    }
+}
+
+// Working widget
+
+.working-widget {
+    position: absolute;
+    display: none;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    .spinner {
+        align-self: center;
+    }
+}
+
+
+// workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=409254
+tbody:empty { display: none; }
+
+// Topology Graph
+
+.topology-view {
+    svg {
+        background-color: #FFF;
+        cursor: default;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
+
+
+    path.link {
+        fill: none;
+        stroke: #000;
+        stroke-width: 4px;
+        cursor: pointer;
+        .dragline {
+            pointer-events: none;
+        }
+    }
+
+    .plus {
+        font-size: .9em;
+        font-family: FontAwesome;
+        fill: #fff;
+    }
+
+    .adder_label {
+        font-weight: bold;
+    }
+
+    path.adder {
+        cursor: pointer;
+    }
+
+    .selected {
+        stroke-dasharray: 10,2;
+    }
+
+    .marker {
+        stroke: rgba(0, 0, 0);
+    }
+
+    circle.node {
+        stroke-width: 1.5px;
+        cursor: pointer;
+    }
+
+    text {
+        font: 16px sans-serif;
+        pointer-events: none;
+    }
+
+    text.id {
+        text-anchor: middle;
+        font-weight: bold;
+    }
+}
+
+/**
+ * Moves message next to the rule radio button to the right in caacl plugin.
+ */
+.rule-radio-note {
+    float: right;
+}

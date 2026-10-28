@@ -1,0 +1,43 @@
+From 1d61fd9407e6fbe82fe55cb0b938307aa0791f77 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Go=C5=82=C4=99biowski-Owczarek?=
+ <m.goleb@gmail.com>
+Date: Mon, 16 Mar 2020 21:49:29 +0100
+Subject: [PATCH] Manipulation: Make jQuery.htmlPrefilter an identity function
+
+Closes gh-4642
+
+(cherry picked from 90fed4b453a5becdb7f173d9e3c1492390a1441f)
+---
+ src/manipulation.js | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/src/manipulation.js b/src/manipulation.js
+index 017345af..dec21ea0 100644
+--- a/src/manipulation.js
++++ b/src/manipulation.js
+@@ -33,13 +33,6 @@ define( [
+ 
+ var
+ 
+-	/* eslint-disable max-len */
+-
+-	// See https://github.com/eslint/eslint/issues/3229
+-	rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi,
+-
+-	/* eslint-enable */
+-
+ 	// Support: IE <=10 - 11, Edge 12 - 13 only
+ 	// In IE/Edge using regex groups here causes severe slowdowns.
+ 	// See https://connect.microsoft.com/IE/feedback/details/1736512/
+@@ -236,7 +229,7 @@ function remove( elem, selector, keepData ) {
+ 
+ jQuery.extend( {
+ 	htmlPrefilter: function( html ) {
+-		return html.replace( rxhtmlTag, "<$1></$2>" );
++		return html;
+ 	},
+ 
+ 	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
+-- 
+2.20.1
+

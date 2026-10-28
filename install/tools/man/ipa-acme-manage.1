@@ -1,0 +1,121 @@
+.\"
+.\" Copyright (C) 2020  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-acme-manage" "1" "Jun 2 2020" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-acme\-manage \- Manage the IPA ACME service
+.SH "SYNOPSIS"
+ipa\-acme\-manage enable|disable|status
+.SH "DESCRIPTION"
+
+Use the \fIipa-acme-manage\fR command to enable, disable or retrieve
+the status of the ACME service on a IPA CA server.
+
+In a IPA topology all CA servers capable of ACME will
+have the ACME service deployed.  The service is not enabled
+by default.  It is expected that the ACME service will either be
+enabled on all CA servers, or disabled on all CA servers.  However
+it must be enabled or disabled on each individual server.
+
+.SH "COMMANDS"
+.TP
+\fBenable\fR
+Enable the ACME service on this host.
+.TP
+\fBdisable\fR
+Disable the ACME service on this host.
+.TP
+\fBstatus\fR
+Display the status of the ACME service.
+.TP
+\fBpruning\fR
+Configure certificate and request pruning.
+
+.SH "PRUNING"
+Pruning is a job that runs in the CA that can remove expired
+certificates and certificate requests which have not been issued.
+This is particularly important when using short-lived certificates
+like those issued with the ACME protocol. Pruning requires that
+the IPA server be installed with random serial numbers enabled.
+
+The CA needs to be restarted after modifying the pruning configuration.
+
+The job is a cron-like task within the CA that is controlled by a
+number of options which dictate how long after the certificate or
+request is considered no longer valid and removed from the LDAP
+database.
+
+The cron time and date fields are:
+.IP
+.ta 1.5i
+field	allowed values
+.br
+-----	--------------
+.br
+minute	0-59
+.br
+hour	0-23
+.br
+day of month	1-31
+.br
+month	1-12
+.br
+day of week	0-6 (0 is Sunday)
+.br
+.PP
+
+The cron syntax is limited to * or specific numbers. Ranges are not supported.
+
+.TP
+\fB\-\-enable\fR
+Enable certificate pruning.
+.TP
+\fB\-\-disable\fR
+Disable certificate pruning.
+.TP
+\fB\-\-cron=CRON\fR
+Configure the pruning cron job. The syntax is similar to crontab(5) syntax.
+For example, "0 0 1 * *" schedules the job to run at 12:00am on the first
+day of each month.
+.TP
+\fB\-\-certretention=CERTRETENTION\fR
+Certificate retention time. The default is 30. A value of 0 will remove expired certificates with no delay.
+.TP
+\fB\-\-certretentionunit=CERTRETENTIONUNIT\fR
+Certificate retention units. Valid units are: minute, hour, day, year.
+The default is days.
+.TP
+\fB\-\-certsearchsizelimit=CERTSEARCHSIZELIMIT\fR
+LDAP search size limit searching for expired certificates. The default is 1000. This is a client-side limit. There may be additional server-side limitations.
+.TP
+\fB\-\-certsearchtimelimit=CERTSEARCHTIMELIMIT\fR
+LDAP search time limit (seconds) searching for expired certificates. The default is 0, no limit. This is a client-side limit. There may be additional server-side limitations.
+.TP
+\fB\-\-requestretention=REQUESTRETENTION\fR
+Request retention time. The default is 30. A value of 0 will remove expired requests with no delay.
+.TP
+\fB\-\-requestretentionunit=REQUESTRETENTIONUNIT\fR
+Request retention units. Valid units are: minute, hour, day, year.
+The default is days.
+.TP
+\fB\-\-requestsearchsizelimit=REQUESTSEARCHSIZELIMIT\fR
+LDAP search size limit searching for unfulfilled requests. The default is 1000. There may be additional server-side limitations.
+.TP
+\fB\-\-requestsearchtimelimit=REQUESTSEARCHTIMELIMIT\fR
+LDAP search time limit (seconds) searching for unfulfilled requests. The default is 0, no limit. There may be additional server-side limitations.
+.TP
+\fB\-\-config\-show\fR
+Show the current pruning configuration
+.TP
+\fB\-\-run\fR
+Run the pruning job now. The IPA RA certificate is used to authenticate to the PKI REST backend.
+
+
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+2 if the host is not a IPA server
+
+3 if the host is not a CA server

@@ -1,0 +1,150 @@
+Here is a quick guide to get you started in IPA development.
+
+Dependencies
+------------
+
+For more information, see http://www.freeipa.org/page/Build
+
+The quickest way to get the dependencies needed for building is:
+
+# dnf builddep -D "with_wheels 1" -D "with_lint 1" -D "with_doc 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
+
+TIP: For building with latest dependencies for freeipa master enable copr repo:
+
+# dnf copr enable @freeipa/freeipa-master
+
+see: https://copr.fedorainfracloud.org/coprs/g/freeipa/freeipa-master/
+
+TIP: You might need to enable the "nodejs" module:
+
+# dnf module list nodejs
+# dnf module enable nodejs:<latest version> -y
+
+For more dependencies management tips, you can have a look at ./ipatests/azure/templates/prepare-build-fedora.yml
+
+Building
+--------
+
+FreeIPA git repository is using another project as a git submodule to store
+the source code for its Modern WebUI. The submodule is available at
+https://github.com/freeipa/freeipa-webui and installed in the directory
+install/freeipa-webui.
+
+It's important to keep the WebUI dependencies in the main specfile up to
+date, this can be automated by utilizing the `fix-spec.sh` file in the
+submodule.
+$ ./fix-spec.sh -i
+
+When working on freeipa-webui from the .src.rpm, it is required to firstly get
+build dependencies by navigating to install/freeipa-webui and running:
+$ npm install
+
+In .src.rpm we only package production dependencies, so patches to the
+distributable can be applied, due to the build tools being platform
+specific, we do not package those.
+
+In order to get more familiar with git submodule concepts, you can read
+https://git-scm.com/book/en/v2/Git-Tools-Submodules.
+
+Before building FreeIPA, make sure that you have pulled the submodule using:
+$ git submodule update --init --recursive
+
+makerpms.sh can do this step for you.
+
+From the root of the source tree run:
+$ ./makerpms.sh
+
+The resulting rpm packages are in dist/rpms:
+
+# yum --nogpgcheck localinstall dist/rpms/*
+# ipa-server-install
+
+You might tweak the build and run steps separately:
+$ autoreconf -i
+$ ./configure
+$ make
+$ make install
+
+It may be possible to do a simple make install but this has not been
+well-tested. Additional work is done in pre/post install scripts in the ipa
+spec file.
+
+To build only python2 packages on fedora following steps are required:
+$ autoreconf -i
+$ ./configure
+$ make rpms RPMBUILD_OPTS="--define 'with_python3 0'"
+
+Developing plugins
+------------------
+
+It is possible to do management plugin development within the source tree.
+
+To start with, you need a full IPA install on the current system. Build and
+install the rpms and then configure IPA using ipa-server-install.
+
+Get a TGT for the admin user with: kinit admin
+
+Next you'll need 2 sessions in the source tree. In the first session run
+```make lite-server```. In the second session copy /etc/ipa/default.conf into
+~/.ipa/default.conf and replace xmlrpc_uri with http://127.0.0.1:8888/ipa/xml.
+Finally run the ./ipa tool and it will make requests to the lite-server
+listening on 127.0.0.1:8888.
+
+This makes developing plugins much faster and you can also make use of the
+Python pdb debugger on the server side.
+
+You'll find you may need to refresh the underlying build if schema or other
+changes are required.
+
+Testing
+-------
+
+For more information, see https://www.freeipa.org/page/Testing
+
+We use python pytest to test for regressions in the management framework
+and plugins. All test dependencies are required by the freeipa-tests package.
+
+To run all of the tests you will need 2 sessions, one to run the lite-server
+and the other to execute the tests. You'll also need a TGT before starting
+the lite-server:
+
+% kinit admin
+% make test
+
+Some tests may be skipped. For example, all the XML-RPC tests will be skipped
+if you haven't started the lite-server. The DNS tests will be skipped if
+the underlying IPA installation doesn't configure DNS, etc.
+
+To just execute fast unittest and code linters, use the fastcheck target.
+Fast tests only execute a subset of the test suite that does not depend on
+an initialized API and server instance. Fast linting just verifies modified
+files / lines.
+
+% make fastcheck
+
+
+API.txt
+-------
+The purpose of the file API.txt is to prevent accidental API changes. The
+program ./makeapi creates file and also validates it (with the --validate
+option). This validation is part of the build process.
+
+There are three solutions to changes to the API:
+
+1. Changes to existing API require a change to the MAJOR version.
+2. Addition of new API requires a change to the MINOR version.
+3. Or just back out your changes and don't make an API change.
+
+If the API changes you'll need to run ./makeapi to update API.txt and
+commit it along with VERSION with your API change.
+
+If a module is optionally loaded then you will need to be able to
+conditionally load it for API validation. The environment variable
+api.env.validate_api is True during validation.
+
+General Notes
+-------------
+IPA is not relocatable.
+
+When building rpms the version contains the GIT id in the version. To prevent
+this pass the argument IPA_VERSION_IS_GIT_SNAPSHOT=yes to make.

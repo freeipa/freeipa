@@ -1,0 +1,131 @@
+/**
+ * Combination of Bootstrap 3, PatternFly and Font Awesome without
+ * font imports which requires bundling of fonts. They are replaced
+ * with system fonts (Open Sans, FontAwesome).
+ */
+
+// Variables
+// Expects that dependencies are in the same directory as FreeIPA
+@bootstrap_dir: "../../../../bootstrap";
+@bootstrap_select_dir: "../../../../bootstrap-select";
+@fontawesome_dir: "../../../../Font-Awesome";
+@patternfly_dir: "../../../../patternfly";
+
+/* Bootstrap 3 */
+
+// Core variables and mixins
+@import "@{bootstrap_dir}/less/variables.less";
+@import "@{bootstrap_dir}/less/mixins.less";
+
+// Reset
+@import "@{bootstrap_dir}/less/normalize.less";
+@import "@{bootstrap_dir}/less/print.less";
+
+// Core CSS
+@import "@{bootstrap_dir}/less/scaffolding.less";
+@import "@{bootstrap_dir}/less/type.less";
+@import "@{bootstrap_dir}/less/code.less";
+@import "@{bootstrap_dir}/less/grid.less";
+@import "@{bootstrap_dir}/less/tables.less";
+@import "@{bootstrap_dir}/less/forms.less";
+@import "@{bootstrap_dir}/less/buttons.less";
+
+// Components
+@import "@{bootstrap_dir}/less/component-animations.less";
+// we don't use glyphicons
+//@import "@{bootstrap_dir}/less/glyphicons.less";
+@import "@{bootstrap_dir}/less/dropdowns.less";
+@import "@{bootstrap_dir}/less/button-groups.less";
+@import "@{bootstrap_dir}/less/input-groups.less";
+@import "@{bootstrap_dir}/less/navs.less";
+@import "@{bootstrap_dir}/less/navbar.less";
+@import "@{bootstrap_dir}/less/breadcrumbs.less";
+@import "@{bootstrap_dir}/less/pagination.less";
+@import "@{bootstrap_dir}/less/pager.less";
+@import "@{bootstrap_dir}/less/labels.less";
+@import "@{bootstrap_dir}/less/badges.less";
+@import "@{bootstrap_dir}/less/jumbotron.less";
+@import "@{bootstrap_dir}/less/thumbnails.less";
+@import "@{bootstrap_dir}/less/alerts.less";
+@import "@{bootstrap_dir}/less/progress-bars.less";
+@import "@{bootstrap_dir}/less/media.less";
+@import "@{bootstrap_dir}/less/list-group.less";
+@import "@{bootstrap_dir}/less/panels.less";
+@import "@{bootstrap_dir}/less/wells.less";
+@import "@{bootstrap_dir}/less/close.less";
+
+// Components w/ JavaScript
+@import "@{bootstrap_dir}/less/modals.less";
+@import "@{bootstrap_dir}/less/tooltip.less";
+@import "@{bootstrap_dir}/less/popovers.less";
+@import "@{bootstrap_dir}/less/carousel.less";
+
+// Utility classes
+@import "@{bootstrap_dir}/less/utilities.less";
+@import "@{bootstrap_dir}/less/responsive-utilities.less";
+
+
+/* Font Awesome */
+@import "@{fontawesome_dir}/less/variables";
+@import "@{fontawesome_dir}/less/mixins";
+// Replace with our definition
+//@import "@{fontawesome_dir}/less/path";
+@import "font-awesome/path";
+@import "@{fontawesome_dir}/less/core";
+@import "@{fontawesome_dir}/less/larger";
+@import "@{fontawesome_dir}/less/fixed-width";
+@import "@{fontawesome_dir}/less/list";
+@import "@{fontawesome_dir}/less/bordered-pulled";
+@import "@{fontawesome_dir}/less/spinning";
+@import "@{fontawesome_dir}/less/rotated-flipped";
+@import "@{fontawesome_dir}/less/stacked";
+@import "@{fontawesome_dir}/less/icons";
+
+/* Bootstrap-Combobox */
+//@import "../@{bootstrap_combox_dir}/less/combobox.less";
+
+/* Bootstrap-Select */
+@import (less) "@{bootstrap_select_dir}/bootstrap-select.css";
+
+/* PatternFly overrides and new stuff */
+// Based on "@{patternfly_dir}/less/patternfly.less";
+@import "@{patternfly_dir}/less/variables";
+@import "@{patternfly_dir}/less/mixins";
+@import "@{patternfly_dir}/less/alerts";
+@import "@{patternfly_dir}/less/badges";
+@import "@{patternfly_dir}/less/bootstrap-select";
+@import "@{patternfly_dir}/less/bootstrap-combobox.less";
+@import "@{patternfly_dir}/less/bootstrap-select.less";
+@import "@{patternfly_dir}/less/bootstrap-treeview.less";
+@import "@{patternfly_dir}/less/breadcrumbs";
+@import "@{patternfly_dir}/less/buttons";
+@import "@{patternfly_dir}/less/close";
+@import "@{patternfly_dir}/less/datatables";
+@import "@{patternfly_dir}/less/dropdowns";
+//@import "@{patternfly_dir}/less/fonts";
+@import "patternfly/font";
+@import "@{patternfly_dir}/less/forms";
+//@import "@{patternfly_dir}/less/icons";
+@import "@{patternfly_dir}/less/infotip";
+@import "@{patternfly_dir}/less/labels";
+@import "@{patternfly_dir}/less/list-group";
+@import "@{patternfly_dir}/less/login";
+@import "@{patternfly_dir}/less/modals";
+@import "@{patternfly_dir}/less/navbar";
+@import "@{patternfly_dir}/less/notifications-drawer";
+@import "@{patternfly_dir}/less/pager";
+@import "@{patternfly_dir}/less/pagination";
+@import "@{patternfly_dir}/less/panels";
+@import "@{patternfly_dir}/less/popovers";
+@import "@{patternfly_dir}/less/progress-bars.less";
+@import "@{patternfly_dir}/less/search.less";
+@import "@{patternfly_dir}/less/sidebar";
+@import "@{patternfly_dir}/less/spinner.less";
+@import "@{patternfly_dir}/less/syntax-highlighting.less";
+@import "@{patternfly_dir}/less/tables";
+@import "@{patternfly_dir}/less/tabs";
+@import "@{patternfly_dir}/less/tooltip";
+@import "@{patternfly_dir}/less/type";
+
+// our overrides
+@fa-font-path:        "../fonts/fontawesome";

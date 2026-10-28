@@ -1,0 +1,6 @@
+dn: cn=schema
+attributeTypes: (2.16.840.1.113730.3.8.19.2.1 NAME 'ipaDomainLevel' DESC 'Domain Level value' EQUALITY numericStringMatch ORDERING numericStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.36 SINGLE-VALUE X-ORIGIN 'IPA v4')
+attributeTypes: (2.16.840.1.113730.3.8.19.2.2 NAME 'ipaMinDomainLevel' DESC 'Minimal supported Domain Level value' EQUALITY numericStringMatch ORDERING numericStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.36 SINGLE-VALUE X-ORIGIN 'IPA v4')
+attributeTypes: (2.16.840.1.113730.3.8.19.2.3 NAME 'ipaMaxDomainLevel' DESC 'Maximal supported Domain Level value' EQUALITY numericStringMatch ORDERING numericStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.36 SINGLE-VALUE X-ORIGIN 'IPA v4')
+objectClasses:  (2.16.840.1.113730.3.8.19.1.1  NAME 'ipaDomainLevelConfig' SUP ipaConfigObject AUXILIARY DESC 'Domain Level Configuration' MUST (ipaDomainLevel) X-ORIGIN 'IPA v4')
+objectClasses:  (2.16.840.1.113730.3.8.19.1.2  NAME 'ipaSupportedDomainLevelConfig' SUP ipaConfigObject AUXILIARY DESC 'Supported Domain Level Configuration' MUST (ipaMinDomainLevel $ ipaMaxDomainLevel) X-ORIGIN 'IPA v4')

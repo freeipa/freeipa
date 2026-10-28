@@ -1,0 +1,23 @@
+dn: cn=UPG Template,cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectclass: mepTemplateEntry
+cn: UPG Template
+mepRDNAttr: cn
+mepStaticAttr: objectclass: posixgroup
+mepStaticAttr: objectclass: ipaobject
+mepStaticAttr: ipaUniqueId: autogenerate
+mepMappedAttr: cn: $$uid
+mepMappedAttr: gidNumber: $$uidNumber
+mepMappedAttr: description: User private group for $$uid
+
+# Changes to this definition need to be reflected in
+# updates/20-user_private_groups.update
+dn: cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectclass: extensibleObject
+cn: UPG Definition
+originScope: cn=users,cn=accounts,$SUFFIX
+originFilter: (&(objectclass=posixAccount)(!(description=__no_upg__)))
+managedBase: cn=groups,cn=accounts,$SUFFIX
+managedTemplate: cn=UPG Template,cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+

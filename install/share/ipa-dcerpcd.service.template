@@ -1,0 +1,21 @@
+# This file is managed by ipa-adtrust-install. Do not edit.
+#
+# Samba >= 4.16 serves DCE/RPC (the endpoint mapper on TCP port 135 and
+# NETLOGON/LSA/SAMR on ports from 'rpc server dynamic port range') from
+# samba-dcerpcd. smbd only starts it on demand as a named-pipe helper,
+# so an IPA trust controller runs it as a standalone daemon.
+[Unit]
+Description=Samba DCE/RPC daemon for IPA trust controller
+Documentation=man:samba-dcerpcd(8) man:ipa-adtrust-install(1)
+Wants=network-online.target
+After=network.target network-online.target
+PartOf=$SMB_UNIT
+
+[Service]
+Type=notify
+# Same credential cache as the smb service: ipasam authenticates to LDAP
+# with the CIFS service principal and must not use the default cache of root
+Environment=KRB5CCNAME=FILE:$KRB5CC_SAMBA
+ExecStart=$SAMBA_DCERPCD --libexec-rpcds --foreground --no-process-group
+Restart=on-failure
+RestartSec=5

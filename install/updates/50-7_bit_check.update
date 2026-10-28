@@ -1,0 +1,6 @@
+# Remove userPassword from the list of attributes checked by 7-bit plugin
+# Replace argument value 'userPassword' with 'mail' to avoid the need to
+# shift the whole argument array. Attribute 'mail' is already listed
+# in pluginarg1, so it is conveniently used as valid value placeholder.
+dn: cn=7-bit check,cn=plugins,cn=config
+replace:nsslapd-pluginarg2:userpassword::mail

@@ -1,0 +1,25 @@
+{
+   "principal" : "admin@DOM.EXAMPLE.COM",
+   "version" : "4.5.90.dev201706131442+gitd665224",
+   "id" : null,
+   "result" : {
+      "count" : 2,
+      "summary" : "2 users matched",
+      "result" : [
+         {
+            "uid" : [
+               "admin"
+            ],
+            "dn" : "uid=admin,cn=users,cn=accounts,dc=dom,dc=example,dc=com"
+         },
+         {
+            "dn" : "uid=kfrog,cn=users,cn=accounts,dc=dom,dc=example,dc=com",
+            "uid" : [
+               "kfrog"
+            ]
+         }
+      ],
+      "truncated" : false
+   },
+   "error" : null
+}

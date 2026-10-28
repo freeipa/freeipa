@@ -1,0 +1,22 @@
+# Add in a new place in the DIT for our test cases
+
+dn: cn=test, cn=accounts, $SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: test
+
+# Add a test user
+dn: uid=tuser, cn=test, cn=accounts, $SUFFIX
+add:objectclass: top
+add:objectclass: person
+add:objectclass: posixaccount
+add:objectclass: krbprincipalaux
+add:objectclass: inetuser
+add:homedirectory: /home/tuser
+add:loginshell: /bin/bash
+add:sn: User
+add:uid: tuser
+add:uidnumber: -1
+add:gidnumber: -1
+add:cn: Test User
+

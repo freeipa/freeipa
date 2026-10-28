@@ -1,0 +1,105 @@
+/*  Authors:
+ *    Petr Vobornik <pvoborni@redhat.com>
+ *
+ * Copyright (C) 2013 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+(function() {
+
+    var loader = window.ipa_loader = {
+        num_version: '@NUM_VERSION@',
+        api_version: '@API_VERSION@'
+    };
+
+    var head = document.getElementsByTagName('head')[0];
+
+    function link(path, rel) {
+        rel = rel || 'stylesheet';
+        var el = document.createElement('link');
+        el.setAttribute('rel', rel);
+        el.setAttribute('type', 'text/css');
+        el.setAttribute('href', path);
+        el.setAttribute('media', 'screen, print');
+        head.appendChild(el);
+    }
+
+    function js(path, callback) {
+        var el = document.createElement('script');
+        el.setAttribute('type', 'text/javascript');
+        el.setAttribute('src', path);
+        var done = false;
+        var onload = function () {
+            if (done) return;
+            done = true;
+            callback();
+        };
+
+        // older ie
+        el.onreadystatechange = function () {
+            if (el.readyState === 'loaded' || el.readyState === 'complete') {
+                el.onreadystatechange = null;
+                onload();
+            }
+        };
+        // others
+        el.onload = onload;
+
+        head.appendChild(el);
+    }
+
+    function synchronous_download(paths, callback) {
+
+        var dl = paths.splice(0, 1)[0];
+        if (dl) {
+            js(dl, function() {
+                synchronous_download(paths, callback);
+            });
+        } else {
+            if (callback) callback();
+        }
+    }
+
+    function version_suffix() {
+        var suffix = '';
+        if (loader.num_version) {
+            suffix = '?v=' + loader.num_version;
+        }
+        return suffix;
+    }
+
+    loader.scripts = function(scripts, callback) {
+        var suffix = version_suffix();
+        var syn_code = [];
+        for (var i=0; i < scripts.length; i++) {
+            syn_code.push(scripts[i]+suffix);
+        }
+        synchronous_download(syn_code, callback);
+    };
+
+    loader.styles = function(styles) {
+        var suffix = version_suffix();
+        for (var i=0; i < styles.length; i++) {
+            link(styles[i] + suffix);
+        }
+    };
+
+    loader.icons = function(icons) {
+        var suffix = version_suffix();
+        for (var i=0; i < icons.length; i++) {
+            link(icons[i] + suffix, 'icon');
+        }
+    };
+})();

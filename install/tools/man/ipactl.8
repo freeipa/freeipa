@@ -1,0 +1,81 @@
+.\" A man page for ipactl
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipactl" "8" "Mar 14 2008" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipactl \- IPA Server Control Interface
+.SH "SYNOPSIS"
+ipactl \fIcommand\fR
+.SH "DESCRIPTION"
+A tool to help an administrator control an IPA environment.
+
+IPA glues several discrete services together to work in concert and the order that these services are started and stopped is important. ipactl ensures that they are started and stopped in the correct order.
+
+IPA stores the available masters and the services configured on each one. The first thing ipactl does is start (if it is not already running) the IPA 389\-ds instance to query what services it controls. The hostname used in the query needs to match the hostname of the value stored in LDAP. This can be controlled with the host option in \fI/etc/ipa/default.conf\fR. This should be a fully\-qualified hostname.
+.SH "OPTIONS"
+.TP 
+start
+Start all of the services that make up IPA
+.TP 
+stop
+Stop all of the services that make up IPA
+.TP 
+restart
+Stop then start all of the services that make up IPA
+.TP
+status
+Provides status of all the services that make up IPA
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Display debugging information
+.TP
+\fB\-\-skip\-version\-check\fR
+Skip version check
+.TP
+\fB\-\-ignore\-service\-failures\fR
+If any service start fails, do not rollback the services, continue with the operation
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Force IPA to start. Combine options --skip-version-check and --ignore-service-failures
+.SH "EXIT STATUS"
+
+All actions except status:
+
+0 success
+
+1 a generic error occurred
+
+2 unknown or invalid argument(s)
+
+4 user has insufficient privilege
+
+6 IPA server is not configured
+
+For the status action:
+
+0 service is running
+
+3 service is not running
+
+4 service status is unknown (or unconfigured)
+
+If not executed as root then the status action will return 4 for
+insufficient privileges.
+
+Some services are socket activated and may show as STOPPED by the status
+action. These services include ipa-ods-exporter and ipa-otpd.

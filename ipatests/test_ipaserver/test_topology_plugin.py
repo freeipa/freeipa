@@ -1,0 +1,89 @@
+#
+# Copyright (C) 2015  FreeIPA Contributors see COPYING for license
+#
+
+import io
+import os
+from ipaserver.plugins.ldap2 import ldap2
+from ipalib import api
+from ipapython.dn import DN
+import pytest
+
+
+REPL_PLUGIN_NAME_TEMPLATE = 'Multi%s Replication Plugin'
+
+@pytest.mark.tier1
+class TestTopologyPlugin:
+    """
+    Test Topology plugin from the DS point of view
+    Testcase: http://www.freeipa.org/page/V4/Manage_replication_topology/
+    Test_plan#Test_case:
+    _Replication_Topology_is_listed_among_directory_server_plugins
+    """
+    pwfile = os.path.join(api.env.dot_ipa, ".dmpw")
+
+    @pytest.fixture(autouse=True)
+    def topologyplugin_setup(self, request):
+        """
+        setup for test
+        """
+        self.conn = None
+
+        def fin():
+            if self.conn and self.conn.isconnected():
+                self.conn.disconnect()
+        request.addfinalizer(fin)
+
+    @pytest.mark.skipif(os.path.isfile(pwfile) is False,
+                        reason="You did not provide a .dmpw file with the DM password")
+    def test_topologyplugin(self):
+        supplier = REPL_PLUGIN_NAME_TEMPLATE % 'supplier'
+        pluginattrs = {
+            'nsslapd-pluginPath': ['libtopology'],
+            'nsslapd-pluginVendor': ['freeipa'],
+            'cn': ['IPA Topology Configuration'],
+            'nsslapd-plugin-depends-on-named': [supplier, 'ldbm database'],
+            'nsslapd-topo-plugin-shared-replica-root': ['dc=example,dc=com'],
+            'nsslapd-pluginVersion': ['1.0'],
+            'nsslapd-topo-plugin-shared-config-base': [
+                'cn=ipa,cn=etc,dc=example,dc=com'
+            ],
+            'nsslapd-pluginDescription': ['ipa-topology-plugin'],
+            'nsslapd-pluginEnabled': ['on'],
+            'nsslapd-pluginId': ['ipa-topology-plugin'],
+            'objectClass': ['top', 'nsSlapdPlugin', 'extensibleObject'],
+            'nsslapd-topo-plugin-startup-delay': ['20'],
+            'nsslapd-topo-plugin-shared-binddngroup': [
+                'cn=replication managers,cn=sysaccounts,cn=etc,'
+                'dc=example,dc=com'
+            ],
+            'nsslapd-pluginType': ['object'],
+            'nsslapd-pluginInitfunc': ['ipa_topo_init'],
+        }
+        variable_attrs = {'nsslapd-topo-plugin-shared-replica-root',
+                          'nsslapd-topo-plugin-shared-config-base',
+                          'nsslapd-topo-plugin-shared-binddngroup'}
+
+        # Now eliminate keys that have domain-dependent values.
+        checkvalues = set(pluginattrs.keys()) - variable_attrs
+        topoplugindn = DN(('cn', 'IPA Topology Configuration'),
+                          ('cn', 'plugins'),
+                          ('cn', 'config'))
+        pwfile = os.path.join(api.env.dot_ipa, ".dmpw")
+        with io.open(pwfile, "r") as f:
+            dm_password = f.read().rstrip()
+        self.conn = ldap2(api)
+        self.conn.connect(bind_dn=DN(('cn', 'directory manager')),
+                          bind_pw=dm_password)
+        entry = self.conn.get_entry(topoplugindn)
+        assert(set(entry.keys()) == set(pluginattrs.keys()))
+
+        # Handle different names for replication plugin
+        key = 'nsslapd-plugin-depends-on-named'
+        plugin_dependencies = entry[key]
+        if supplier not in plugin_dependencies:
+            mm = REPL_PLUGIN_NAME_TEMPLATE % 'master'
+            pluginattrs[key] = [mm, 'ldbm database']
+
+        for i in checkvalues:
+            assert(set(pluginattrs[i]) == set(entry[i]))

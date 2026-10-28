@@ -1,0 +1,170 @@
+parameters:
+- name: VARIABLES_FILE
+  default: 'templates/variables.yml'
+
+trigger:
+- master
+
+variables:
+- template: templates/variables-common.yml
+# platform specific variables, links to
+- template: ${{ parameters.VARIABLES_FILE }}
+
+resources:
+  containers:
+  - container: 'builder'
+    image: $(DOCKER_BUILD_IMAGE)
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+
+jobs:
+- job: Build
+  pool:
+    vmImage: $(VM_IMAGE)
+  container: builder
+  steps:
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
+    - template: templates/${{ variables.BUILD_TEMPLATE }}
+    - template: templates/publish-build.yml
+      parameters:
+        artifactName: 'packages'
+        targetPath: $(Build.Repository.LocalPath)/dist
+        displayName: Publish packages
+
+    - script: |
+        set -e
+        mkdir container
+        cp -pr dist container/
+        cp $(IPA_TESTS_DOCKERFILES)/$(DOCKER_DOCKERFILE) container/Dockerfile
+        cd container
+        podman build -t freeipa-azure-builder .
+        podman image save -o $(builddir)/freeipa-azure-builder-container.tar freeipa-azure-builder:latest
+        gzip $(builddir)/freeipa-azure-builder-container.tar
+      displayName: Create container image for test
+    - template: templates/publish-build.yml
+      parameters:
+        artifactName: 'image'
+        targetPath: $(Build.Repository.LocalPath)/freeipa-azure-builder-container.tar.gz
+        displayName: Publish container image
+    - template: templates/generate-matrix.yml
+      parameters:
+        definition: 'ipatests/azure/azure_definitions/gating.yml'
+        displayName: Generate Matrix for Gating tests
+        name: gating_matrix
+    - template: templates/generate-matrix.yml
+      parameters:
+        definition: 'ipatests/azure/azure_definitions/base.yml'
+        displayName: Generate Matrix for Base tests
+        name: base_matrix
+    - script: python3 $(IPA_TESTS_SCRIPTS)/gating_compare.py
+      displayName: Check for consistency with PR-CI
+
+- job: Lint
+  pool:
+    vmImage: $(VM_IMAGE)
+  container: builder
+  steps:
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+    - template: templates/${{ variables.PREPARE_LINT_TEMPLATE }}
+    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
+    - script: |
+        set -e
+        echo "Running make target 'lint'"
+        make V=0 lint
+      displayName: Lint sources
+    - script: |
+        set -e
+        git update-ref refs/heads/$(System.PullRequest.TargetBranch) origin/$(System.PullRequest.TargetBranch)
+        make V=0 "GIT_BRANCH=$(System.PullRequest.TargetBranch)" fastcodestyle
+      displayName: Quick code style check
+      condition: eq(variables['Build.Reason'], 'PullRequest')
+
+- job: Docs
+  pool:
+    vmImage: $(VM_IMAGE)
+  container: builder
+  steps:
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
+    - template: templates/${{ variables.BUILD_DOCS_TEMPLATE }}
+    - template: templates/publish-build.yml
+      parameters:
+        artifactName: 'docs'
+        targetPath: doc/_build/html
+        displayName: Publish docs
+
+- job: Tox
+  pool:
+    vmImage: $(VM_IMAGE)
+  container: builder
+  steps:
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+    - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
+    - script: |
+        set -e
+        echo "Running tox"
+        export LANG=en_US.utf8
+        export LC_CTYPE=en_US.utf8
+        locale
+        $(TOX_COMMAND) -e py3,pypi,pylint3 -vv
+      displayName: Tox
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: '.tox/**/junit-*.xml'
+        testRunTitle: 'Tox results'
+      condition: succeededOrFailed()
+
+- job: WebUI_Unit_Tests
+  pool:
+    vmImage: $(VM_IMAGE)
+  container: builder
+  steps:
+    - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
+    - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
+    - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
+    - script: |
+        set -e
+        echo "Running WebUI unit tests"
+        cd $(builddir)/install/ui/js/libs && make
+        cd $(builddir)/install/ui && npm install
+        cd $(builddir)/install/ui && npm list --all
+        cd $(builddir)/install/ui && node_modules/grunt/bin/grunt --verbose test
+      displayName: WebUI Unit Tests
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: 'install/ui/_build/test-reports/TEST-*.xml'
+        testRunTitle: 'Web UI unit test results'
+      condition: succeededOrFailed()
+
+- job: BASE_XMLRPC
+  pool:
+    vmImage: $(VM_IMAGE)
+  dependsOn:
+    - Build
+    - Lint
+  variables:
+    IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
+    IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
+  condition: succeeded()
+  strategy:
+    matrix: $[ dependencies.Build.outputs['base_matrix.matrix'] ]
+  steps:
+    - template: templates/generate-job-variables.yml
+    - template: templates/test-jobs.yml
+
+- job: GATING
+  pool:
+    vmImage: $(VM_IMAGE)
+  dependsOn:
+    - Build
+    - Lint
+  variables:
+    IPA_IMAGE_ARTIFACT: $[ dependencies.Build.outputs['artifacts_image.image'] ]
+    IPA_PACKAGES_ARTIFACT: $[ dependencies.Build.outputs['artifacts_packages.packages'] ]
+  condition: succeeded()
+  strategy:
+    matrix: $[ dependencies.Build.outputs['gating_matrix.matrix'] ]
+  timeoutInMinutes: 90
+  steps:
+    - template: templates/generate-job-variables.yml
+    - template: templates/test-jobs.yml

@@ -1,0 +1,42 @@
+steps:
+- checkout: self
+  submodules: true
+  displayName: Checkout source code
+
+- script: |
+    CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+    /usr/bin/docker exec $CONTAINERID bash -c "dnf reinstall -y shadow-utils; chmod a+r /etc/shadow"
+  target: host
+  displayName: Workaround unreadable /etc/shadow
+
+- script: |
+    set -e
+    sudo rm -rf /var/cache/dnf/*
+    sudo dnf makecache || :
+    echo "Installing base development environment"
+    sudo dnf install -y \
+        'dnf-command(builddep)' \
+        gdb-minimal \
+        make \
+        autoconf \
+        rpm-build \
+        gettext-devel \
+        git \
+        automake \
+        libtool \
+        podman \
+        python3-paramiko \
+        python3-pyyaml \
+
+    echo "Installing FreeIPA development dependencies"
+    sudo dnf builddep -y freeipa
+    version=$(grep VERSION_ID /etc/os-release |cut -d= -f2)
+    if [ $version -ge 41 ]; then
+        cp freeipa.spec.in freeipa.spec
+        sudo dnf builddep -y -D "with_wheels 1" -D "with_lint 1" -D "with_doc 1" --best --allowerasing --setopt=install_weak_deps=False freeipa.spec
+        rm -f freeipa.spec
+    else
+        sudo dnf builddep -y -D "with_wheels 1" -D "with_lint 1" -D "with_doc 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
+    fi
+
+  displayName: Prepare build environment

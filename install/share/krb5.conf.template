@@ -1,0 +1,27 @@
+$INCLUDES
+
+[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+ default_realm = $REALM
+ dns_lookup_realm = false
+ dns_lookup_kdc = true
+ rdns = false
+ ticket_lifetime = 24h
+ forwardable = true
+ udp_preference_limit = 0
+$OTHER_LIBDEFAULTS
+
+[dbmodules]
+  $REALM = {
+    db_library = ipadb.so
+  }
+
+[plugins]
+ certauth = {
+  module = ipakdb:kdb/ipadb.so
+  enable_only = ipakdb
+ }

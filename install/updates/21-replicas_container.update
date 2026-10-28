@@ -1,0 +1,9 @@
+#
+# Add replicas container if not available
+#
+
+dn: cn=replicas,cn=ipa,cn=etc,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: replicas
+

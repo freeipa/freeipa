@@ -1,0 +1,29 @@
+dn: cn=kra,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: kra
+
+dn: cn=vaults,cn=kra,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaVaultContainer
+cn: vaults
+
+dn: cn=services,cn=vaults,cn=kra,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaVaultContainer
+cn: services
+
+dn: cn=shared,cn=vaults,cn=kra,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaVaultContainer
+cn: shared
+
+dn: cn=users,cn=vaults,cn=kra,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaVaultContainer
+cn: users

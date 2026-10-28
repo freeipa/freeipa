@@ -1,0 +1,275 @@
+[
+    {
+        "name": "Application Core",
+        "groups": [
+            {
+                "name": "General",
+                "classes": [
+                    "IPA.object",
+                    "IPA.observer",
+                    "rpc.command",
+                    "rpc.batch_command",
+                    "rpc.concurrent_command",
+                    "entity.entity"
+                ]
+            },
+            {
+                "name": "Application controller and Phases",
+                "classes": [
+                    "phases",
+                    "_base.Phase_controller*",
+                    "auth",
+                    "auth.Auth",
+                    "Application_controller",
+                    "app",
+                    "plugin_loader",
+                    "menu",
+                    "navigation",
+                    "config"
+                ]
+            },
+            {
+                "name": "Navigation",
+                "classes": [
+                    "navigation.*"
+                ]
+            },
+            {
+                "name": "Facets",
+                "classes": [
+                    "facet.facet",
+                    "facets.ActionMixin",
+                    "facets.HeaderMixin",
+                    "facets.Facet",
+                    "*_facet",
+                    "*Facet"
+                ]
+            },
+            {
+                "name": "Dialogs",
+                "classes": [
+                    "IPA.dialog",
+                    "IPA.opened_dialogs",
+                    "IPA.dialog_button",
+                    "IPA.confirm_mixin",
+                    "*_dialog"
+                ]
+            },
+            {
+                "name": "Entity policies",
+                "classes": [
+                    "entity.*_policy"
+                ]
+            },
+            {
+                "name": "Entity internals",
+                "classes": [
+                    "entity.entity_builder",
+                    "entity.entity_policies"
+                ]
+            },
+            {
+                "name": "Build",
+                "classes": [
+                    "_base.Builder",
+                    "_base.Construct_registry",
+                    "_base.Singleton_registry",
+                    "_base.construct",
+                    "builder",
+                    "reg",
+                    "details.details_builder",
+                    "details.section_builder",
+                    "field.field_builder",
+                    "widget.widget_builder"
+                ]
+            },
+            {
+                "name": "Metadata & Text providers",
+                "classes": [
+                    "_base.Provider",
+                    "_base.Search_provider",
+                    "_base.i18n",
+                    "metadata",
+                    "text"
+                ]
+            },
+            {
+                "name": "Utils",
+                "classes": [
+                    "IPA.associator",
+                    "IPA.serial_associator",
+                    "IPA.bulk_associator",
+                    "IPA.association_config",
+                    "_base.debug",
+                    "_base.Spec_mod",
+                    "datetime",
+                    "extend",
+                    "spec_util",
+                    "util"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Facet and Dialog Components",
+        "groups": [
+            {
+                "name": "Facet internals",
+                "classes": [
+                    "facet.simple_facet_header",
+                    "facet.facet_header",
+                    "facet.facet_title",
+                    "facet.facet_group",
+                    "facet.state",
+                    "facet.FacetState",
+                    "facet.action_holder",
+                    "details.facet_policies",
+                    "field.field_container",
+                    "IPA.widget_container",
+                    "details.update_info",
+                    "details.command_info",
+                    "details.field_info",
+                    "details.update_info_builder",
+                    "details.command_builder",
+                    "FormMixin"
+                ]
+            },
+            {
+                "name": "Facet actions",
+                "classes": [
+                    "facet.action",
+                    "dialogs.password.action",
+                    "*_action"
+                ]
+            },
+            {
+                "name": "Facet policies",
+                "classes": [
+                    "*facet_policy",
+                    "IPA.hide_empty_row_policy",
+                    "IPA.user.preserved_user_policy",
+                    "IPA.user.stageuser_sidebar_policy",
+                    "aci.permission_target_policy",
+                    "aci.permission_managed_policy"
+                ]
+            },
+            {
+                "name": "Dialog policies",
+                "classes": [
+                    "idviews.idoverride_adder_policy"
+                ]
+            },
+            {
+                "name": "Evaluators & Summaries",
+                "classes": [
+                    "*_evaluator",
+                    "facet.summary_cond",
+                    "*_summary_cond"
+                ]
+            },
+
+            {
+                "name": "Widgets",
+                "classes": [
+                    "IPA.widget",
+                    "*_widget",
+                    "*Widget",
+                    "widgets.*",
+                    "IPA.action_panel"
+                ]
+            },
+            {
+                "name": "Sections and layout widgets",
+                "classes": [
+                    "IPA.layout",
+                    "IPA.section",
+                    "*_section",
+                    "*_layout",
+                    "IPA.details_table_section_nc"
+                ]
+            },
+            {
+                "name": "Widget mixins, utils and related",
+                "classes": [
+                    "widget.alert_helper",
+                    "IPA.option_widget_base",
+                    "IPA.column",
+                    "IPA.html_util",
+                    "topology_graph.TopoGraph"
+                ]
+            },
+            {
+                "name": "Fields",
+                "classes": [
+                    "field.field",
+                    "*_field"
+                ]
+            },
+            {
+                "name": "Binders",
+                "classes": [
+                    "*Binder"
+                ]
+            },
+            {
+                "name": "Adapters",
+                "classes": [
+                    "*Adapter"
+                ]
+            },
+            {
+                "name": "Formatters",
+                "classes": [
+                    "IPA.formatter",
+                    "*_formatter"
+                ]
+            },
+            {
+                "name": "Validators",
+                "classes": [
+                    "field.validator",
+                    "*_validator"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Modules",
+        "groups": [
+            {
+                "name": "Core",
+                "classes": [
+                    "IPA",
+                    "association",
+                    "details",
+                    "dialogs.password",
+                    "entity",
+                    "facet",
+                    "field",
+                    "ordered_map",
+                    "widget"
+                ]
+            },
+            {
+                "name": "Plugins",
+                "classes": [
+                    "aci",
+                    "idviews",
+                    "otptoken",
+                    "radiusproxy",
+                    "stageuser",
+                    "topology",
+                    "topology_graph",
+                    "user",
+                    "plugins.api_browser",
+                    "plugins.caacl",
+                    "plugins.certprofile",
+                    "plugins.load",
+                    "plugins.login",
+                    "plugins.login_process",
+                    "plugins.sync_otp"
+                ]
+            }
+        ]
+    }
+]

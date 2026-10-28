@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2020  FreeIPA Contributors see COPYING for license
+#
+
+"""
+This script can be used with Certbot to satisfy dns-01 challenges.
+FreeIPA integrated DNS is required.
+
+This script can be used for both --manual-auth-hook and
+--manual-cleanup-hook.  It not intended to be used in other
+contexts.
+
+Kerberos credentials are required.  The principal must have
+permission to add and delete DNS records via the dnsrecord_add and
+dnsrecord_del commands.
+
+"""
+
+import os
+import sys
+
+from ipalib import api, errors
+from ipapython import dnsutil
+
+try:
+    certbot_domain = os.environ['CERTBOT_DOMAIN']
+    certbot_validation = os.environ['CERTBOT_VALIDATION']
+except KeyError:
+    sys.exit("Missing Certbot environment variables.")
+
+if 'CERTBOT_AUTH_OUTPUT' in os.environ:
+    command = 'dnsrecord_del'
+else:
+    command = 'dnsrecord_add'
+
+validation_domain = f'_acme-challenge.{certbot_domain}'
+fqdn = dnsutil.DNSName(validation_domain).make_absolute()
+zone = dnsutil.DNSName(dnsutil.zone_for_name(fqdn))
+name = fqdn.relativize(zone)
+
+try:
+    api.bootstrap(context='cli')
+    api.finalize()
+    api.Backend.rpcclient.connect()
+except errors.CCacheError as e:
+    sys.exit(e)
+
+api.Command[command](zone, name, txtrecord=[certbot_validation], dnsttl=60)

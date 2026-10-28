@@ -1,0 +1,321 @@
+.\" A man page for ipa-client-install
+.\" Copyright (C) 2008-2016  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-client-install" "1" "Dec 19 2016" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-client\-install \- Configure an IPA client
+.SH "SYNOPSIS"
+ipa\-client\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Configures a client machine to use IPA for authentication and identity services.
+
+This configures SSSD to connect to an IPA server for authentication and authorization.
+
+An authorized account is required to join a client machine to IPA. This can take the form of a kerberos principal, a one\-time password associated with the machine, or PKINIT identity associated with the machine.
+
+This same tool is used to unconfigure IPA and attempts to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the principal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
+
+.SS "Assumptions"
+The ipa\-client\-install script assumes that the machine has already generated SSH keys. It will not generate SSH keys of its own accord. If SSH keys are not present (e.g. when running the ipa\-client\-install in a kickstart, before ever running sshd), they will not be uploaded to the client host entry on the server.
+
+.SS "Hostname Requirements"
+Client must use a \fBstatic hostname\fR. If the machine hostname changes for example due to a dynamic hostname assignment by a DHCP server, client enrollment to IPA server breaks and user then would not be able to perform Kerberos authentication.
+
+\-\-hostname option may be used to specify a static hostname that persists over reboot.
+
+.SS "DNS Autodiscovery"
+Client installer by default tries to search for _ldap._tcp.DOMAIN DNS SRV records for all domains that are parent to its hostname. For example, if a client machine has a hostname 'client1.lab.example.com', the installer will try to retrieve an IPA server hostname from _ldap._tcp.lab.example.com, _ldap._tcp.example.com and _ldap._tcp.com DNS SRV records, respectively. The discovered domain is then used to configure client components (e.g. SSSD and Kerberos 5 configuration) on the machine.
+
+When the client machine hostname is not in a subdomain of an IPA server, its domain can be passed with \-\-domain option. In that case, both SSSD and Kerberos components have the domain set in the configuration files and will use it to autodiscover IPA servers.
+
+Client machine can also be configured without a DNS autodiscovery at all. When both \-\-server and \-\-domain options are used, client installer will use the specified server and domain directly. \-\-server option accepts multiple server hostnames which can be used for failover mechanism. Without DNS autodiscovery, Kerberos is configured with a fixed list of KDC and  Admin servers. SSSD is still configured to either try to read domain's SRV records or the specified fixed list of servers. When \-\-fixed\-primary option is specified, SSSD will not try to read DNS SRV record at all (see sssd\-ipa(5) for details).
+
+.SS "The Failover Mechanism"
+When some of the IPA servers are not available, client components are able to fallback to other IPA replica and thus preserving a continued service. When client machine is configured to use DNS SRV record autodiscovery (no fixed server was passed to the installer), client components do the fallback automatically, based on the IPA server hostnames and priorities discovered from the DNS SRV records.
+
+If DNS autodiscovery is not available, clients should be configured at least with a fixed list of IPA servers that can be used in case of a failure. When only one IPA server is configured, IPA client services will not be available in case of a failure of the IPA server. Please note, that in case of a fixed list of IPA servers, the fixed server lists in client components need to be updated when a new IPA server is enrolled or a current IPA server is decommissioned.
+
+.SS "Coexistence With Other Directory Servers"
+Other directory servers deployed in the network (e.g. Microsoft Active Directory) may use the same DNS SRV records to denote hosts with a directory service (_ldap._tcp.DOMAIN). Such DNS SRV records may break the installation if the installer discovers these DNS records before it finds DNS SRV records pointing to IPA servers. The installer would then fail to discover the IPA server and exit with error.
+
+In order to avoid the aforementioned DNS autodiscovery issues, the client machine hostname should be in a domain with properly defined DNS SRV records pointing to IPA servers, either manually with a custom DNS server or with IPA DNS integrated solution. A second approach would be to avoid autodiscovery and configure the installer to use a fixed list of IPA server hostnames using the \-\-server option and with a \-\-fixed\-primary option disabling DNS SRV record autodiscovery in SSSD.
+
+.SS "Re\-enrollment of the host"
+Requirements:
+
+1. Host has not been un\-enrolled (the ipa\-client\-install \-\-uninstall command has not been run).
+.br
+2. The host entry has not been disabled via the ipa host\-disable command.
+
+If this has been the case, host can be re\-enrolled using the usual methods.
+
+There are two methods of authenticating a re\-enrollment:
+
+1. You can use \-\-force\-join option with ipa\-client\-install command. This authenticates the re\-enrollment using the admin's credentials provided via the \-w/\-\-password option.
+.br
+2. If providing the admin's password via the command line is not an option (e.g. you want to create a script to re\-enroll a host and keep the admin's password secure), you can use backed up keytab from the previous enrollment of this host to authenticate. See \-\-keytab option.
+
+Consequences of the re\-enrollment on the host entry:
+
+1. A new host certificate is issued
+.br
+2. The old host certificate is revoked
+.br
+3. New SSH keys are generated
+.br
+4. ipaUniqueID is preserved
+
+.SH "OPTIONS"
+.SS "BASIC OPTIONS"
+.TP
+\fB\-\-domain\fR=\fIDOMAIN\fR
+The primary DNS domain of an existing IPA deployment, e.g. example.com. This DNS domain should contain the SRV records generated by the IPA server installer. Usually the name is a lower-cased name of an IPA Kerberos realm name.
+
+When no \-\-server option is specified, this domain will be used by the installer to discover all available servers via DNS SRV record autodiscovery (see DNS Autodiscovery section for details).
+
+The default value used by the installer is the domain part of the hostname. This option needs to be specified if the primary IPA DNS domain is different from the default value.
+.TP
+\fB\-\-server\fR=\fISERVER\fR
+Set the FQDN of the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
+
+Under normal circumstances, this option is not needed as the list of servers is retrieved from the primary IPA DNS domain.
+.TP
+\fB\-\-realm\fR=\fIREALM_NAME\fR
+The Kerberos realm of an existing IPA deployment. Usually it is an upper-cased name of the primary DNS domain used by the IPA installation.
+
+Under normal circumstances, this option is not needed as the realm name is retrieved from the IPA server.
+.TP
+\fB\-\-fixed\-primary\fR
+Configure SSSD to use a fixed server as the primary IPA server. The default is to use DNS SRV records to determine the primary server to use and fall back to the server the client is enrolled with. When used in conjunction with \-\-server then no _srv_ value is set in the ipa_server option in sssd.conf.
+.TP
+\fB\-p\fR, \fB\-\-principal\fR
+Authorized kerberos principal to use to join the IPA realm.
+.TP
+\fB\-w\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
+Password for joining a machine to the IPA realm. Assumes bulk password unless principal is also set.
+.TP
+\fB\-W\fR
+Prompt for the password for joining a machine to the IPA realm.
+.TP
+\fB\-k\fR, \fB\-\-keytab\fR
+Path to backed up host keytab from previous enrollment. Joins the host even if it is already enrolled.
+.TP
+\fB\-\-mkhomedir\fR
+Configure PAM to create a user's home directory if it does not exist.
+.TP
+\fB\-\-hostname\fR
+The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default the result of getfqdn() call from Python's socket module is used.
+.TP
+\fB\-\-force\-join\fR
+Join the host even if it is already enrolled.
+.TP
+\fB\-\-ntp\-server\fR=\fINTP_SERVER\fR
+Configure chronyd to use this NTP server. This option can be used multiple times and it is used to specify exactly one time server.
+.TP
+\fB\-\-ntp\-pool\fR=\fINTP_SERVER_POOL\fR
+Configure chronyd to use this NTP server pool. This option is meant to be pool of multiple servers resolved as one host name. This pool's servers may vary but pool address will be still same and chrony will choose only one server from this pool.
+.TP
+\fB\-N\fR, \fB\-\-no\-ntp\fR
+Do not configure NTP client (chronyd).
+.TP
+\fB\-\-nisdomain\fR=\fINIS_DOMAIN\fR
+Set the NIS domain name as specified. By default, this is set to the IPA domain name.
+.TP
+\fB\-\-no\-nisdomain\fR
+Do not configure NIS domain name.
+.TP
+\fB\-\-ssh\-trust\-dns\fR
+Configure OpenSSH client to trust DNS SSHFP records.
+.TP
+\fB\-\-no\-ssh\fR
+Do not configure OpenSSH client.
+.TP
+\fB\-\-no\-sshd\fR
+Do not configure OpenSSH server.
+.TP
+\fB\-\-no\-sudo\fR
+Do not configure SSSD as a data source for sudo.
+.TP
+\fB\-\-subid\fR
+Configure SSSD as data source for subid.
+.TP
+\fB\-\-no\-dns\-sshfp\fR
+Do not automatically create DNS SSHFP records.
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Force the settings even if errors occur
+.TP
+\fB\-\-kinit\-attempts\fR=\fIKINIT_ATTEMPTS\fR
+In case of unresponsive KDC (e.g. when enrolling multiple hosts at once in a
+heavy load environment) repeat the request for host Kerberos ticket up to a
+total number of \fIKINIT_ATTEMPTS\fR times before giving up and aborting client
+installation. Default number of attempts is 5. The request is not repeated when
+there is a problem with host credentials themselves (e.g. wrong keytab format
+or invalid principal) so using this option will not lead to account lockouts.
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Print debugging information to stdout
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+Unattended installation. The user will not be prompted.
+.TP
+\fB\-\-ca\-cert\-file\fR=\fICA_FILE\fR
+Do not attempt to acquire the IPA CA certificate via automated means,
+instead use the CA certificate found locally in \fICA_FILE\fR.  The
+\fICA_FILE\fR must be an absolute path to a PEM formatted certificate
+file. The CA certificate found in \fICA_FILE\fR is considered
+authoritative and will be installed without checking to see if it's
+valid for the IPA domain.
+.TP
+\fB\-\-request\-cert\fR
+\fBDEPRECATED:\fR The option is deprecated and will be removed in a future release.
+
+Request certificate for the machine. The certificate will be stored in /etc/ipa/nssdb under the nickname "Local IPA host".
+
+Using this option requires that D-Bus is properly configured or not configured
+at all. In environment where this condition is not met (e.g. anaconda kickstart
+chroot environment) set the system bus address to /dev/null to enable
+workaround in ipa-client-install.
+
+    # env DBUS_SYSTEM_BUS_ADDRESS=unix:path=/dev/null ipa-client-install --request-cert
+
+Note that requesting the certificate when certmonger is not running only
+creates tracking request and the certmonger service must be started to be able
+to track certificates.
+.TP
+\fB\-\-automount\-location\fR=\fILOCATION\fR
+Configure automount by running ipa\-client\-automount(1) with \fILOCATION\fR as
+automount location.
+.TP
+\fB\-\-configure\-firefox\fR
+Configure Firefox to use IPA domain credentials.
+.TP
+\fB\-\-firefox\-dir\fR=\fIDIR\fR
+Specify Firefox installation directory. For example: '/usr/lib/firefox'
+.TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+Use \fIIP_ADDRESS\fR in DNS A/AAAA record for this host. May be specified multiple times to add multiple DNS records.
+.TP
+\fB\-\-all\-ip\-addresses\fR
+Create DNS A/AAAA record for each IP address on this host.
+.TP
+\fB\-\-dns\-over\-tls\fR
+Configure DNS over TLS.
+.TP
+\fB\-\-no\-dnssec\-validation\fR
+Disable DNSSEC validation for DNS over TLS.
+
+.SS "SSSD OPTIONS"
+.TP
+\fB\-\-permit\fR
+Configure SSSD to permit all access. Otherwise the machine will be controlled by the Host\-based Access Controls (HBAC) on the IPA server.
+.TP
+\fB\-\-enable\-dns\-updates\fR
+This option tells SSSD to automatically update DNS with the IP address of this
+client.
+The default is to use GSS-TSIG. However, if using GSS-TSIG fails for any reason
+at install time, \fBipa\-client\-install\fR will configure SSSD to use
+unauthenticated nsupdates instead.
+.TP
+\fB\-\-no\-krb5\-offline\-passwords\fR
+Configure SSSD not to store user password when the server is offline.
+.TP
+\fB\-\-preserve\-sssd\fR
+Disabled by default. When enabled, preserves old SSSD configuration if it is
+not possible to merge it with a new one. Effectively, if the merge is not
+possible due to SSSDConfig reader encountering unsupported options,
+\fBipa\-client\-install\fR will not run further and ask to fix SSSD config
+first. When this option is not specified, \fBipa\-client\-install\fR will back
+up SSSD config and create new one. The back up version will be restored during
+uninstall.
+
+.SS "PKINIT OPTIONS"
+.TP
+\fB\-\-pkinit\-identity=\fIIDENTITY\fR
+Identity string for PKINIT authentication to use to join the IPA realm,
+for example \fIFILE:/path/to/cert.pem,/path/to/key.pem\fR. See krb5.conf(5)
+for more information. The option is mutually exclusive with
+\fB\-\-password\fR and \fB\-\-keytab\fR.
+.TP
+\fB\-\-pkinit\-anchor\fR=\fIFILEDIR\fR
+Trust anchors (root and intermediate CA certs) for PKINIT. \fIFILEDIR\fR is
+either the absolute path to a PEM bundle (for example
+\fIFILE:/etc/pki/tls/cert.pem\fR) or to an OpenSSL hash directory (for example
+\fIDIR:/etc/ssl/certs/\fR). The option can be used multiple times. PKINIT
+requires the full trust chain of the Kerberos KDC server as well as the full
+trust chain of the identity certificate.
+
+.SS "UNINSTALL OPTIONS"
+.TP
+\fB\-\-uninstall\fR
+Remove the IPA client software and restore the configuration to the pre\-IPA state.
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+Unattended uninstallation. The user will not be prompted.
+
+.SH "DISABLED SERVICES"
+.TP
+ipa-client-install will automatically disable the Name Service Caching Daemon (nscd) when configuring the SSSD client. These are competing services and cannot co-exist.
+.TP
+If there are other similar services providing nss capabilities they will need to be manually disabled by the user. An example is unscd, a complete replacement for nscd.
+
+.SH "FILES"
+.TP
+Files that will be replaced if SSSD is configured (default):
+
+/etc/sssd/sssd.conf
+.TP
+Files replaced if NTP client (chronyd) configuration is enabled:
+
+/etc/chrony.conf
+.TP
+Files always created (replacing existing content):
+
+/etc/krb5.conf
+.br
+/etc/ipa/ca.crt
+.br
+/etc/ipa/default.conf
+.br
+/etc/ipa/nssdb
+.br
+/etc/openldap/ldap.conf
+.br
+/etc/pki/ca-trust/source/ipa.p11-kit
+.TP
+Files updated, existing content is maintained:
+
+/etc/nsswitch.conf
+.br
+/etc/krb5.keytab
+.br
+/etc/sysconfig/network
+
+.TP
+File updated, existing content is maintained if ssh is configured (default):
+
+/etc/ssh/ssh_config
+.TP
+File updated, existing content is maintained if sshd is configured (default):
+
+/etc/ssh/sshd_config
+
+.SH "DEPRECATED OPTIONS"
+.TP
+\fB\-\-request\-cert\fR
+
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred
+
+2 if uninstalling and the client is not configured
+
+3 if installing and the client is already configured
+
+4 if an uninstall error occurred
+
+.SH "SEE ALSO"
+.BR ipa\-client\-automount(1),
+.BR krb5.conf(5),
+.BR sssd.conf(5)

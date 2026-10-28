@@ -1,0 +1,121 @@
+# Make the administrative 'admins' group a default member of all default
+# privileges referenced by managed permissions.
+#
+# Privilege-based operation enforcement (see BaseLDAPCommand
+# enforce_managed_permissions) requires the calling context to hold one of
+# the default privileges of the managed permission covering the requested
+# operation. The 'admins' group historically relied on legacy ACIs only, so
+# grant it every default privilege to keep administrative users in full
+# control.
+
+# These two privileges are created only by install/share/delegation.ldif on
+# fresh installs, so create them here for the upgrade path.
+
+dn: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: nestedgroup
+default: cn: Certificate Administrators
+default: description: Certificate Administrators
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Stage User Provisioning,cn=privileges,cn=pbac,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: nestedgroup
+default: cn: Stage User Provisioning
+default: description: Stage User Provisioning
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=ADTrust Agents,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Automember Readers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=CA Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Certificate Identity Mapping Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=External IdP server Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=IPA Masters Readers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Kerberos Ticket Policy Readers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Modify Group membership,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Modify Users and Reset passwords,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=PassSync Service,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Passkey Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Password Policy Readers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=RBAC Readers,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Stage User Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=System Accounts Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Vault Administrators,cn=privileges,cn=pbac,$SUFFIX
+add: member: cn=admins,cn=groups,cn=accounts,$SUFFIX

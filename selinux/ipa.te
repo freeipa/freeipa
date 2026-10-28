@@ -1,0 +1,706 @@
+policy_module(ipa, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+attribute ipa_domain;
+
+attribute_role ipa_helper_roles;
+roleattribute system_r ipa_helper_roles;
+
+type ipa_otpd_t, ipa_domain;
+type ipa_otpd_exec_t;
+init_daemon_domain(ipa_otpd_t, ipa_otpd_exec_t)
+
+type sssd_mfa_t, ipa_domain;
+type sssd_mfa_exec_t;
+init_daemon_domain(sssd_mfa_t, sssd_mfa_exec_t)
+
+kernel_dgram_send(ipa_otpd_t)
+allow ipa_otpd_t self:unix_dgram_socket { create getopt setopt };
+allow ipa_otpd_t ipa_otpd_exec_t:file execute_no_trans;
+
+
+type ipa_dnskey_t, ipa_domain;
+type ipa_dnskey_exec_t;
+init_daemon_domain(ipa_dnskey_t, ipa_dnskey_exec_t)
+
+type ipa_ods_exporter_t, ipa_domain;
+type ipa_ods_exporter_exec_t;
+init_daemon_domain(ipa_ods_exporter_t, ipa_ods_exporter_exec_t)
+
+type ipa_otpd_unit_file_t;
+systemd_unit_file(ipa_otpd_unit_file_t)
+
+type ipa_dnskey_unit_file_t;
+systemd_unit_file(ipa_dnskey_unit_file_t)
+
+type ipa_ods_exporter_unit_file_t;
+systemd_unit_file(ipa_ods_exporter_unit_file_t)
+
+type ipa_log_t;
+logging_log_file(ipa_log_t)
+
+type ipa_var_lib_t;
+files_type(ipa_var_lib_t)
+
+type ipa_public_pki_t;
+files_type(ipa_public_pki_t)
+
+type ipa_http_keytab_t;
+files_type(ipa_http_keytab_t)
+
+type ipa_var_run_t;
+files_pid_file(ipa_var_run_t)
+
+type ipa_helper_t;
+type ipa_helper_exec_t;
+domain_type(ipa_helper_t)
+domain_obj_id_change_exemption(ipa_helper_t)
+init_system_domain(ipa_helper_t, ipa_helper_exec_t)
+role ipa_helper_roles types ipa_helper_t;
+
+type ipa_cert_t;
+miscfiles_cert_type(ipa_cert_t)
+
+type ipa_tmp_t;
+files_tmp_file(ipa_tmp_t)
+
+type ipa_custodia_t;
+type ipa_custodia_exec_t;
+init_daemon_domain(ipa_custodia_t, ipa_custodia_exec_t)
+
+type ipa_custodia_dmldap_exec_t;
+init_script_file(ipa_custodia_dmldap_exec_t)
+
+type ipa_custodia_pki_tomcat_exec_t;
+init_script_file(ipa_custodia_pki_tomcat_exec_t)
+
+type ipa_custodia_pki_tomcat_t;
+
+type ipa_custodia_ra_agent_exec_t;
+init_script_file(ipa_custodia_ra_agent_exec_t)
+
+type ipa_custodia_log_t;
+logging_log_file(ipa_custodia_log_t)
+
+type ipa_custodia_tmp_t;
+files_tmp_file(ipa_custodia_tmp_t)
+
+type ipa_pki_retrieve_key_exec_t;
+type ipa_pki_retrieve_key_t;
+domain_type(ipa_pki_retrieve_key_t)
+init_script_file(ipa_pki_retrieve_key_exec_t)
+
+# Allow dirsrv to operate with Anonymous PKINIT
+optional_policy(`
+  gen_require(`
+     type dirsrv_t;
+  ')
+   
+	ipa_read_lib(dirsrv_t)
+	ipa_search_lib(dirsrv_t)
+        ipa_read_public_pki(dirsrv_t)
+')
+
+# Allow certmonger to operate with Anonymous PKINIT
+optional_policy(`
+  gen_require(`
+     type certmonger_t;
+  ')
+   
+	ipa_read_lib(certmonger_t)
+	ipa_search_lib(certmonger_t)
+        ipa_read_public_pki(certmonger_t)
+')
+
+########################################
+#
+# ipa_otpd local policy
+#
+
+allow ipa_otpd_t self:capability2 block_suspend;
+
+allow ipa_otpd_t self:fifo_file rw_fifo_file_perms;
+allow ipa_otpd_t self:unix_stream_socket create_stream_socket_perms;
+
+read_files_pattern(ipa_otpd_t, ipa_cert_t, ipa_cert_t)
+read_files_pattern(ipa_otpd_t, ipa_public_pki_t, ipa_public_pki_t)
+read_lnk_files_pattern(ipa_otpd_t, ipa_cert_t, ipa_cert_t)
+
+manage_dirs_pattern(ipa_otpd_t, ipa_var_run_t, ipa_var_run_t)
+manage_files_pattern(ipa_otpd_t, ipa_var_run_t, ipa_var_run_t)
+files_pid_filetrans(ipa_otpd_t, ipa_var_run_t, file)
+
+corenet_tcp_connect_radius_port(ipa_otpd_t)
+
+dev_read_urand(ipa_otpd_t)
+dev_read_rand(ipa_otpd_t)
+dev_read_sysfs(ipa_otpd_t)
+
+sysnet_dns_name_resolve(ipa_otpd_t)
+
+optional_policy(`
+    dirsrv_stream_connect(ipa_otpd_t)
+')
+
+optional_policy(`
+	kerberos_use(ipa_otpd_t)
+')
+
+optional_policy(`
+	sssd_stream_connect(ipa_otpd_t)
+')
+
+logging_send_syslog_msg(ipa_otpd_t)
+
+domtrans_pattern(ipa_otpd_t, sssd_mfa_exec_t, sssd_mfa_t)
+allow ipa_otpd_t sssd_mfa_t:process { noatsecure rlimitinh siginh };
+
+########################################
+#
+# sssd_mfa local policy
+# applies to sssd's oidc_child and passkey_child
+#
+
+# for oidc_child communication with IdPs
+corenet_tcp_connect_http_port(sssd_mfa_t)
+kernel_dgram_send(sssd_mfa_t)
+allow sssd_mfa_t self:unix_dgram_socket { create getopt setopt };
+allow sssd_mfa_t sssd_mfa_exec_t:file execute_no_trans;
+allow sssd_mfa_exec_t fs_t:filesystem associate;
+#============= setfiles_t ==============
+# allow relabel of the older files during upgrade
+optional_policy(`
+  gen_require(`
+     type setfiles_t;
+     type rpm_t;
+     type unconfined_t;
+  ')
+  allow setfiles_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+  allow rpm_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+  allow unconfined_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+')
+
+dev_read_urand(sssd_mfa_t)
+dev_read_rand(sssd_mfa_t)
+dev_read_sysfs(sssd_mfa_t)
+dev_rw_generic_usb_dev(sssd_mfa_t)
+
+sysnet_dns_name_resolve(sssd_mfa_t)
+
+optional_policy(`
+    dirsrv_stream_connect(sssd_mfa_t)
+')
+
+optional_policy(`
+    kerberos_use(sssd_mfa_t)
+')
+
+optional_policy(`
+    sssd_stream_connect(sssd_mfa_t)
+')
+
+logging_send_syslog_msg(sssd_mfa_t)
+
+auth_use_nsswitch(sssd_mfa_t)
+
+files_read_usr_files(sssd_mfa_t)
+miscfiles_read_localization(sssd_mfa_t)
+
+kernel_read_crypto_sysctls(sssd_mfa_t)
+
+selinux_getattr_fs(sssd_mfa_t)
+
+dontaudit sssd_mfa_t self:capability net_admin;
+
+optional_policy(`
+    gen_require(`
+        type init_t;
+    ')
+    dontaudit sssd_mfa_t init_t:unix_stream_socket { read write };
+')
+
+optional_policy(`
+    gen_require(`
+        type syslogd_t;
+    ')
+    ps_process_pattern(syslogd_t, sssd_mfa_t)
+')
+
+optional_policy(`
+	ipa_read_lib(sssd_mfa_t)
+	ipa_search_lib(sssd_mfa_t)
+        ipa_read_public_pki(sssd_mfa_t)
+')
+
+
+########################################
+#
+# samba local policy extensions
+#
+
+optional_policy(`
+    gen_require(`
+        type smbd_t, winbind_t, samba_net_t;
+    ')
+        ipa_read_public_pki(smbd_t)
+        ipa_read_public_pki(winbind_t)
+        ipa_read_public_pki(samba_net_t)
+')
+
+
+########################################
+#
+# password policy local policy
+#
+optional_policy(`
+    gen_require(`
+        type kadmind_t;
+        type crack_db_t;
+        class file getattr;
+        class file open;
+        class file read;
+        class dir search;
+    ')
+    allow kadmind_t crack_db_t:file { getattr open read };
+    allow kadmind_t crack_db_t:dir search;
+')
+
+
+########################################
+#
+# ipa-helper local policy
+#
+
+allow ipa_helper_t self:capability { chown dac_override dac_read_search net_admin };
+seutil_read_config(ipa_helper_t)
+
+#kernel bug
+dontaudit ipa_helper_t self:capability2  block_suspend;
+
+allow ipa_helper_t self:process setfscreate;
+allow ipa_helper_t self:fifo_file rw_fifo_file_perms;
+allow ipa_helper_t self:netlink_route_socket r_netlink_socket_perms;
+
+manage_files_pattern(ipa_helper_t, ipa_log_t, ipa_log_t)
+logging_log_filetrans(ipa_helper_t, ipa_log_t, file)
+
+manage_dirs_pattern(ipa_helper_t, ipa_var_run_t, ipa_var_run_t)
+manage_files_pattern(ipa_helper_t, ipa_var_run_t, ipa_var_run_t)
+files_pid_filetrans(ipa_helper_t, ipa_var_run_t, { dir file })
+
+manage_files_pattern(ipa_helper_t, ipa_tmp_t, ipa_tmp_t)
+files_tmp_filetrans(ipa_helper_t, ipa_tmp_t, { file })
+
+kernel_read_system_state(ipa_helper_t)
+kernel_read_network_state(ipa_helper_t)
+
+corenet_tcp_connect_ldap_port(ipa_helper_t)
+corenet_tcp_connect_smbd_port(ipa_helper_t)
+corenet_tcp_connect_http_port(ipa_helper_t)
+corenet_tcp_connect_kerberos_password_port(ipa_helper_t)
+
+corecmd_exec_bin(ipa_helper_t)
+corecmd_exec_shell(ipa_helper_t)
+
+dev_read_urand(ipa_helper_t)
+dev_read_sysfs(ipa_helper_t)
+
+auth_use_nsswitch(ipa_helper_t)
+
+files_list_tmp(ipa_helper_t)
+
+init_read_state(ipa_helper_t)
+init_stream_connect(ipa_helper_t)
+
+ipa_manage_pid_files(ipa_helper_t)
+ipa_read_lib(ipa_helper_t)
+
+logging_send_syslog_msg(ipa_helper_t)
+
+optional_policy(`
+    ipa_read_public_pki(ipa_helper_t)
+')
+
+optional_policy(`
+    dirsrv_stream_connect(ipa_helper_t)
+')
+
+optional_policy(`
+    dirsrv_systemctl(ipa_helper_t)
+')
+
+optional_policy(`
+    ldap_stream_connect(ipa_helper_t)
+')
+
+optional_policy(`
+    libs_exec_ldconfig(ipa_helper_t)
+')
+
+optional_policy(`
+    kerberos_read_keytab(ipa_helper_t)
+')
+
+optional_policy(`
+    oddjob_system_entry(ipa_helper_t, ipa_helper_exec_t)
+')
+
+optional_policy(`
+    rpm_read_db(ipa_helper_t)
+')
+
+optional_policy(`
+    samba_read_config(ipa_helper_t)
+')
+
+optional_policy(`
+    sssd_manage_lib_files(ipa_helper_t)
+    sssd_systemctl(ipa_helper_t)
+')
+
+########################################
+#
+# ipa-dnskey local policy
+#
+allow ipa_dnskey_t self:tcp_socket create_stream_socket_perms;
+allow ipa_dnskey_t self:udp_socket create_socket_perms;
+allow ipa_dnskey_t self:unix_dgram_socket create_socket_perms;
+allow ipa_dnskey_t self:netlink_route_socket { create_netlink_socket_perms nlmsg_read };
+
+read_files_pattern(ipa_dnskey_t, ipa_cert_t, ipa_cert_t)
+read_lnk_files_pattern(ipa_dnskey_t, ipa_cert_t, ipa_cert_t)
+
+manage_files_pattern(ipa_dnskey_t, ipa_var_lib_t, ipa_var_lib_t)
+setattr_dirs_pattern(ipa_dnskey_t, ipa_var_lib_t, ipa_var_lib_t)
+list_dirs_pattern(ipa_dnskey_t, ipa_var_lib_t, ipa_var_lib_t)
+
+manage_files_pattern(ipa_dnskey_t, ipa_tmp_t, ipa_tmp_t)
+files_tmp_filetrans(ipa_dnskey_t, ipa_tmp_t, { file })
+
+kernel_dgram_send(ipa_dnskey_t)
+kernel_read_system_state(ipa_dnskey_t)
+kernel_read_network_state(ipa_dnskey_t)
+
+auth_use_nsswitch(ipa_dnskey_t)
+
+corecmd_exec_bin(ipa_dnskey_t)
+corecmd_exec_shell(ipa_dnskey_t)
+
+corenet_tcp_bind_generic_node(ipa_dnskey_t)
+corenet_tcp_connect_kerberos_port(ipa_dnskey_t)
+corenet_tcp_connect_rndc_port(ipa_dnskey_t)
+
+# Allow rndc to access SoftHSM token in IPA directory
+optional_policy(`
+    gen_require(`
+        type ndc_t;
+    ')
+    allow ndc_t ipa_dnskey_t:file { getattr open read };
+')
+
+# Allow relabel from systemd_tmpfiles_t
+optional_policy(`
+    gen_require(`
+        type systemd_tmpfiles_t;
+    ')
+    allow systemd_tmpfiles_t ipa_dnskey_t:file { getattr relabelfrom relabelto };
+')
+optional_policy(`
+    gen_require(`
+        type fs_t;
+    ')
+    allow ipa_dnskey_t fs_t:filesystem associate;
+')
+optional_policy(`
+    gen_require(`
+        type named_t;
+    ')
+    allow named_t ipa_dnskey_t:file { getattr open read };
+')
+
+dev_read_rand(ipa_dnskey_t)
+dev_read_sysfs(ipa_dnskey_t)
+
+can_exec(ipa_dnskey_t,ipa_dnskey_exec_t)
+
+libs_exec_ldconfig(ipa_dnskey_t)
+
+logging_send_syslog_msg(ipa_dnskey_t)
+
+miscfiles_read_generic_certs(ipa_dnskey_t)
+
+sysnet_read_config(ipa_dnskey_t)
+
+optional_policy(`
+    ipa_read_public_pki(ipa_dnskey_t)
+')
+
+optional_policy(`
+    apache_search_config(ipa_dnskey_t)
+')
+
+optional_policy(`
+	bind_domtrans_ndc(ipa_dnskey_t)
+	bind_read_dnssec_keys(ipa_dnskey_t)
+	bind_manage_zone(ipa_dnskey_t)
+	bind_manage_zone_dirs(ipa_dnskey_t)
+	bind_search_cache(ipa_dnskey_t)
+')
+
+optional_policy(`
+	dirsrv_stream_connect(ipa_dnskey_t)
+')
+
+optional_policy(`
+    kerberos_read_keytab(ipa_dnskey_t)
+')
+
+optional_policy(`
+	opendnssec_domtrans(ipa_dnskey_t)
+	opendnssec_manage_config(ipa_dnskey_t)
+	opendnssec_manage_var_files(ipa_dnskey_t)
+	opendnssec_filetrans_etc_content(ipa_dnskey_t)
+	opendnssec_stream_connect(ipa_dnskey_t)
+')
+
+########################################
+#
+# ipa-ods-exporter local policy
+#
+allow ipa_ods_exporter_t self:netlink_route_socket { bind create getattr nlmsg_read };
+allow ipa_ods_exporter_t self:udp_socket { connect create getattr };
+allow ipa_ods_exporter_t self:unix_dgram_socket { create getopt setopt };
+allow ipa_ods_exporter_t ipa_dnskey_t:file { getattr ioctl open read };
+
+manage_files_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
+list_dirs_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
+
+manage_files_pattern(ipa_ods_exporter_t, ipa_tmp_t, ipa_tmp_t)
+manage_dirs_pattern(ipa_ods_exporter_t, ipa_tmp_t, ipa_tmp_t)
+files_tmp_filetrans(ipa_ods_exporter_t, ipa_tmp_t, { dir file })
+
+kernel_dgram_send(ipa_ods_exporter_t)
+
+auth_use_nsswitch(ipa_ods_exporter_t)
+
+corecmd_exec_bin(ipa_ods_exporter_t)
+corecmd_exec_shell(ipa_ods_exporter_t)
+
+dev_read_sysfs(ipa_ods_exporter_t)
+
+libs_exec_ldconfig(ipa_ods_exporter_t)
+
+logging_send_syslog_msg(ipa_ods_exporter_t)
+
+miscfiles_read_generic_certs(ipa_ods_exporter_t)
+
+sysnet_read_config(ipa_ods_exporter_t)
+
+optional_policy(`
+    ipa_read_public_pki(ipa_ods_exporter_t)
+')
+
+optional_policy(`
+    bind_search_cache(ipa_ods_exporter_t)
+')
+
+optional_policy(`
+    dirsrv_stream_connect(ipa_ods_exporter_t)
+')
+
+optional_policy(`
+    kerberos_read_keytab(ipa_ods_exporter_t)
+')
+
+optional_policy(`
+    opendnssec_manage_var_files(ipa_ods_exporter_t)
+    opendnssec_stream_connect(ipa_ods_exporter_t)
+')
+
+optional_policy(`
+    ldap_stream_connect(ipa_ods_exporter_t)
+')
+
+########################################
+#
+# ipa_custodia local policy
+#
+allow ipa_custodia_t self:capability { setgid setuid };
+allow ipa_custodia_t self:fifo_file rw_fifo_file_perms;
+allow ipa_custodia_t self:netlink_route_socket { create_socket_perms nlmsg_read };
+allow ipa_custodia_t self:process execmem;
+allow ipa_custodia_t self:unix_stream_socket create_stream_socket_perms;
+allow ipa_custodia_t self:unix_dgram_socket create_socket_perms;
+allow ipa_custodia_t self:tcp_socket { bind create setopt };
+allow ipa_custodia_t self:udp_socket create_socket_perms;
+
+manage_dirs_pattern(ipa_custodia_t,ipa_custodia_log_t,ipa_custodia_log_t)
+manage_files_pattern(ipa_custodia_t, ipa_custodia_log_t, ipa_custodia_log_t)
+logging_log_filetrans(ipa_custodia_t, ipa_custodia_log_t, { dir file })
+
+manage_dirs_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+manage_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+mmap_exec_files_pattern(ipa_custodia_t, ipa_custodia_tmp_t, ipa_custodia_tmp_t)
+files_tmp_filetrans(ipa_custodia_t, ipa_custodia_tmp_t, { dir file })
+
+kernel_dgram_send(ipa_custodia_t)
+kernel_read_network_state(ipa_custodia_t)
+kernel_read_system_state(ipa_custodia_t)
+
+auth_read_passwd(ipa_custodia_t)
+
+can_exec(ipa_custodia_t, ipa_custodia_dmldap_exec_t)
+can_exec(ipa_custodia_t, ipa_custodia_pki_tomcat_exec_t)
+can_exec(ipa_custodia_t, ipa_custodia_ra_agent_exec_t)
+
+corecmd_exec_bin(ipa_custodia_t)
+corecmd_mmap_bin_files(ipa_custodia_t)
+
+dev_read_urand(ipa_custodia_t)
+dev_read_rand(ipa_custodia_t)
+dev_read_sysfs(ipa_custodia_t)
+
+domain_use_interactive_fds(ipa_custodia_t)
+
+files_mmap_usr_files(ipa_custodia_t)
+
+fs_getattr_xattr_fs(ipa_custodia_t)
+
+files_read_etc_files(ipa_custodia_t)
+
+libs_exec_ldconfig(ipa_custodia_t)
+libs_ldconfig_exec_entry_type(ipa_custodia_t)
+
+logging_send_syslog_msg(ipa_custodia_t)
+
+miscfiles_read_generic_certs(ipa_custodia_t)
+miscfiles_read_localization(ipa_custodia_t)
+
+sysnet_read_config(ipa_custodia_t)
+
+optional_policy(`
+	apache_search_config(ipa_custodia_t)
+	apache_systemctl(ipa_custodia_t)
+	apache_manage_pid_files(ipa_custodia_t)
+')
+
+optional_policy(`
+	dirsrv_manage_var_run(ipa_custodia_t)
+	dirsrv_stream_connect(ipa_custodia_t)
+')
+
+optional_policy(`
+	ipa_read_lib(ipa_custodia_t)
+	ipa_search_lib(ipa_custodia_t)
+        ipa_read_public_pki(ipa_custodia_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type httpd_t;
+    ')
+    ipa_custodia_stream_connect(httpd_t)
+')
+
+optional_policy(`
+	pki_manage_tomcat_etc_rw(ipa_custodia_t)
+	pki_read_tomcat_cert(ipa_custodia_t)
+	pki_rw_tomcat_cert(ipa_custodia_t)
+')
+
+optional_policy(`
+	sssd_read_public_files(ipa_custodia_t)
+	sssd_run_stream_connect(ipa_custodia_t)
+	sssd_search_lib(ipa_custodia_t)
+	sssd_stream_connect(ipa_custodia_t)
+')
+
+optional_policy(`
+       systemd_private_tmp(ipa_custodia_tmp_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type tomcat_t;
+    ')
+    can_exec(tomcat_t, ipa_pki_retrieve_key_exec_t)
+    pki_manage_tomcat_etc_rw(ipa_pki_retrieve_key_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type devlog_t;
+    ')
+
+    dontaudit ipa_custodia_t devlog_t:lnk_file read_lnk_file_perms;
+')
+
+optional_policy(`
+    java_exec(ipa_custodia_pki_tomcat_t)
+    # allow Java to read system status and RNG
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type tomcat_t;
+    ')
+    kerberos_read_config(tomcat_t)
+    kerberos_read_keytab(tomcat_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type node_t;
+    ')
+    allow ipa_custodia_t node_t:tcp_socket node_bind;
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type pki_tomcat_cert_t;
+    ')
+    allow ipa_custodia_t pki_tomcat_cert_t:dir remove_name;
+    allow ipa_custodia_t pki_tomcat_cert_t:file create;
+    allow ipa_custodia_t pki_tomcat_cert_t:file unlink;
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type oddjob_t;
+    ')
+	ipa_helper_noatsecure(oddjob_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
+        type certmonger_t;
+        type pki_tomcat_etc_rw_t;
+        class file getattr;
+        class file ioctl;
+        class file open;
+        class file read;
+    ')
+    allow certmonger_t pki_tomcat_etc_rw_t:file { getattr ioctl open read };
+')
+
+# gssproxy needs to read http keytab
+optional_policy(`
+    gen_require(`
+        type gssproxy_t;
+    ')
+    ipa_read_http_keytab(gssproxy_t)
+    ipa_read_public_pki(gssproxy_t)
+')
+
+# Allow Cockpit to use HTTP keytab on IPA servers for GSSAPI authentication
+optional_policy(`
+    gen_require(`
+        type cockpit_session_t;
+    ')
+    ipa_read_http_keytab(cockpit_session_t)
+    ipa_read_public_pki(cockpit_session_t)
+')

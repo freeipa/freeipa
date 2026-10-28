@@ -1,0 +1,1 @@
+define([IPA_VERSION], [__VERSION__])

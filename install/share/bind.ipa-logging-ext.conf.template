@@ -1,0 +1,91 @@
+channel named {
+	file "${NAMED_DATA_DIR}named.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-category yes;
+	print-severity yes;
+};
+
+channel security {
+	file "${NAMED_DATA_DIR}security.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel dnssec {
+	file "${NAMED_DATA_DIR}dnssec.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel resolver {
+	file "${NAMED_DATA_DIR}resolver.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel query_log {
+	file "${NAMED_DATA_DIR}query.log" versions 10 size 80M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel query_error {
+	file "${NAMED_DATA_DIR}query_errors.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel lame_servers {
+	file "${NAMED_DATA_DIR}lame-servers.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel capacity {
+	file "${NAMED_DATA_DIR}capacity.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel database {
+	file "${NAMED_DATA_DIR}database.log" versions 10 size 20M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+channel update {
+	file "${NAMED_DATA_DIR}update.log" versions 10 size 10M;
+	severity info;
+	print-time yes;
+	print-severity yes;
+};
+
+category default        { default_syslog; named; };
+category general        { default_syslog; named; };
+category security       { security; };
+category queries        { query_log; };
+category query-errors   { query_error; };
+category lame-servers   { lame_servers; };
+category dnssec         { dnssec; };
+category edns-disabled  { default_syslog; resolver; };
+category config         { default_syslog; named; };
+category resolver       { resolver; };
+category cname          { resolver; };
+category spill          { capacity; };
+category rate-limit     { capacity; };
+category database       { database; };
+category client         { default_syslog; named; };
+category network        { default_syslog; named; };
+category unmatched      { named; };
+category delegation-only { named; };
+category update         { default_syslog; update; };
+category update-security { default_syslog; update; };

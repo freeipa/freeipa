@@ -1,0 +1,59 @@
+## schema file for ipa configuration
+##
+## IPA Base OID:	2.16.840.1.113730.3.8
+##
+## Attributes:		2.16.840.1.113730.3.8.1 - V1
+## ObjectClasses:	2.16.840.1.113730.3.8.2 - V1
+## Attributes:		2.16.840.1.113730.3.8.3 - V2
+## ObjectClasses:	2.16.840.1.113730.3.8.4 - V2
+## Attributes:		2.16.840.1.113730.3.8.23 - V4 base attributes
+dn: cn=schema
+###############################################
+##
+## Attributes
+##
+## ipaUserSearchFields - attribute names to search against when looking for users
+attributeTypes: ( 2.16.840.1.113730.3.8.1.1 NAME 'ipaUserSearchFields' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
+## ipaGroupSearchFields - attribute names to search against when looking for groups
+attributeTypes: ( 2.16.840.1.113730.3.8.1.2 NAME 'ipaGroupSearchFields' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
+## ipaSearchTimeLimit - search time limit in seconds
+attributeTypes: ( 2.16.840.1.113730.3.8.1.3 NAME 'ipaSearchTimeLimit' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+## ipaSearchRecordsLimit - maximum number of records to return
+attributeTypes: ( 2.16.840.1.113730.3.8.1.4 NAME 'ipaSearchRecordsLimit' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+## ipaCustomFields - custom fields to show in the UI in addition to pre-defined ones
+attributeTypes: ( 2.16.840.1.113730.3.8.1.5 NAME 'ipaCustomFields' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+## ipaHomesRootDir - default posix home directory root dir to use when creating new accounts
+attributeTypes: ( 2.16.840.1.113730.3.8.1.6 NAME 'ipaHomesRootDir' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
+## ipaDefaultLoginShell - default posix login shell to use when creating new accounts
+attributeTypes: ( 2.16.840.1.113730.3.8.1.7 NAME 'ipaDefaultLoginShell' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
+## ipaDefaultPrimaryGroup - default posix primary group to assign when creating new accounts
+attributeTypes: ( 2.16.840.1.113730.3.8.1.8 NAME 'ipaDefaultPrimaryGroup' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE)
+## ipaMaxUsernameLength - maximum username length to allow in the UI
+attributeTypes: ( 2.16.840.1.113730.3.8.1.9 NAME 'ipaMaxUsernameLength' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+## ipaPwdExpAdvNotify - time in days to send out paswword expiration notification before passwpord actually expires
+attributeTypes: ( 2.16.840.1.113730.3.8.1.10 NAME 'ipaPwdExpAdvNotify' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+# ipaUserObjectClasses - required objectclasses for users
+attributeTypes: ( 2.16.840.1.113730.3.8.1.11 NAME 'ipaUserObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+# ipaGroupObjectClasses - required objectclasses for groups
+attributeTypes: ( 2.16.840.1.113730.3.8.1.12 NAME 'ipaGroupObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+attributeTypes: ( 2.16.840.1.113730.3.8.1.13 NAME 'ipaDefaultEmailDomain' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+# ipaMigrationEnabled - if TRUE allow adding user entries with pre-hashed passwords
+attributeTypes: ( 2.16.840.1.113730.3.8.3.22 NAME 'ipaMigrationEnabled' DESC 'Enable adding user entries with pre-hashed passwords.' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
+attributeTypes: ( 2.16.840.1.113730.3.8.3.23 NAME 'ipaCertificateSubjectBase' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+## ipaConfigString - can hold any string to be used as configuration for something (it is multivalued)
+attributeTypes: (2.16.840.1.113730.3.8.3.16 NAME 'ipaConfigString' DESC 'Generic configuration stirng' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
+attributeTypes: ( 2.16.840.1.113730.3.8.3.26 NAME 'ipaSELinuxUserMapDefault' DESC 'Default SELinux user' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3')
+attributeTypes: ( 2.16.840.1.113730.3.8.3.27 NAME 'ipaSELinuxUserMapOrder' DESC 'Available SELinux user context ordering' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3')
+## ipaMaxHostnameLength - maximum hostname length to allow
+attributeTypes: ( 2.16.840.1.113730.3.8.1.28 NAME 'ipaMaxHostnameLength' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+# ipaUserDefaultSubordinateId - if TRUE new user entries gain subordinate id by default
+attributeTypes: ( 2.16.840.1.113730.3.8.23.14 NAME 'ipaUserDefaultSubordinateId' DESC 'Enable adding user entries with subordinate id' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: ( 2.16.840.1.113730.3.8.1.14 NAME 'ipaServiceKeyTypeSize' DESC 'Key type and size for IPA certs' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4.12')
+###############################################
+##
+## ObjectClasses
+##
+## ipaGuiConfig - GUI config parameters objectclass
+objectClasses: ( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $ ipaGroupSearchFields $ ipaSearchTimeLimit $ ipaSearchRecordsLimit $ ipaCustomFields $ ipaHomesRootDir $ ipaDefaultLoginShell $ ipaDefaultPrimaryGroup $ ipaMaxUsernameLength $ ipaPwdExpAdvNotify $ ipaUserObjectClasses $ ipaGroupObjectClasses $ ipaDefaultEmailDomain $ ipaMigrationEnabled $ ipaCertificateSubjectBase $ ipaSELinuxUserMapDefault $ ipaSELinuxUserMapOrder $ ipaKrbAuthzData $ ipaMaxHostnameLength $ ipaUserDefaultSubordinateId $ ipaServiceKeyTypeSize) )
+## ipaConfigObject - Generic config strings object holder
+objectClasses: (2.16.840.1.113730.3.8.4.13 NAME 'ipaConfigObject' DESC 'generic config object for IPA' AUXILIARY MAY ( ipaConfigString ) X-ORIGIN 'IPA v2' )

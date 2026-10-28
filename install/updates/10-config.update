@@ -1,0 +1,75 @@
+# Enforce matching SSL certificate host names when 389-ds acts as an SSL
+# client. A restart is necessary for this to take effect, we do one when
+# upgrading.
+dn: cn=config
+only:nsslapd-ssl-check-hostname: on
+
+# Remove incorrect placement
+dn: cn=Kerberos Principal Name,cn=IPA MODRDN,cn=plugins,cn=config
+remove: nsslapd-pluginPrecedence: 60
+
+# Set the precedence of the ipa-modrdn plugin so it runs after other
+# plugins (the default is 50).
+dn: cn=IPA MODRDN,cn=plugins,cn=config
+only: nsslapd-pluginPrecedence: 60
+
+# Set limits to suite better IPA deployment sizes, defaults are too
+# conservative
+dn: cn=config
+replace: nsslapd-sizelimit:2000::100000
+
+dn: cn=config,cn=ldbm database,cn=plugins,cn=config
+replace: nsslapd-lookthroughlimit:5000::100000
+replace: nsslapd-idlistscanlimit:4000::100000
+
+#Set much lower limits for anonymous searhes
+dn: cn=anonymous-limits,cn=etc,$SUFFIX
+default:objectclass:nsContainer
+default:objectclass:top
+default:cn: anonymous-limits
+default:nsSizeLimit: 5000
+default:nsLookThroughLimit: 5000
+
+dn: cn=config
+only:nsslapd-anonlimitsdn:cn=anonymous-limits,cn=etc,$SUFFIX
+
+# Add a defaultNamingContext if one hasn't already been set. This was
+# introduced in 389-ds-base-1.2.10-0.9.a8. Adding this to a server that
+# doesn't support it generates a non-fatal error.
+dn: cn=config
+add:nsslapd-defaultNamingContext:$SUFFIX
+
+# Allow the root DSE to be searched even with minssf set
+dn: cn=config
+only:nsslapd-minssf-exclude-rootdse:on
+
+# Set the IPA winsync precedence so it will run after the DS
+# POSIX winsync plugin
+dn: cn=ipa-winsync,cn=plugins,cn=config
+only: nsslapd-pluginPrecedence: 60
+
+# Enable SASL mapping fallback
+dn: cn=config
+only:nsslapd-sasl-mapping-fallback: on
+
+dn: cn=Full Principal,cn=mapping,cn=sasl,cn=config
+addifnew:nsSaslMapPriority: 10
+
+dn: cn=Name Only,cn=mapping,cn=sasl,cn=config
+addifnew:nsSaslMapPriority: 10
+
+# Allow hashed passwords to be added by non-DM users. Without this
+# setting, password migration fails
+dn: cn=config
+only:nsslapd-allow-hashed-passwords:on
+
+# Decrease default value for IO blocking to prevent server unresponsiveness
+dn: cn=config
+only:nsslapd-ioblocktimeout:10000
+
+# 389-DS 1.4.1.6+ attempts to update passwords to new schema on LDAP bind.
+# IPa blocks hashed password updates and requires password changes to go
+# through proper APIs. This option disables password hashing schema updates
+# on LDAP bind, see https://codeberg.org/freeipa/freeipa/issues/8315
+dn: cn=config
+only: nsslapd-enable-upgrade-hash:off

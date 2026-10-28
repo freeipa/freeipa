@@ -1,0 +1,54 @@
+version: '2.1'
+services:
+  master:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    cap_drop:
+    - CAP_SYS_TIME
+    security_opt:
+    - apparmor:unconfined
+    - seccomp:./seccomp.json
+    mem_limit: "${IPA_TESTS_SERVER_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_SERVER_MEMSWAP_LIMIT}"
+    volumes:
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - ${PROJECT_DIR}/ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}
+
+  replica:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    cap_drop:
+    - CAP_SYS_TIME
+    security_opt:
+    - apparmor:unconfined
+    - seccomp:./seccomp.json
+    mem_limit: "${IPA_TESTS_REPLICA_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_REPLICA_MEMSWAP_LIMIT}"
+    volumes:
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
+
+  client:
+    image: ${IPA_DOCKER_IMAGE}
+    build: .
+    cap_add:
+    - ALL
+    cap_drop:
+    - CAP_SYS_TIME
+    security_opt:
+    - apparmor:unconfined
+    - seccomp:./seccomp.json
+    mem_limit: "${IPA_TESTS_CLIENT_MEM_LIMIT}"
+    memswap_limit: "${IPA_TESTS_CLIENT_MEMSWAP_LIMIT}"
+    volumes:
+    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
+    # nfs server
+    - ./exports:/exports
+    - /lib/modules:/lib/modules:ro
+

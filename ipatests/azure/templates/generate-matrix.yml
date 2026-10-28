@@ -1,0 +1,9 @@
+parameters:
+    definition: ''
+    displayName: ''
+    name: ''
+
+steps:
+  - script: python3 $(IPA_TESTS_SCRIPTS)/generate-matrix.py ${{ parameters.definition }} $(MAX_CONTAINER_ENVS)
+    name: ${{ parameters.name }}
+    displayName: ${{ parameters.displayName }}

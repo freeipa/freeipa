@@ -1,0 +1,29 @@
+# Enable Retro changelog - it is necessary for SyncRepl
+dn: cn=Retro Changelog Plugin,cn=plugins,cn=config
+only:nsslapd-pluginEnabled: on
+# Remember original nsuniqueid for objects referenced from cn=changelog
+add:nsslapd-attribute: nsuniqueid:targetUniqueId
+add:nsslapd-changelogmaxage: 2d
+add:nsslapd-include-suffix: cn=dns,$SUFFIX
+
+# Keep memberOf and referential integrity plugins away from cn=changelog.
+# It is necessary for performance reasons because we don't have appropriate
+# indices for cn=changelog.
+dn: cn=MemberOf Plugin,cn=plugins,cn=config
+add:memberofentryscope: $SUFFIX
+add:memberofentryscopeexcludesubtree: cn=compat,$SUFFIX
+add:memberofentryscopeexcludesubtree: cn=provisioning,$SUFFIX
+add:memberofentryscopeexcludesubtree: cn=topology,cn=ipa,cn=etc,$SUFFIX
+
+dn: cn=referential integrity postoperation,cn=plugins,cn=config
+add:nsslapd-plugincontainerscope: $SUFFIX
+add:nsslapd-pluginentryscope: $SUFFIX
+add:nsslapd-pluginExcludeEntryScope: cn=provisioning,$SUFFIX
+
+# Enable SyncRepl
+dn: cn=Content Synchronization,cn=plugins,cn=config
+only:nsslapd-pluginEnabled: on
+
+# Make sure IPA UUID does not generate ipaUniqueID for Stage/Delete entries
+dn: cn=IPA Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+add:ipaUuidExcludeSubtree: cn=provisioning,$SUFFIX

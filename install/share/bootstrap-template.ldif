@@ -1,0 +1,525 @@
+dn: cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: accounts
+
+dn: cn=users,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: users
+
+dn: cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: groups
+
+dn: cn=services,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: services
+
+dn: cn=computers,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: computers
+
+dn: cn=hostgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hostgroups
+
+dn: cn=ipservices,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: ipservices
+
+dn: cn=alt,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: alt
+
+dn: cn=ng,cn=alt,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: ng
+
+dn: cn=automount,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: automount
+
+dn: cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: nsContainer
+cn: default
+
+dn: automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automountMap
+automountMapName: auto.master
+
+dn: automountmapname=auto.direct,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automountMap
+automountMapName: auto.direct
+
+dn: description=/- auto.direct,automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
+changetype: add
+objectClass: automount
+automountKey: /-
+automountInformation: auto.direct
+description: /- auto.direct
+
+dn: cn=hbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbac
+
+dn: cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbacservices
+
+dn: cn=hbacservicegroups,cn=hbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbacservicegroups
+
+dn: cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudo
+
+dn: cn=sudocmds,cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudocmds
+
+dn: cn=sudocmdgroups,cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudocmdgroups
+
+dn: cn=sudorules,cn=sudo,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: sudorules
+
+dn: cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: etc
+
+dn: cn=locations,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: locations
+
+dn: cn=sysaccounts,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: sysaccounts
+
+dn: cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: ipa
+
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: masters
+
+dn: cn=replicas,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: replicas
+
+dn: cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: dna
+
+dn: cn=posix-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: posix-ids
+
+dn: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: subordinate-ids
+
+dn: cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: ca_renewal
+
+dn: cn=certificates,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: certificates
+
+dn: cn=custodia,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: custodia
+
+dn: cn=dogtag,cn=custodia,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: dogtag
+
+dn: cn=s4u2proxy,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: s4u2proxy
+
+dn: cn=ipa-http-delegation,cn=s4u2proxy,cn=etc,$SUFFIX
+changetype: add
+objectClass: ipaKrb5DelegationACL
+objectClass: groupOfPrincipals
+objectClass: top
+cn: ipa-http-delegation
+memberPrincipal: HTTP/$HOST@$REALM
+ipaAllowedTarget: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+ipaAllowedTarget: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+
+dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+changetype: add
+objectClass: groupOfPrincipals
+objectClass: top
+cn: ipa-ldap-delegation-targets
+memberPrincipal: ldap/$HOST@$REALM
+
+dn: cn=ipa-cifs-delegation-targets,cn=s4u2proxy,cn=etc,$SUFFIX
+changetype: add
+objectClass: groupOfPrincipals
+objectClass: top
+cn: ipa-cifs-delegation-targets
+
+dn: uid=admin,cn=users,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: posixaccount
+objectClass: krbprincipalaux
+objectClass: krbticketpolicyaux
+objectClass: inetuser
+objectClass: ipaobject
+objectClass: ipasshuser
+uid: admin
+krbPrincipalName: admin@$REALM
+krbPrincipalName: root@$REALM
+krbCanonicalName: admin@$REALM
+cn: Administrator
+sn: Administrator
+uidNumber: $IDSTART
+gidNumber: $IDSTART
+homeDirectory: /home/admin
+loginShell: $DEFAULT_ADMIN_SHELL
+gecos: Administrator
+nsAccountLock: FALSE
+ipaUniqueID: autogenerate
+
+dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: posixgroup
+objectClass: ipausergroup
+objectClass: ipaobject
+cn: admins
+description: Account administrators group
+gidNumber: $IDSTART
+member: uid=admin,cn=users,cn=accounts,$SUFFIX
+nsAccountLock: FALSE
+ipaUniqueID: autogenerate
+
+dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+objectClass: ipausergroup
+objectClass: ipaobject
+description: Default group for all users
+cn: ipausers
+ipaUniqueID: autogenerate
+
+dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: posixgroup
+objectClass: ipausergroup
+objectClass: ipaobject
+gidNumber: eval($IDSTART+2)
+description: Limited admins who can edit other users
+cn: editors
+ipaUniqueID: autogenerate
+
+dn: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupOfNames
+objectClass: nestedGroup
+objectClass: ipaobject
+objectClass: ipahostgroup
+description: IPA server hosts
+cn: ipaservers
+ipaUniqueID: autogenerate
+
+dn: cn=sshd,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sshd
+description: sshd
+ipauniqueid:autogenerate
+
+dn: cn=ftp,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: ftp
+description: ftp
+ipauniqueid:autogenerate
+
+dn: cn=su,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: su
+description: su
+ipauniqueid:autogenerate
+
+dn: cn=login,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: login
+description: login
+ipauniqueid:autogenerate
+
+dn: cn=su-l,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: su-l
+description: su with login shell
+ipauniqueid:autogenerate
+
+dn: cn=sudo,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sudo
+description: sudo
+ipauniqueid:autogenerate
+
+dn: cn=sudo-i,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: sudo-i
+description: sudo-i
+ipauniqueid:autogenerate
+
+dn: cn=systemd-user,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: systemd-user
+description: pam_systemd and systemd user@.service
+ipauniqueid:autogenerate
+
+dn: cn=gdm,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: gdm
+description: gdm
+ipauniqueid:autogenerate
+
+dn: cn=gdm-password,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: gdm-password
+description: gdm-password
+ipauniqueid:autogenerate
+
+dn: cn=kdm,cn=hbacservices,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipahbacservice
+objectclass: ipaobject
+cn: kdm
+description: kdm
+ipauniqueid:autogenerate
+
+dn: cn=Sudo,cn=hbacservicegroups,cn=hbac,$SUFFIX
+changetype: add
+objectClass: ipaobject
+objectClass: ipahbacservicegroup
+objectClass: nestedGroup
+objectClass: groupOfNames
+objectClass: top
+cn: Sudo
+ipauniqueid:autogenerate
+description: Default group of Sudo related services
+member: cn=sudo,cn=hbacservices,cn=hbac,$SUFFIX
+member: cn=sudo-i,cn=hbacservices,cn=hbac,$SUFFIX
+
+dn: cn=ipaConfig,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+objectClass: ipaGuiConfig
+objectClass: ipaConfigObject
+ipaUserSearchFields: uid,givenname,sn,telephonenumber,ou,title
+ipaGroupSearchFields: cn,description
+ipaSearchTimeLimit: 2
+ipaSearchRecordsLimit: 100
+ipaHomesRootDir: /home
+ipaDefaultLoginShell: $DEFAULT_SHELL
+ipaDefaultPrimaryGroup: ipausers
+ipaMaxUsernameLength: 32
+ipaMaxHostnameLength: 64
+ipaPwdExpAdvNotify: 4
+ipaServiceKeyTypeSize: $DEFAULT_KEY_TYPE_SIZE
+ipaGroupObjectClasses: top
+ipaGroupObjectClasses: groupofnames
+ipaGroupObjectClasses: nestedgroup
+ipaGroupObjectClasses: ipausergroup
+ipaGroupObjectClasses: ipaobject
+ipaUserObjectClasses: top
+ipaUserObjectClasses: person
+ipaUserObjectClasses: organizationalperson
+ipaUserObjectClasses: inetorgperson
+ipaUserObjectClasses: inetuser
+ipaUserObjectClasses: posixaccount
+ipaUserObjectClasses: krbprincipalaux
+ipaUserObjectClasses: krbticketpolicyaux
+ipaUserObjectClasses: ipaobject
+ipaUserObjectClasses: ipasshuser
+ipaDefaultEmailDomain: $DOMAIN
+ipaMigrationEnabled: FALSE
+ipaConfigString: AllowNThash
+ipaConfigString: KDC:Disable Last Success
+ipaSELinuxUserMapOrder: $SELINUX_USERMAP_ORDER
+ipaSELinuxUserMapDefault: $SELINUX_USERMAP_DEFAULT
+
+dn: cn=cosTemplates,cn=accounts,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: nsContainer
+cn: cosTemplates
+
+# templates for this cos definition are managed by the pwpolicy plugin
+dn: cn=Password Policy,cn=accounts,$SUFFIX
+changetype: add
+description: Password Policy based on group membership
+objectClass: top
+objectClass: ldapsubentry
+objectClass: cosSuperDefinition
+objectClass: cosClassicDefinition
+cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
+cosAttribute: krbPwdPolicyReference override
+cosSpecifier: memberOf
+
+dn: cn=selinux,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: selinux
+
+dn: cn=usermap,cn=selinux,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: usermap
+
+dn: cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: ranges
+
+dn: cn=${REALM}_id_range,cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaIDrange
+objectClass: ipaDomainIDRange
+cn: ${REALM}_id_range
+ipaBaseID: $IDSTART
+ipaIDRangeSize: $IDRANGE_SIZE
+ipaRangeType: ipa-local
+
+dn: cn=${REALM}_subid_range,cn=ranges,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: ipaIDrange
+objectClass: ipaTrustedADDomainRange
+cn: ${REALM}_subid_range
+ipaBaseID: eval($SUBID_RANGE_START)
+ipaIDRangeSize: eval($SUBID_RANGE_SIZE)
+# HACK: RIDs to work around adtrust sidgen issue
+ipaBaseRID: eval($SUBID_BASE_RID)
+# 738065-838566 = IPA-SUB
+ipaNTTrustedDomainSID: S-1-5-21-738065-838566-$DOMAIN_HASH
+# HACK: "ipa-local-subid" range type causes issues with older SSSD clients
+# see https://github.com/SSSD/sssd/issues/5571
+ipaRangeType: ipa-ad-trust
+
+dn: cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: ca
+
+dn: cn=certprofiles,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: certprofiles
+
+dn: cn=caacls,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: caacls
+
+dn: cn=cas,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: cas

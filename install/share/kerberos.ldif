@@ -1,0 +1,35 @@
+#kerberos base object
+dn: cn=kerberos,$SUFFIX
+changetype: add
+objectClass: krbContainer
+objectClass: top
+cn: kerberos
+
+#Realm base object
+dn: cn=$REALM,cn=kerberos,$SUFFIX
+changetype: add
+cn: $REALM
+objectClass: top
+objectClass: krbrealmcontainer
+objectClass: krbticketpolicyaux
+krbSubTrees: $SUFFIX
+krbSearchScope: 2
+krbMaxTicketLife: 86400
+krbMaxRenewableAge: 604800
+${LDIF_SUPPORTED_ENCTYPES}${LDIF_DEFAULT_ENCTYPES}
+# Default password Policy
+dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+objectClass: krbPwdPolicy
+objectClass: ipaPwdPolicy
+krbMinPwdLife: 3600
+krbPwdMinDiffChars: 0
+krbPwdMinLength: 8
+krbPwdHistoryLength: 0
+krbMaxPwdLife: 7776000
+krbPwdMaxFailure: 6
+krbPwdFailureCountInterval: 60
+krbPwdLockoutDuration: 600
+passwordGraceLimit: -1

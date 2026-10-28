@@ -1,0 +1,13 @@
+[sssd]
+services = nss, pam
+config_file_version = 2
+domains = default
+re_expression = (?P<name>.+)
+
+[domain/default]
+cache_credentials = True
+id_provider = ldap
+auth_provider = ldap
+ldap_uri = $URI
+ldap_search_base = $BASE
+ldap_tls_cacert = /etc/openldap/cacerts/ipa.crt

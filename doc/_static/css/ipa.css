@@ -1,0 +1,4 @@
+section ul.simple li {
+    list-style: disc;
+    margin-left: 1em;
+}

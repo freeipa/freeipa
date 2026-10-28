@@ -1,0 +1,24 @@
+dn: cn=ranges,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: ranges
+
+dn: cn=IPA Range-Check,cn=plugins,cn=config
+default: objectclass: top
+default: objectclass: nsSlapdPlugin
+default: objectclass: extensibleObject
+default: cn: IPA Range-Check
+default: nsslapd-pluginpath: libipa_range_check
+default: nsslapd-plugininitfunc: ipa_range_check_init
+default: nsslapd-plugintype: preoperation
+default: nsslapd-pluginenabled: on
+default: nsslapd-pluginid: ipa_range_check_version
+default: nsslapd-pluginversion: 1.0
+default: nsslapd-pluginvendor: Red Hat, Inc.
+default: nsslapd-plugindescription: IPA Range-Check plugin
+default: nsslapd-plugin-depends-on-type: database
+default: nsslapd-basedn: $SUFFIX
+
+# Add new ipaIDobject to DNA plugin configuraton
+dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+replace:dnaFilter:(|(objectclass=posixAccount)(objectClass=posixGroup))::(|(objectClass=posixAccount)(objectClass=posixGroup)(objectClass=ipaIDobject))

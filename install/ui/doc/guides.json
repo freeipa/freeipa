@@ -1,0 +1,37 @@
+[
+    {
+        "title": "FreeIPA Web UI Guides",
+        "items": [
+            {
+                "name": "Debugging",
+                "url": "guides/debugging_web_ui",
+                "title": "Web UI debugging",
+                "description": "With built JavaScript layer debugging can be quite tricky."
+            },
+            {
+                "name": "Navigation",
+                "url": "guides/navigation",
+                "title": "Navigation",
+                "description": "Navigation was refactored. This guide describes previous flaws and new implementation"
+            },
+            {
+                "name": "Plugins",
+                "url": "guides/plugins",
+                "title": "Plugin support",
+                "description": "Introduction into plugin infrastructure."
+            },
+            {
+                "name": "Phases",
+                "url": "guides/phases",
+                "title": "Application phases",
+                "description": "Introduction to application phases"
+            },
+            {
+                "name": "Registries",
+                "url": "guides/registries",
+                "title": "Registries and Build system",
+                "description": "This document contains design of component build system."
+            }
+        ]
+    }
+]

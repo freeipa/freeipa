@@ -1,0 +1,8 @@
+# Add the Realm Domains container
+
+dn: cn=Realm Domains,cn=ipa,cn=etc,$SUFFIX
+default:objectClass: domainRelatedObject
+default:objectClass: nsContainer
+default:objectClass: top
+default:cn: Realm Domains
+default:associatedDomain: $DOMAIN

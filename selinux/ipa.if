@@ -1,0 +1,511 @@
+## <summary>Policy for IPA services.</summary>
+
+########################################
+## <summary>
+##	Execute rtas_errd in the rtas_errd domin.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`ipa_domtrans_otpd',`
+	gen_require(`
+		type ipa_otpd_t, ipa_otpd_exec_t, sssd_mfa_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, ipa_otpd_exec_t, ipa_otpd_t)
+	domtrans_pattern($1, sssd_mfa_exec_t, ipa_otpd_t)
+')
+
+########################################
+## <summary>
+##	Connect to ipa-otpd over a unix stream socket.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_stream_connect_otpd',`
+	gen_require(`
+		type ipa_otpd_t;
+	')
+    allow $1 ipa_otpd_t:unix_stream_socket connectto;
+')
+
+########################################
+## <summary>
+##	Connect to ipa-ods-exporter over a unix stream socket.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_stream_connect_ods_exporter',`
+	gen_require(`
+		type ipa_ods_exporter_t;
+	')
+    allow $1 ipa_ods_exporter_t:unix_stream_socket connectto;
+')
+
+########################################
+## <summary>
+##	Execute ipa-helper in the ipa_helper domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`ipa_domtrans_helper',`
+	gen_require(`
+		type ipa_helper_t, ipa_helper_exec_t;
+	')
+
+	domtrans_pattern($1, ipa_helper_exec_t, ipa_helper_t)
+')
+
+########################################
+## <summary>
+##	Execute ipa-helper in the ipa_helper domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_run_helper',`
+	gen_require(`
+		type ipa_helper_t;
+        attribute_role ipa_helper_roles;
+	')
+
+    ipa_domtrans_helper($1)
+    roleattribute $2 ipa_helper_roles;
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa lib files/dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_search_lib',`
+	gen_require(`
+		type ipa_var_lib_t, ipa_public_pki_t;
+	')
+
+    search_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    search_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa lib files/dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_manage_lib',`
+	gen_require(`
+		type ipa_var_lib_t, ipa_public_pki_t;
+	')
+
+    manage_files_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    manage_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    manage_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    manage_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa log files/dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_manage_log',`
+	gen_require(`
+		type ipa_log_t;
+	')
+
+    manage_files_pattern($1, ipa_log_t, ipa_log_t)
+    manage_dirs_pattern($1, ipa_log_t, ipa_log_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa lib files/dirs.
+##      This includes reading ipa_http_keytab_t files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_lib',`
+	gen_require(`
+		type ipa_http_keytab_t;
+		type ipa_var_lib_t;
+		type ipa_public_pki_t;
+	')
+
+    read_files_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    read_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
+    list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    list_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa HTTP keytab file.
+##      This includes reading ipa_var_lib_t directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_http_keytab',`
+	gen_require(`
+		type ipa_http_keytab_t;
+		type ipa_var_lib_t;
+	')
+
+    read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
+    list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+')
+
+########################################
+## <summary>
+##      Allow domain to read public PKI files
+##      Also give access to realmd_var_lib_t for upgrade
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_public_pki',`
+	gen_require(`
+		type ipa_public_pki_t, realmd_var_lib_t;
+	')
+
+    read_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    list_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    read_files_pattern($1, realmd_var_lib_t, realmd_var_lib_t)
+    list_dirs_pattern($1, realmd_var_lib_t, realmd_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa run files/dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_manage_pid_files',`
+	gen_require(`
+		type ipa_var_run_t;
+	')
+    manage_files_pattern($1, ipa_var_run_t, ipa_var_run_t)
+    manage_dirs_pattern($1, ipa_var_run_t, ipa_var_run_t)
+')
+
+########################################
+## <summary>
+##	Create specified objects in generic
+##	pid directories with the ipa pid file type.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="name" optional="true">
+##	<summary>
+##	The name of the object being created.
+##	</summary>
+## </param>
+#
+interface(`ipa_filetrans_pid',`
+	gen_require(`
+		type ipa_var_run_t;
+	')
+
+	files_pid_filetrans($1, ipa_var_run_t, file, $2)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa tmp files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_delete_tmp',`
+	gen_require(`
+		type ipa_tmp_t;
+	')
+
+	files_search_tmp($1)
+	allow $1 ipa_tmp_t:file unlink;
+')
+
+########################################
+## <summary>
+##	Create log files with a named file
+##	type transition.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_named_filetrans_log_dir',`
+	gen_require(`
+		type ipa_log_t;
+	')
+
+	logging_log_named_filetrans($1, ipa_log_t, dir, "ipa")
+')
+
+#######################################
+## <summary>
+##      Allow domain to create /tmp/ca.p12
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`ipa_filetrans_named_content',`
+
+    gen_require(`
+        type ipa_tmp_t;
+    ')
+    
+    files_tmp_filetrans($1, ipa_tmp_t, file, "ca.p12")
+')
+
+########################################
+## <summary>
+##	Create file ipasession.key in cert_t dir
+##  with ipa_cert_t type
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_cert_filetrans_named_content',`
+	gen_require(`
+		type ipa_cert_t;
+        type cert_t;
+	')
+
+	filetrans_pattern($1, cert_t, ipa_cert_t, file ,"ipasession.key")
+    manage_files_pattern($1, ipa_cert_t, ipa_cert_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to read ipa tmp files/dirs.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_tmp',`
+	gen_require(`
+		type ipa_tmp_t;
+	')
+
+    read_files_pattern($1, ipa_tmp_t, ipa_tmp_t)
+')
+
+########################################
+## <summary>
+##	Execute ipa_custodia_exec_t in the ipa_custodia domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`ipa_custodia_domtrans',`
+	gen_require(`
+		type ipa_custodia_t, ipa_custodia_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, ipa_custodia_exec_t, ipa_custodia_t)
+')
+
+######################################
+## <summary>
+##	Execute ipa-pki-retrieve-key in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_pki_retrieve_key_exec',`
+	gen_require(`
+		type ipa_pki_retrieve_key_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, ipa_pki_retrieve_key_exec_t)
+')
+
+######################################
+## <summary>
+##	Execute ipa_custodia in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_custodia_exec',`
+	gen_require(`
+		type ipa_custodia_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, ipa_custodia_exec_t)
+')
+
+#####################################
+## <summary>
+##	Connect to ipa_custodia with a unix
+##	domain stream socket.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_custodia_stream_connect',`
+	gen_require(`
+		type ipa_custodia_t;
+	')
+
+    allow $1 ipa_custodia_t:unix_stream_socket { connectto };
+')
+
+########################################
+## <summary>
+##      Manage apache pid objects.
+##      The interface is defined by selinux-policy since Fedora 31 and is
+##      conditionally defined here for Fedora 30.
+##      See https://codeberg.org/freeipa/freeipa/issues/8241.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+
+ifndef(`apache_manage_pid_files',`
+	interface(`apache_manage_pid_files',`
+		gen_require(`
+			type httpd_var_run_t;
+		')
+
+		files_search_pids($1)
+		manage_dirs_pattern($1, httpd_var_run_t, httpd_var_run_t)
+		manage_files_pattern($1, httpd_var_run_t, httpd_var_run_t)
+		manage_sock_files_pattern($1, httpd_var_run_t, httpd_var_run_t)
+	')
+')
+
+########################################
+## <summary>
+##	Execute dirsrv server in the dirsrv domain.
+##  Backport from https://github.com/fedora-selinux/selinux-policy-contrib/pull/241
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+ifndef(`dirsrv_systemctl',`
+    interface(`dirsrv_systemctl',`
+        gen_require(`
+            type dirsrv_unit_file_t;
+            type dirsrv_t;
+        ')
+
+        systemd_exec_systemctl($1)
+        init_reload_services($1)
+        allow $1 dirsrv_unit_file_t:file read_file_perms;
+        allow $1 dirsrv_unit_file_t:service manage_service_perms;
+
+        ps_process_pattern($1, dirsrv_t)
+    ')
+')
+
+
+########################################
+## <summary>
+##	Allow ipa_helper noatsecure
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_helper_noatsecure',`
+    gen_require(`
+	type ipa_helper_t;
+    ')
+    allow $1 ipa_helper_t:process { noatsecure };
+')

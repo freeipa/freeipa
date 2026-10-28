@@ -1,0 +1,5 @@
+# Repoint Managed Entries to the replicated cn=etc space
+dn: cn=Managed Entries,cn=plugins,cn=config
+changetype: modify
+add: nsslapd-pluginConfigArea
+nsslapd-pluginConfigArea: cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX

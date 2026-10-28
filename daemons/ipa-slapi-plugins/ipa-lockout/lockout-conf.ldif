@@ -1,0 +1,15 @@
+dn: cn=IPA Lockout,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: IPA Lockout
+nsslapd-pluginpath: libipa_lockout
+nsslapd-plugininitfunc: ipalockout_init
+nsslapd-plugintype: object
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipalockout_version
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-plugindescription: IPA Lockout plugin
+nsslapd-plugin-depends-on-type: database

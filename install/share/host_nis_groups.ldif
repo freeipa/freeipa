@@ -1,0 +1,23 @@
+dn: cn=NGP HGP Template,cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectclass: mepTemplateEntry
+cn: NGP HGP Template
+mepRDNAttr: cn
+mepStaticAttr: ipaUniqueId: autogenerate
+mepStaticAttr: objectclass: ipanisnetgroup
+mepStaticAttr: objectclass: ipaobject
+mepStaticAttr: nisDomainName: $DOMAIN
+mepMappedAttr: cn: $$cn
+mepMappedAttr: memberHost: $$dn
+mepMappedAttr: description: ipaNetgroup $$cn
+
+# Changes to this definition need to be reflected in
+# updates/20-host_nis_groups.update
+dn: cn=NGP Definition,cn=Definitions,cn=Managed Entries,cn=etc,$SUFFIX
+changetype: add
+objectclass: extensibleObject
+cn: NGP Definition
+originScope: cn=hostgroups,cn=accounts,$SUFFIX
+originFilter: objectclass=ipahostgroup
+managedBase: cn=ng,cn=alt,$SUFFIX
+managedTemplate: cn=NGP HGP Template,cn=Templates,cn=Managed Entries,cn=etc,$SUFFIX

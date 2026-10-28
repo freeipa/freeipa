@@ -1,0 +1,74 @@
+#!/usr/bin/python3
+
+# Authors:
+#   Petr Viktorin <pviktori@redhat.com>
+#   Jason Gerard DeRose <jderose@redhat.com>
+#
+# Copyright (C) 2008-2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Pytest wrapper for running an installed (not in-tree) IPA test suite
+
+Any command-line arguments are passed directly to pytest.
+The current directory is changed to the location of the ipatests package,
+so any relative paths given will be based on the ipatests module's path.
+"""
+
+import os
+import sys
+
+import pytest
+
+import ipatests
+
+# This is set to store --with-xunit report in an accessible place:
+os.environ['IPATEST_XUNIT_PATH'] = os.path.join(os.getcwd(), 'nosetests.xml')
+
+HERE = os.path.dirname(os.path.abspath(ipatests.__file__))
+
+def has_option(option):
+    if option in sys.argv:
+        return True
+    for arg in sys.argv:
+        for argi in arg.split("="):
+            if option in argi:
+                return True
+    return False
+
+# don't override specified command line options
+if not has_option("confcutdir"):
+    sys.argv.insert(1, "--confcutdir={}".format(HERE))
+# for backward compatibility
+if not has_option("cache_dir"):
+    sys.argv[1:1] = ["-o", 'cache_dir={}'.format(os.path.join(os.getcwd(),
+                                                 ".pytest_cache"))]
+# Pytest 5.2 deprecation: The default value of junit_family option will change
+# to xunit2 in pytest 6.0. Current XML scheme is xunit1.
+if not has_option("junit_family"):
+    sys.argv[1:1] = ["-o", 'junit_family=xunit1']
+
+pyt_args = [sys.executable, "-c",
+            "import sys,pytest;sys.exit(pytest.main())"] + sys.argv[1:]
+# shell is needed to perform globbing
+sh_args = ["/bin/bash", "--norc", "--noprofile", "-c", "--"]
+pyt_args_esc = [
+    f"'{x}'" if not x or " " in x else x
+    for x in pyt_args
+]
+args = sh_args + [" ".join(pyt_args_esc)]
+os.chdir(HERE)
+sys.stdout.flush()
+os.execv(args[0], args)

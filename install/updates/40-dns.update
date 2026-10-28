@@ -1,0 +1,36 @@
+
+# update DNS container
+dn: cn=dns, $SUFFIX
+addifexist: objectClass: idnsConfigObject
+addifexist: aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries in a zone";allow (add) userattr = "parent[1].managedby#GROUPDN";)
+addifexist: aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries from a zone";allow (delete) userattr = "parent[1].managedby#GROUPDN";)
+addifexist: aci:(targetattr = "a6record || aaaarecord || afsdbrecord || aplrecord || arecord || certrecord || cn || cnamerecord || dhcidrecord || dlvrecord || dnamerecord || dnsclass || dnsttl || dsrecord || hinforecord || hiprecord || idnsallowdynupdate || idnsallowquery || idnsallowsyncptr || idnsallowtransfer || idnsforwarders || idnsforwardpolicy || idnsname || idnssecinlinesigning || idnssoaexpire || idnssoaminimum || idnssoamname || idnssoarefresh || idnssoaretry || idnssoarname || idnssoaserial || idnsupdatepolicy || idnszoneactive || ipseckeyrecord || keyrecord || kxrecord || locrecord || mdrecord || minforecord || mxrecord || naptrrecord || nsecrecord || nsec3paramrecord || nsrecord || nxtrecord || ptrrecord || rprecord || rrsigrecord || sigrecord || spfrecord || srvrecord || sshfprecord || tlsarecord || txtrecord || urirecord || unknownrecord ")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
+addifexist: aci:(targetattr = "aaaarecord || arecord || cnamerecord || idnsname || objectclass || ptrrecord")(targetfilter = "(&(objectclass=idnsrecord)(|(aaaarecord=*)(arecord=*)(cnamerecord=*)(ptrrecord=*)(idnsZoneActive=TRUE)))")(version 3.0; acl "Allow hosts to read DNS A/AAA/CNAME/PTR records"; allow (read,search,compare) userdn = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX";)
+
+# replace DNS tree deny rule with managedBy enhanced allow rule
+dn: cn=dns, $SUFFIX
+replace:aci:(targetattr = "*")(version 3.0; acl "No access to DNS tree without a permission"; deny (read,search,compare) (groupdn != "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX") and (groupdn != "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX");)::(targetattr = "*")(version 3.0; acl "Read DNS entries from a zone"; allow (read,search,compare) userattr = "parent[0,1].managedby#GROUPDN";)
+replace:aci:(targetattr = "*")(version 3.0; acl "Allow read access"; allow (read,search,compare) groupdn = "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX" or userattr = "parent[0,1].managedby#GROUPDN";)::(targetattr = "*")(version 3.0; acl "Read DNS entries from a zone"; allow (read,search,compare) userattr = "parent[0,1].managedby#GROUPDN";)
+
+# remove old managedBy ACIs
+dn: cn=dns, $SUFFIX
+remove:aci:(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
+remove:aci:(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders || dlvrecord || idnssecinlinesigning || nsec3paramrecord || tlsarecord ")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
+remove:aci:(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders || dlvrecord || idnssecinlinesigning || nsec3paramrecord || tlsarecord || unknownrecord ")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
+remove:aci:(targetattr = "a6record || aaaarecord || afsdbrecord || aplrecord || arecord || certrecord || cn || cnamerecord || dhcidrecord || dlvrecord || dnamerecord || dnsclass || dnsttl || dsrecord || hinforecord || hiprecord || idnsallowdynupdate || idnsallowquery || idnsallowsyncptr || idnsallowtransfer || idnsforwarders || idnsforwardpolicy || idnsname || idnssecinlinesigning || idnssoaexpire || idnssoaminimum || idnssoamname || idnssoarefresh || idnssoaretry || idnssoarname || idnssoaserial || idnsupdatepolicy || idnszoneactive || ipseckeyrecord || keyrecord || kxrecord || locrecord || mdrecord || minforecord || mxrecord || naptrrecord || nsecrecord || nsec3paramrecord || nsrecord || nxtrecord || ptrrecord || rprecord || rrsigrecord || sigrecord || spfrecord || srvrecord || sshfprecord || tlsarecord || txtrecord || unknownrecord ")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
+
+# add DNS plugin
+dn: cn=IPA DNS,cn=plugins,cn=config
+default: objectclass: top
+default: objectclass: nsslapdPlugin
+default: objectclass: extensibleObject
+default: cn: IPA DNS
+default: nsslapd-plugindescription: IPA DNS support plugin
+default: nsslapd-pluginenabled: on
+default: nsslapd-pluginid: ipa_dns
+default: nsslapd-plugininitfunc: ipadns_init
+default: nsslapd-pluginpath: libipa_dns.so
+default: nsslapd-plugintype: preoperation
+default: nsslapd-pluginvendor: Red Hat, Inc.
+default: nsslapd-pluginversion: 1.0
+default: nsslapd-plugin-depends-on-type: database

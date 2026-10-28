@@ -1,0 +1,36 @@
+Extending FreeIPA
+-----------------
+
+"Extending FreeIPA" is a developer guide to understand how FreeIPA core 
+framework is built and how to extend it.
+
+The Guide is written using Emacs Org Mode, see http://orgmode.org/org.html
+for extensive manual of supported markup features.
+
+You don't need to use Emacs to edit it, the markup is a plain text.
+
+Building the guide
+------------------
+
+There is Makefile which can be used to convert the Guide from
+Emacs Org Mode format to different targets.
+
+Prerequisites:
+==============
+On Fedora system following packages are required to generate The Guide:
+
+docbook-style-xsl
+fop
+emacs
+xmlto
+
+HTML, Docbook, and plain text
+---
+As Org Mode is part of Emacs since version 22, building HTML, TXT, and 
+Docbook targets requires Emacs v22 and above (tested with v23.3 in Fedora).
+
+PDF
+---
+Building PDF is done first generating Docbook source, converting it to FO format,
+and then running 'fop' processor.
+

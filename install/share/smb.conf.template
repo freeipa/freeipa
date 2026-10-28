@@ -1,0 +1,7 @@
+### Added by IPA Installer ###
+#         DO NOT EDIT        #
+[global]
+debug pid = yes
+state directory = $SAMBA_DIR
+cache directory = $SAMBA_DIR
+include = registry

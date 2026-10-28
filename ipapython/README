@@ -1,0 +1,15 @@
+This is a set of libraries common to IPA clients and servers though mostly
+geared currently towards command-line tools.
+
+A brief overview:
+
+config.py - identify the IPA server domain and realm. It uses python-dns to
+            try to detect this information first and will fall back to
+            /etc/ipa/default.conf if that fails.
+
+ipautil.py - helper functions
+
+entity.py - entity is the main data type. User and Group extend this class
+            (but don't add anything currently).
+
+ipavalidate.py - basic data validation routines

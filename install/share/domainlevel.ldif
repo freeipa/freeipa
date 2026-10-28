@@ -1,0 +1,7 @@
+# Create default Domain Level for new masters
+dn: cn=Domain Level,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+objectClass: ipaDomainLevelConfig
+ipaDomainLevel: $DOMAIN_LEVEL

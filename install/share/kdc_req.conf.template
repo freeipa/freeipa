@@ -1,0 +1,14 @@
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+attributes         = req_attributes
+prompt             = no
+output_password    = $PASSWORD
+
+[ req_distinguished_name ]
+$SUBJBASE
+$CERTNAME
+
+[ req_attributes ]
+challengePassword = A challenge password
+

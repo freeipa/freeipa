@@ -1,0 +1,169 @@
+.\" A man page for ipa-test-task
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Petr Viktorin <pviktori@redhat.com>
+.\"
+.TH "ipa-test-task" "1" "Aug 29 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-test\-task \- Run a task for FreeIPA testing
+.SH "SYNOPSIS"
+ipa\-test\-task \-h
+.br
+ipa\-test\-task [global-options] TASK [task-options]
+.SH "DESCRIPTION"
+Run a task using FreeIPA integration testing configuration.
+This tool is meant for use in scripts that test FreeIPA functionality.
+See ipa-test-config(1) for FreeIPA integration test configuration.
+
+This tool should never be run in a production environment.
+It is not designed with security in mind.
+
+.SH "GLOBAL OPTIONS"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print out the command's usage and exit.
+If given after a subcommand, prints that subcommand's usage message.
+
+.TP
+\fB\-\-with\-beakerlib\fR
+Enable BeakerLib integration.
+Log messages are reported via beakerlib(1) commands.
+This option requires an active BeakerLib phase.
+
+.SH "SUBCOMMANDS"
+.TP
+\fBipa\-test\-task install\-master [\-\-host HOST]\fR
+Install an initial IPA server on the given host, or on the configured master
+if \-\-host is not given.
+
+.TP
+\fBipa\-test\-task install\-replica [\-\-master MASTER] HOST\fR
+Install an IPA replica on the given host.
+It is initialized from the IPA server given by \-\-master, or from the
+configured master if \-\-master is not given.
+
+.TP
+\fBipa\-test\-task install\-client [\-\-master MASTER] HOST\fR
+Install an IPA client on the given host.
+It is initialized from the IPA server given by \-\-master, or from the
+configured master if \-\-master is not given.
+
+.TP
+\fBipa\-test\-task connect\-replica HOST1 HOST2\fR
+Create a replication agreement between two given replicas.
+
+.TP
+\fBipa\-test\-task disconnect\-replica HOST1 HOST2\fR
+Remove a replication agreement between two given replicas.
+
+.TP
+\fBipa\-test\-task uninstall\-server [HOST [HOST ...]]\fR
+Uninstall an IPA server (master or replica) on the given host(s), and
+restore the host(s) to the state before installation.
+If no host is given, uninstalls all configured masters and replicas.
+If no server is installed on a host, does nothing on that host.
+
+.TP
+\fBipa\-test\-task uninstall\-client [HOST [HOST ...]]\fR
+Uninstall an IPA client on the given host(s), and restore the host(s) to the
+state before installation.
+If no host is given, uninstalls all configured clients.
+If no client is installed on a host, does nothing on that host.
+
+.TP
+\fBipa\-test\-task uninstall\-all\fR
+Uninstall IPA from all configured master, replica and client hosts.
+Equivalent to running uninstall\-server and uninstall\-client without
+arguments.
+
+.TP
+\fBipa\-test\-task cleanup [HOST [HOST ...]]\fR
+Restore system configuration (such as /etc/resolv.conf) on the given hosts
+to a state before installation.
+If no hosts are given, clean up all configured hosts.
+This functionality is included in the uninstall\-* subcommands and is rarely
+useful alone.
+
+.TP
+\fBipa\-test\-task install-topo [\-\-skip\-master] [\-\-skip\-clients] [\-\-master M] [\-\-replicas R1 [R2...]] [\-\-clients C1 [C2 ...]] TOPO\fR
+Install a number of FreeIPA servers and clients in the given topology.
+Use the list\-topos subcommand for a list of available topologies.
+
+Unless \-\-skip\-master is given, an initial server is installed on the host
+given by \-\-master, or on the configured master if \-\-master is missing.
+
+Replicas are installed according to the selected topology on hosts given by
+\-\-replicas, or on all configured replicas if that option is not given.
+
+Unless \-\-skip\-clients is given, clients are installed on hosts given by
+\-\-clients, or on all configured clients if \-\-clients is not given.
+Servers used for client installation are selected in a round-robin fashion.
+
+.TP
+\fBipa\-test\-task list-topos\fR
+List the topologies available for the install-topo subcommand.
+
+.TP
+\fBipa\-test\-task install\-adtrust HOST\fR
+Run ipa-adtrust-install on the IPA and generate SIDs for the entries in IPA.
+
+.TP
+\fBipa\-test\-task configure\-dns\-for\-trust HOST AD\fR
+Based on the relationship of the domains configures the IPA DNS for trust.
+AD DNS needs to be setup manually.
+
+.TP
+\fBipa\-test\-task establish\-trust\-with\-ad HOST AD\fR
+Establishes trust with Active Directory. Trust type is detected depending on
+the presence of SfU (Services for Unix) support on the AD.
+
+.TP
+\fBipa\-test\-task remove\-trust\-with\-ad HOST AD\fR
+Removes trust with Active Directory. Also removes the associated ID range.
+
+.TP
+\fBipa\-test\-task configure\-auth\-to\-local\-rule HOST AD\fR
+Configures auth_to_local rule in /etc/krb5.conf
+
+.TP
+\fBipa\-test\-task clear\-sssd\-cache HOST\fR
+Clears SSSD cache by removing the cache files. Restarts SSSD.
+
+.TP
+\fBipa\-test\-task setup\-sssd\-debugging HOST\fR
+Sets up SSSD debugging. Restarts SSSD.
+
+.TP
+\fBipa\-test\-task sync\-time HOST SERVER\fR
+Syncs the time with the remote server. Please note that this function leaves
+chronyd stopped.
+
+.TP
+\fBipa\-test\-task add\-a\-records\-in\-master\-domain MASTER\fR
+Adds A records to the IPA master for all the hosts in the master domain.
+
+.TP
+\fBipa\-test\-task add\-a\-record MASTER HOST\fR
+Adds an A record for the host to the IPA master.
+
+.SH "EXIT STATUS"
+0 if the command was successful
+
+nonzero if an error occurred
+
+.SH "REFERENCES"
+A full description of the FreeIPA integration testing framework is available at
+http://www.freeipa.org/page/V3/Integration_testing

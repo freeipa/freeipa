@@ -1,0 +1,13 @@
+dn: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+default: objectClass: top
+default: objectClass: groupOfNames
+default: objectClass: nestedGroup
+default: objectClass: ipaobject
+default: objectClass: ipahostgroup
+default: description: IPA server hosts
+default: cn: ipaservers
+default: ipaUniqueID: autogenerate
+
+# Add local host to ipaservers
+dn: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+add: member: fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX

@@ -1,0 +1,71 @@
+pkgname = $(shell basename "$(abs_srcdir)")
+pkgpythondir = $(pythondir)/$(pkgname)
+
+if VERBOSE_MAKE
+VERBOSITY="--verbose"
+else
+VERBOSITY="--quiet"
+endif !VERBOSE_MAKE
+
+# hack to handle back-in-the-hierarchy depedency on ipasetup.py
+.PHONY: $(top_builddir)/ipasetup.py
+$(top_builddir)/ipasetup.py:
+	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
+
+all-local: $(top_builddir)/ipasetup.py
+	cd $(srcdir); $(PYTHON) setup.py \
+		$(VERBOSITY) \
+		build \
+		    --build-base "$(abs_builddir)/build"
+
+install-exec-local: $(top_builddir)/ipasetup.py
+	if [ "x$(pkginstall)" != "xfalse" ]; then \
+	    $(PYTHON) $(srcdir)/setup.py \
+		    $(VERBOSITY) \
+		    build \
+		        --build-base "$(abs_builddir)/build" \
+		    install \
+		        --prefix "$(DESTDIR)$(prefix)" \
+		        --single-version-externally-managed \
+		        --record "$(DESTDIR)$(pkgpythondir)/install_files.txt" \
+		        --optimize 1 \
+		        $(PYTHON_INSTALL_EXTRA_OPTIONS); \
+	fi
+
+uninstall-local:
+	if [ -f "$(DESTDIR)$(pkgpythondir)/install_files.txt" ]; then \
+	    cat "$(DESTDIR)$(pkgpythondir)/install_files.txt" | xargs rm -rf ; \
+	fi
+	rm -rf "$(DESTDIR)$(pkgpythondir)"
+
+clean-local: $(top_builddir)/ipasetup.py
+	$(PYTHON) "$(srcdir)/setup.py" \
+	    clean \
+	        --all
+	        --build-base "$(abs_builddir)/build"
+	rm -rf "$(srcdir)/build" "$(srcdir)/dist" "$(srcdir)/MANIFEST"
+	find "$(srcdir)" \
+		-name "*.py[co]" -delete -o	\
+		-name "__pycache__" -delete -o	\
+		-name "*.egg-info" -exec rm -rf {} +
+
+# take list of all Python source files and copy them into distdir
+# SOURCES.txt does not contain directories so we need to create those
+dist-hook: $(top_builddir)/ipasetup.py
+	$(PYTHON) "$(srcdir)/setup.py" egg_info
+	PYTHON_SOURCES=$$(cat "$(srcdir)/$(pkgname).egg-info/SOURCES.txt") || exit $$?;	\
+	for FILEN in $${PYTHON_SOURCES}; 						\
+	do										\
+		if test -x "$(srcdir)/$${FILEN}"; then MODE=755; else MODE=644; fi;	\
+		$(INSTALL) -D -m $${MODE} "$(srcdir)/$${FILEN}" "$(distdir)/$${FILEN}" || exit $$?;	\
+	done
+
+WHEELDISTDIR = $(top_builddir)/dist/wheels
+.PHONY: bdist_wheel
+bdist_wheel: $(top_builddir)/ipasetup.py
+	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
+	$(PYTHON) "$(srcdir)/setup.py" \
+	    build \
+	        --build-base "$(abs_builddir)/build" \
+	    bdist_wheel \
+	        --dist-dir=$(WHEELDISTDIR)

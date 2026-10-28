@@ -1,0 +1,95 @@
+.\" A man page for ipa-dns-install
+.\" Copyright (C) 2010-2016  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-dns-install" "1" "Jun 28, 2012" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-dns\-install \- Add DNS as a service to an IPA server
+.SH "SYNOPSIS"
+ipa\-dns\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Configure an integrated DNS server on this IPA server, create DNS zone with the name of the IPA primary DNS domain, and fill it in with service records necessary for IPA deployment.
+In cases where the IPA server name does not belong to the primary DNS domain and is not resolvable using DNS, create a DNS zone containing the IPA server name as well.
+
+IPA provides an integrated DNS server which can be used to simplify IPA deployment. If you decide to use it, IPA will automatically maintain SRV and other service records when you change your topology.
+
+The DNS component in IPA is optional and you may choose to manage all your DNS records manually on another third party DNS server. IPA DNS is not a general-purpose DNS server. If you need advanced features like DNS views, do not deploy IPA DNS.
+
+This command requires that an IPA server is already installed and configured.
+
+.SH "OPTIONS"
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+The IP address of the IPA server. If not provided then this is determined based on the hostname of the server.
+This option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
+.TP
+\fB\-\-forwarder\fR=\fIFORWARDER\fR
+A forwarder is a DNS server where queries for a specific non\-resolvable address can be directed. To define multiple forwarders use multiple instances of \fB\-\-forwarder\fR
+.TP
+\fB\-\-no\-forwarders\fR
+Do not add any DNS forwarders, send non\-resolvable addresses to the DNS root servers.
+.TP
+\fB\-\-auto\-forwarders\fR
+Add DNS forwarders configured in /etc/resolv.conf to the list of forwarders used by IPA DNS.
+.TP
+\fB\-\-forward\-policy\fR=\fIfirst|only\fR
+DNS forwarding policy for global forwarders specified using other options.
+Defaults to first if no IP address belonging to a private or reserved ranges is
+detected on local interfaces (RFC 6303). Defaults to only if a private
+IP address is detected.
+.TP
+\fB\-\-reverse\-zone\fR=\fIREVERSE_ZONE\fR
+The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.
+.TP
+\fB\-\-no\-reverse\fR
+Do not create new reverse DNS zone. If used on a replica and a reverse DNS zone already exists for the subnet, it will be used.
+.TP
+\fB\-\-auto\-reverse\fR
+Try to resolve reverse records and reverse zones for server IP addresses and if neither is resolvable creates these reverse zones.
+.TP
+\fB\-\-no\-dnssec\-validation\fR
+Disable DNSSEC validation on this server.
+.TP
+\fB\-\-dnssec\-master\fR
+Setup server to be DNSSEC key master.
+.TP
+\fB\-\-disable\-dnssec\-master\fR
+Disable the DNSSEC master on this server.
+.TP
+\fB\-\-kasp\-db\fR=\fIKASP_DB\fR
+Copy OpenDNSSEC metadata from the specified kasp.db file. This will not create a new kasp.db file.
+.TP
+\fB\-\-zonemgr\fR
+The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
+.TP
+\fB\-\-allow\-zone\-overlap\fR
+Allow creatin of (reverse) zone even if the zone is already resolvable. Using this option is discouraged as it result in later problems with domain name resolution.
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.TP
+\fB\-\-dns\-over\-tls\fR
+Configure DNS over TLS.
+.TP
+\fB\-\-dot\-forwarder\fR=\fIIP_ADDRESS#HOSTNAME\fR
+Add a DNS-over-TLS-enabled forwarder in the format of ip#hostname, e.g.: 1.2.3.4#dns.example.com. This option can be used multiple times.
+.TP
+\fB\-\-dns\-over\-tls\-cert\fR=\fIFILE\fR
+Certificate to use for DNS over TLS. If empty, a new certificate will be requested from IPA CA.
+.TP
+\fB\-\-dns\-over\-tls\-key\fR=\fIFILE\fR
+Key for the certificate specified in --dns-over-tls-key.
+.TP
+\fB\-\-dns\-policy\fR=\fIrelaxed|enforced\fR
+Encrypted DNS policy. If enforced, DNS communications will only be allowed through the configured encrypted DNS methods. If relaxed,
+unencrypted DNS queries will be allowed.
+.SH "DEPRECATED OPTIONS"
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
+The password to be used by the Directory Server for the Directory Manager user
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

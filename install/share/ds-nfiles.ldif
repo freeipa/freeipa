@@ -1,0 +1,8 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-maxdescriptors
+nsslapd-maxdescriptors: $NOFILES
+-
+replace: nsslapd-reservedescriptors
+nsslapd-reservedescriptors: 64
+-

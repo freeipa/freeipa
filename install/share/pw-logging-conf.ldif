@@ -1,0 +1,5 @@
+dn: cn=config
+changetype: modify
+replace: nsslapd-unhashed-pw-switch
+nsslapd-unhashed-pw-switch: nolog
+

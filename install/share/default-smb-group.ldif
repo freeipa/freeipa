@@ -1,0 +1,8 @@
+dn: cn=Default SMB Group,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+cn: Default SMB Group
+description: Fallback group for primary group RID, do not add users to this group
+gidnumber: -1
+objectclass: top
+objectclass: ipaobject
+objectclass: posixgroup

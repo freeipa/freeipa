@@ -1,0 +1,201 @@
+/*  Authors:
+ *    UXD team
+ *    Petr Vobornik <pvoborni@redhat.com>
+ *
+ * Copyright (C) 2013 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// This file contains overrides of reference RCUE implementation to comply
+// with IPA design
+
+
+// variables
+@checkbox-color: darken(#b7b7b7, 20%);
+@checkbox-disabled-color: #d2d2d2;
+@checkbox-hover-color: #64b0db;
+@checkbox-selected-color: darken(@checkbox-hover-color, 20%);
+
+/* Checkboxes and Radios */
+
+.radio-cnt, .checkbox-cnt {
+    position: relative;
+    padding: 0;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    display: inline;
+    position: absolute;
+    overflow: hidden;
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    opacity:0;
+}
+
+input[type="checkbox"]:focus + label:before,
+input[type="radio"]:focus + label:before {
+    outline: thin dotted @checkbox-selected-color;
+}
+
+input[type="checkbox"] + label,
+input[type="radio"] + label {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+
+    &:before {
+        .fa();
+
+        font-size: 125%;
+        vertical-align: -7%;
+        margin-right: 5px;
+    }
+}
+
+input[type="checkbox"].standalone + label,
+input[type="radio"].standalone + label {
+    width: 13px;
+
+    &:before {
+        margin-right: 0px;
+    }
+}
+
+input[type="radio"] + label,
+input[type="checkbox"] + label {
+
+    &:before {
+        color: @checkbox-color;
+    }
+
+    &:hover:before {
+        color: @checkbox-hover-color;
+    }
+}
+
+input[type="radio"]:disabled + label,
+input[type="checkbox"]:disabled + label {
+    color: @checkbox-disabled-color;
+
+    &:before,
+    &:hover:before {
+        color: @checkbox-disabled-color;
+    }
+}
+
+input[type="radio"]:disabled:checked + label,
+input[type="checkbox"]:disabled:checked + label {
+    color: @checkbox-color;
+
+    &:before,
+    &:hover:before {
+        color: @checkbox-color;
+    }
+}
+
+input[type="checkbox"] + label:before {
+    content: @fa-var-square-o;
+}
+
+input[type="checkbox"]:checked + label:before {
+    content: @fa-var-check-square-o;
+    color: @checkbox-selected-color;
+}
+
+input[type="radio"] + label:before {
+    content: @fa-var-circle-o;
+}
+
+input[type="radio"]:checked + label:before {
+    content: @fa-var-dot-circle-o;
+    color: @checkbox-selected-color;
+}
+
+.form-horizontal {
+
+    .controls {
+
+        .link-btn {
+            display: inline-block;
+        }
+
+        a, label {
+            padding-top: 3px;
+        }
+
+        // disable previous in combobox
+        .combobox-widget a {
+            padding: 0px;
+            margin: 0px;
+        }
+    }
+}
+
+// implicit required indicator
+.form-group.required .control-label label:after {
+    display: inline-block;
+    position: absolute;
+    right: 6px;
+    top: 0px;
+    font-size: 125%;
+    font-weight: bold;
+    content: '*';
+    color: #1d85d9;
+}
+
+.fluid-row .form-group.required .control-label label:after {
+    position: relative;
+    right: -2px;
+}
+
+@media (max-width: 768px) {
+    .form-group.required .control-label label:after {
+        position: relative;
+        right: -2px;
+    }
+}
+
+// don't show red highlight for valid controls in multivalued widget with error
+.has-error .valid .form-control {
+
+    border-color: #bababa !important;
+
+    &:hover {
+        border-color: #66afe9 !important;
+    }
+
+    &:focus {
+        border-color: #66afe9;
+        outline: 0;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+    }
+}
+
+
+// tables
+.table > tfoot > tr > td.table-summary {
+    // reset padding to properly style DataTables pagination
+    padding: 0;
+
+    .summary {
+        padding: 2px 10px 3px;
+        display: inline-block;
+    }
+}

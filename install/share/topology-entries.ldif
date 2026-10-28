@@ -1,0 +1,16 @@
+dn: cn=topology,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: nsContainer
+cn: topology
+
+# default topology configuration area
+dn: cn=domain,cn=topology,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: iparepltopoconf
+ipaReplTopoConfRoot: $SUFFIX
+nsDS5ReplicatedAttributeList: $EXCLUDES
+nsDS5ReplicatedAttributeListTotal: $TOTAL_EXCLUDES
+nsds5ReplicaStripAttrs: $STRIP_ATTRS
+cn: domain

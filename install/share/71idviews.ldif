@@ -1,0 +1,8 @@
+dn: cn=schema
+attributeTypes: (2.16.840.1.113730.3.8.11.62 NAME 'ipaAnchorUUID' DESC 'Unique Anchor Identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4')
+attributeTypes: (2.16.840.1.113730.3.8.11.63 NAME 'ipaOriginalUid' DESC 'Original UID of overriden user' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4')
+objectClasses: (2.16.840.1.113730.3.8.12.29 NAME 'ipaIDView' SUP nsContainer STRUCTURAL MAY ( description ) X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.12.30 NAME 'ipaOverrideAnchor' SUP top STRUCTURAL MUST ( ipaAnchorUUID ) MAY ( description ) X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.12.31 NAME 'ipaUserOverride' DESC 'Override for User Attributes' SUP ipaOverrideAnchor STRUCTURAL MAY ( uid $ uidNumber $ gidNumber $ homeDirectory $ loginShell $ gecos $ ipaOriginalUid $ userCertificate ) X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.12.32 NAME 'ipaGroupOverride' DESC 'Override for Group Attributes' SUP ipaOverrideAnchor STRUCTURAL MAY ( gidNumber $ cn ) X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.12.35 NAME 'ipaOverrideTarget' SUP top STRUCTURAL MUST ( ipaAnchorUUID ) X-ORIGIN 'IPA v4' )

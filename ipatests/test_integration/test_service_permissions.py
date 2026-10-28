@@ -1,0 +1,228 @@
+# Authors:
+#   Petr Viktorin <pviktori@redhat.com>
+#
+# Copyright (C) 2014  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+
+from ipatests.test_integration.base import IntegrationTest
+from ipatests.pytest_ipa.integration import tasks
+
+from ipaplatform.osinfo import osinfo
+import pytest
+skip_rbcd_tests = any([
+    (osinfo.id == 'fedora' and osinfo.version_number < (38,)),
+    (osinfo.id == 'rhel' and osinfo.version_number < (9,2))])
+
+
+class TestServicePermissions(IntegrationTest):
+    topology = 'star'
+
+    def test_service_as_user_admin(self):
+        """Test that a service in User Administrator role can manage users"""
+
+        service_name1 = 'testservice1/%s@%s' % (self.master.hostname,
+                                                self.master.domain.realm)
+        keytab_file1 = os.path.join(self.master.config.test_dir,
+                                    'testservice_keytab1')
+
+        # Prepare a service
+
+        self.master.run_command(['ipa', 'service-add', service_name1])
+
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name1,
+                                 '-k', keytab_file1,
+                                 '-s', self.master.hostname])
+
+        # Check that the service cannot add a user
+
+        self.master.run_command(['kdestroy'])
+        self.master.run_command(['kinit', '-k', service_name1,
+                                 '-t', keytab_file1])
+
+        result = self.master.run_command(['ipa', 'role-add-member',
+                                          'User Administrator',
+                                          '--service', service_name1],
+                                         raiseonerr=False)
+        assert result.returncode > 0
+
+        # Add service to User Administrator role
+
+        self.master.run_command(['kdestroy'])
+        tasks.kinit_admin(self.master)
+
+        self.master.run_command(['ipa', 'role-add-member',
+                                 'User Administrator',
+                                 '--service', service_name1])
+
+        # Check that the service now can add a user
+
+        self.master.run_command(['kdestroy'])
+        self.master.run_command(['kinit', '-k', service_name1,
+                                 '-t', keytab_file1])
+
+        self.master.run_command(['ipa', 'user-add', 'tuser',
+                                 '--first', 'a', '--last', 'b', '--random'])
+
+        # Clean up
+
+        self.master.run_command(['kdestroy'])
+        tasks.kinit_admin(self.master)
+
+        self.master.run_command(['ipa', 'service-del', service_name1])
+        self.master.run_command(['ipa', 'user-del', 'tuser'])
+
+    def test_service_access(self):
+        """ Test that user is granted access when authenticated using
+        credentials that are sufficient for a service, and denied access
+        when using insufficient credentials"""
+
+        service_name2 = 'testservice2/%s@%s' % (self.master.hostname,
+                                                self.master.domain.realm)
+
+        keytab_file2 = os.path.join(self.master.config.test_dir,
+                                    'testservice_keytab2')
+
+        # Prepare a service without authentication indicator
+        self.master.run_command(['ipa', 'service-add', service_name2])
+
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name2,
+                                 '-k', keytab_file2])
+
+        # Set authentication-type for admin user
+        self.master.run_command(['ipa', 'user-mod', 'admin',
+                                 '--user-auth-type=password',
+                                 '--user-auth-type=otp'])
+
+        # Authenticate
+        self.master.run_command(['kinit', '-k', service_name2,
+                                 '-t', keytab_file2])
+
+        # Verify access to service is granted
+        result = self.master.run_command(['kvno', service_name2],
+                                         raiseonerr=False)
+        assert result.returncode == 0
+
+        # Obtain admin ticket to be able to update service
+        tasks.kinit_admin(self.master)
+
+        # Modify service to have authentication indicator
+        self.master.run_command(['ipa', 'service-mod', service_name2,
+                                 '--auth-ind=otp'])
+
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name2,
+                                 '-k', keytab_file2])
+
+        # Authenticate
+        self.master.run_command(['kinit', '-k', service_name2,
+                                 '-t', keytab_file2])
+
+        # Verify access to service is rejected
+        result = self.master.run_command(['kvno', service_name2],
+                                         raiseonerr=False)
+        assert result.returncode > 0
+
+    def test_service_del(self):
+        """ Test that host can add and remove its own services.
+        Related to : https://codeberg.org/freeipa/freeipa/issues/7486"""
+
+        self.master.run_command(['kinit', '-kt', '/etc/krb5.keytab'])
+        # Add service
+        service_name3 = "testservice3" + '/' + self.master.hostname
+        self.master.run_command(['ipa', 'service-add', service_name3])
+        self.master.run_command(['ipa', 'service-del', service_name3])
+
+    @pytest.mark.xfail(
+        skip_rbcd_tests,
+        reason='krb5 before 1.20', strict=True)
+    def test_service_delegation(self):
+        """ Test that host can handle resource-based constrained delegation of
+        own services. """
+
+        keytab_file = '/etc/krb5.keytab'
+        keytab_file4 = '/tmp/krb5-testservice4.keytab'
+        hostservice_name4 = "host" + "/" + self.master.hostname
+        service_name4 = "testservice4" + '/' + self.master.hostname
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        # Add service and configure delegation
+        self.master.run_command(['ipa', 'service-add', service_name4])
+        self.master.run_command(['kdestroy'])
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'service-add-delegation',
+                                 service_name4, hostservice_name4])
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name4,
+                                 '-k', keytab_file4])
+        # Verify access to service is granted
+        result = self.master.run_command(['kvno', '-U', 'admin',
+                                          '-k', keytab_file,
+                                          '-P', hostservice_name4,
+                                          service_name4],
+                                         raiseonerr=False)
+        assert result.returncode == 0
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'service-remove-delegation',
+                                 service_name4, hostservice_name4])
+        # Verify access to service is not granted
+        self.master.run_command(['kinit', '-kt', keytab_file])
+        result = self.master.run_command(['kvno', '-U', 'admin',
+                                          '-k', keytab_file,
+                                          '-P', hostservice_name4,
+                                          service_name4],
+                                         raiseonerr=False)
+        assert result.returncode > 0
+
+        self.master.run_command(['ipa', 'service-del', service_name4])
+
+    def test_service_add_rejects_ldap_filter_chars(self):
+        """Test that service-add rejects principals with LDAP filter
+        metacharacters to prevent filter injection in the KDB delegation
+        ACL lookup (ipa_kdb_delegation.c).
+
+        A principal like 'HTTP/evil)(memberPrincipal=*' would allow
+        S4U2Proxy filter injection if not rejected.
+        """
+        tasks.kinit_admin(self.master)
+
+        # Parentheses - would allow filter injection
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HTTP/evil)(memberPrincipal=*/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text
+
+        # Asterisk in service name
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HT*P/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text
+
+        # Backslash in service name
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HT\\TP/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text

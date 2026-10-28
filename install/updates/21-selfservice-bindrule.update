@@ -1,0 +1,29 @@
+# Convert the self-service ACIs added by previous releases with the
+# bare userdn = "ldap:///self" bind rule to the hardened compound
+# bind rule:
+#
+#   (userdn = "ldap:///self" and userdn = "ldap:///all")
+#
+# The compound rule requires the bound DN to be the DN of the entry
+# being accessed and a real, non-anonymous DN. The bare rule is safe
+# against anonymous binds - an unauthenticated bind presents the
+# empty DN, which never equals the DN of the entry being accessed -
+# but the compound form matches the fresh-install ACIs in
+# default-aci.ldif.
+#
+# replace: is a no-op when the old value is not present, so this
+# update is idempotent and safe on servers that already carry the
+# hardened form.
+
+dn: $SUFFIX
+replace:aci: (targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword")(version 3.0; acl "selfservice:Self can write own password"; allow (write) userdn="ldap:///self";)::(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword")(version 3.0; acl "selfservice:Self can write own password"; allow (write) (userdn="ldap:///self" and userdn="ldap:///all");)
+replace:aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype  || businesscategory || ou")(version 3.0;acl "selfservice:User Self service";allow (write) userdn = "ldap:///self";)::(targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype  || businesscategory || ou")(version 3.0;acl "selfservice:User Self service";allow (write) (userdn = "ldap:///self" and userdn = "ldap:///all");)
+replace:aci: (targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) userdn = "ldap:///self";)::(targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) (userdn = "ldap:///self" and userdn = "ldap:///all");)
+replace:aci: (targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can manage their own X.509 certificates";allow (write) userdn = "ldap:///self";)::(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can manage their own X.509 certificates";allow (write) (userdn = "ldap:///self" and userdn = "ldap:///all");)
+
+dn: cn=accounts,$SUFFIX
+replace:aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey themselves"; allow(write) userdn="ldap:///self";)::(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey themselves"; allow(write) (userdn = "ldap:///self" and userdn = "ldap:///all");)
+
+dn: cn=computers,cn=accounts,$SUFFIX
+replace:aci: (targetattr="usercertificate || krblastpwdchange || description || l || nshostlocation || nshardwareplatform || nsosversion")(version 3.0; acl "Hosts can modify their own certs and keytabs"; allow(write) userdn = "ldap:///self";)::(targetattr="usercertificate || krblastpwdchange || description || l || nshostlocation || nshardwareplatform || nsosversion")(version 3.0; acl "Hosts can modify their own certs and keytabs"; allow(write) (userdn = "ldap:///self" and userdn = "ldap:///all");)
+replace:aci: (targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) userdn = "ldap:///self";)::(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) (userdn = "ldap:///self" and userdn = "ldap:///all");)

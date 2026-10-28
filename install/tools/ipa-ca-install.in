@@ -1,0 +1,386 @@
+#!/usr/bin/python3
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2011  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+from __future__ import print_function
+
+import logging
+import sys
+import os
+import shutil
+import tempfile
+
+from ipalib.install.kinit import kinit_keytab
+from ipapython import ipautil
+
+from ipaclient.install import ipa_certupdate
+from ipaserver.install import installutils
+from ipaserver.install.installutils import check_creds, ReplicaConfig
+from ipaserver.install import dsinstance, ca
+from ipaserver.install import cainstance, service
+from ipaserver.install import custodiainstance
+from ipaserver.masters import find_providing_server
+from ipapython import version
+from ipalib import api, x509
+from ipalib.constants import DOMAIN_LEVEL_1
+from ipapython.config import IPAOptionParser
+from ipapython.ipa_log_manager import standard_logging_setup
+from ipaplatform.paths import paths
+from ipapython.admintool import admin_cleanup_global_argv
+
+logger = logging.getLogger(os.path.basename(__file__))
+
+log_file_name = paths.IPAREPLICA_CA_INSTALL_LOG
+REPLICA_INFO_TOP_DIR = None
+
+def parse_options():
+    usage = "%prog [options]"
+    parser = IPAOptionParser(usage=usage, version=version.VERSION)
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="gather extra debugging information")
+    parser.add_option("-p", "--password", dest="password", sensitive=True,
+                      help="Directory Manager (existing master) password")
+    parser.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
+                      help="Admin user Kerberos password used for connection check")
+    parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
+                      default=False,
+                      help="Do not use DNS for hostname lookup during installation")
+    parser.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
+                      default=False, help="skip connection check to remote master")
+    parser.add_option("--skip-schema-check", dest="skip_schema_check", action="store_true",
+                      default=False, help="skip check for updated CA DS schema on the remote master")
+    parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
+                      default=False, help="unattended installation never prompts the user")
+    parser.add_option("--external-ca", dest="external_ca", action="store_true",
+                      default=False, help="Generate a CSR to be signed by an external CA")
+    ext_cas = tuple(x.value for x in x509.ExternalCAType)
+    parser.add_option("--external-ca-type", dest="external_ca_type",
+                      type="choice", choices=ext_cas,
+                      metavar="{{{0}}}".format(",".join(ext_cas)),
+                      help="Type of the external CA. Default: generic")
+    parser.add_option("--external-ca-profile", dest="external_ca_profile",
+                      type='constructor', constructor=x509.ExternalCAProfile,
+                      default=None, metavar="PROFILE-SPEC",
+                      help="Specify the certificate profile/template to use "
+                           "at the external CA")
+    parser.add_option("--external-cert-file", dest="external_cert_files",
+                      action="append", metavar="FILE",
+                      help="File containing the IPA CA certificate and the external CA certificate chain")
+    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA384withRSA',
+                'SHA512withRSA', 'ML-DSA-44', 'ML-DSA-65', 'ML-DSA-87')
+    parser.add_option("--ca-signing-algorithm", dest="ca_signing_algorithm",
+                      type="choice", choices=ca_algos,
+                      metavar="{{{0}}}".format(",".join(ca_algos)),
+                      help="Signing algorithm of the IPA CA certificate")
+    ca_key_types = ('rsa', 'mldsa',)
+    parser.add_option("--ca-key-type", dest="ca_key_type",
+                      type="choice", choices=ca_key_types,
+                      metavar="{{{0}}}".format(",".join(ca_key_types)),
+                      help="Key type for the IPA CA")
+
+    parser.add_option("-P", "--principal", dest="principal", sensitive=True,
+                      default=None, help="User allowed to manage replicas")
+    parser.add_option("--subject-base", dest="subject_base",
+                      default=None,
+                      help=(
+                          "The certificate subject base "
+                          "(default O=<realm-name>).  "
+                          "RDNs are in LDAP order (most specific RDN first)."))
+    parser.add_option("--ca-subject", dest="ca_subject",
+                      default=None,
+                      help=(
+                          "The CA certificate subject DN "
+                          "(default CN=Certificate Authority,O=<realm-name>). "
+                          "RDNs are in LDAP order (most specific RDN first)."))
+    parser.add_option("--token-name", dest="token_name",
+                      default=None,
+                      help=(
+                          "The PKCS#11 token name if using an HSM to store "
+                          "and generate private keys."))
+    parser.add_option("--token-library-path", dest="token_library_path",
+                      default=None,
+                      help=(
+                          "The full path to the PKCS#11 shared library "
+                          "needed to access the HSM device."))
+    parser.add_option("--token-password", dest="token_password",
+                      default=None,
+                      sensitive=True,
+                      help=(
+                          "The PKCS#11 token password for the HSM."))
+    parser.add_option("--token-password-file", dest="token_password_file",
+                      default=None,
+                      help=(
+                          "The full path to a file containing the PKCS#11 "
+                          " token password."))
+
+    parser.add_option("--pki-config-override", dest="pki_config_override",
+                      default=None,
+                      help="Path to ini file with config overrides.")
+
+    parser.add_option("--random-serial-numbers", dest="random_serial_numbers",
+                      default=False, help="Enable random serial numbers",
+                      action="store_true")
+
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+    admin_cleanup_global_argv(parser, options, sys.argv)
+
+    if args:
+        parser.error("Too many arguments provided")
+
+    if options.external_ca:
+        if options.external_cert_files:
+            parser.error("You cannot specify --external-cert-file "
+                         "together with --external-ca")
+
+    if options.external_ca_type and not options.external_ca:
+        parser.error(
+            "You cannot specify --external-ca-type without --external-ca")
+
+    if options.external_ca_profile and not options.external_ca:
+        parser.error(
+            "You cannot specify --external-ca-profile "
+            "without --external-ca")
+
+    return safe_options, options
+
+
+def _get_dirman_password(password=None, unattended=False):
+    # sys.exit() is used on purpose, because otherwise user is advised to
+    # uninstall the component, even though it is not needed
+    if not password:
+        if unattended:
+            sys.exit('Directory Manager password required')
+        password = installutils.read_password(
+            "Directory Manager (existing master)", confirm=False,
+            validate=False)
+    try:
+        installutils.validate_dm_password_ldap(password)
+    except ValueError:
+        sys.exit("Directory Manager password is invalid")
+
+    return password
+
+
+def install_replica(safe_options, options):
+    if options.ca_subject:
+        sys.exit("--ca-subject cannot be used when installing a CA replica")
+    if options.subject_base:
+        sys.exit("--subject-base cannot be used when installing a CA replica")
+
+    # Check if we have admin creds already, otherwise acquire them
+    check_creds(options, api.env.realm)
+
+    # get the directory manager password
+    dirman_password = _get_dirman_password(
+        options.password, options.unattended)
+
+    # Run ipa-certupdate to ensure we have the CA cert.  This is
+    # necessary if the admin has just promoted the topology from
+    # CA-less to CA-ful, and ipa-certupdate has not been run yet.
+    print("Running ipa-certupdate...", end="", flush=True)
+    ipa_certupdate.run_with_args(api)
+    print("done")
+
+    # CertUpdate restarts DS causing broken pipe on the original
+    # connection, so reconnect the backend.
+    api.Backend.ldap2.disconnect()
+    api.Backend.ldap2.connect()
+
+    config = ReplicaConfig()
+    config.ca_host_name = None
+    config.realm_name = api.env.realm
+    config.host_name = api.env.host
+    config.domain_name = api.env.domain
+    config.dirman_password = dirman_password
+    config.ca_ds_port = 389
+    config.top_dir = tempfile.mkdtemp("ipa")
+    config.dir = config.top_dir
+    cafile = paths.IPA_CA_CRT
+
+    global REPLICA_INFO_TOP_DIR
+    REPLICA_INFO_TOP_DIR = config.top_dir
+    config.setup_ca = True
+
+    if config.subject_base is None:
+        attrs = api.Backend.ldap2.get_ipa_config()
+        config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
+
+    if config.ca_host_name is None:
+        config.ca_host_name = find_providing_server(
+            'CA', api.Backend.ldap2, [api.env.ca_host]
+        )
+
+    options.realm_name = config.realm_name
+    options.domain_name = config.domain_name
+    options.dm_password = config.dirman_password
+    options.host_name = config.host_name
+    options.ca_host_name = config.ca_host_name
+    if os.path.exists(cafile):
+        options.ca_cert_file = cafile
+    else:
+        options.ca_cert_file = None
+
+    ca.install_check(True, config, options)
+
+    custodia = custodiainstance.get_custodia_instance(
+        options, custodiainstance.CustodiaModes.CA_PEER)
+    ca.install(True, config, options, custodia=custodia)
+
+
+def install_master(safe_options, options):
+    dm_password = _get_dirman_password(
+        options.password, options.unattended)
+
+    options.realm_name = api.env.realm
+    options.domain_name = api.env.domain
+    options.dm_password = dm_password
+    options.host_name = api.env.host
+
+    if not options.subject_base:
+        options.subject_base = str(
+            installutils.default_subject_base(api.env.realm))
+    if not options.ca_subject:
+        options.ca_subject = str(
+            installutils.default_ca_subject_dn(options.subject_base))
+
+    try:
+        ca.random_serial_numbers_validator(options.random_serial_numbers)
+    except ValueError as e:
+        sys.exit(str(e))
+    try:
+        ca.subject_validator(ca.VALID_SUBJECT_BASE_ATTRS, options.subject_base)
+    except ValueError as e:
+        sys.exit("Subject base: {}".format(e))
+    try:
+        ca.subject_validator(ca.VALID_SUBJECT_ATTRS, options.ca_subject)
+    except ValueError as e:
+        sys.exit("CA subject: {}".format(e))
+
+    ca.install_check(True, None, options)
+
+    ca.print_ca_configuration(options)
+    print()
+
+    if not options.unattended:
+        if not ipautil.user_input(
+                "Continue to configure the CA with these values?", False):
+            sys.exit("Installation aborted")
+
+    # No CA peer available yet.
+    custodia = custodiainstance.get_custodia_instance(
+        options, custodiainstance.CustodiaModes.FIRST_MASTER)
+    ca.install(True, None, options, custodia=custodia)
+
+    # Run ipa-certupdate to add the new CA certificate to
+    # certificate databases on this server.
+    logger.info("Updating certificate databases.")
+    ipa_certupdate.run_with_args(api)
+
+
+def install(safe_options, options):
+    with ipautil.private_ccache():
+        ccache = os.environ['KRB5CCNAME']
+
+        kinit_keytab(
+            'host/{env.host}@{env.realm}'.format(env=api.env),
+            paths.KRB5_KEYTAB,
+            ccache)
+
+        ca_host = find_providing_server('CA', api.Backend.ldap2)
+
+        if ca_host is None:
+            install_master(safe_options, options)
+        else:
+            if options.random_serial_numbers:
+                ldap_backend = cainstance.lookup_ldap_backend(api)
+                if (
+                    ca.lookup_random_serial_number_version(api) == 0
+                    and ldap_backend == "bdb"
+                ):
+                    sys.exit(
+                        "\nRandom serial numbers cannot be enabled in an "
+                        "existing CA installation.\n")
+            install_replica(safe_options, options)
+
+
+def main():
+    safe_options, options = parse_options()
+
+    if os.geteuid() != 0:
+        sys.exit("\nYou must be root to run this script.\n")
+
+    if not dsinstance.DsInstance().is_configured():
+        sys.exit("IPA server is not configured on this system.\n")
+
+    if (not options.external_cert_files and
+            cainstance.is_ca_installed_locally()):
+        sys.exit("CA is already installed on this host.")
+
+    standard_logging_setup(log_file_name, debug=options.debug)
+    logger.debug("%s was invoked with options: %s",
+                 sys.argv[0], safe_options)
+    logger.debug("IPA version %s", version.VENDOR_VERSION)
+
+    # override ra_plugin setting read from default.conf so that we have
+    # functional dogtag backend plugins during CA install
+    api.bootstrap(
+        context='installer', confdir=paths.ETC_IPA,
+        in_server=True, ra_plugin='dogtag'
+    )
+    api.finalize()
+    api.Backend.ldap2.connect()
+    domain_level = dsinstance.get_domain_level(api)
+    if domain_level < DOMAIN_LEVEL_1:
+        api.Backend.ldap2.disconnect()
+        sys.exit("Unsupported domain level %d" % domain_level)
+
+    install(safe_options, options)
+
+    # pki-spawn restarts 389-DS, reconnect
+    api.Backend.ldap2.close()
+    api.Backend.ldap2.connect()
+
+    # Enable configured services and update DNS SRV records
+    service.sync_services_state(api.env.host)
+    api.Command.dns_update_system_records()
+    api.Backend.ldap2.disconnect()
+
+    # execute ipactl to refresh services status
+    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
+                raiseonerr=False)
+
+
+fail_message = '''
+Your system may be partly configured.
+Run /usr/sbin/ipa-server-install --uninstall to clean up.
+'''
+
+if __name__ == '__main__':
+    try:
+        installutils.run_script(main, log_file_name=log_file_name,
+                                operation_name='ipa-ca-install',
+                                fail_message=fail_message)
+    finally:
+        # always try to remove decrypted replica file
+        try:
+            if REPLICA_INFO_TOP_DIR:
+                shutil.rmtree(REPLICA_INFO_TOP_DIR)
+        except OSError:
+            pass

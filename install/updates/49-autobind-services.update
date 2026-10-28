@@ -1,0 +1,7 @@
+# create / update LDAPI autobind rules for services
+# also used by ipa-restore to ensure correct mappings
+# NOTE: ipa-ldap-updater runs reload ldapi mappings tasks
+
+dn: cn=named,cn=auto_bind,cn=config
+onlyifexist: uidNumber: $NAMED_UID
+onlyifexist: gidNumber: $NAMED_GID

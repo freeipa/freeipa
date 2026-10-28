@@ -1,0 +1,145 @@
+dn: cn=sudorule name uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: sudorule name uniqueness
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: cn
+default:uniqueness-subtrees: cn=sudorules,cn=sudo,$SUFFIX
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+
+dn: cn=certificate store issuer/serial uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: certificate store issuer/serial uniqueness
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: ipaCertIssuerSerial
+default:uniqueness-subtrees: cn=certificates,cn=ipa,cn=etc,$SUFFIX
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+
+dn: cn=uid uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: uid uniqueness
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: uid
+default:uniqueness-subtrees: $SUFFIX
+default:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
+default:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: posixAccount
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+default:nsslapd-pluginDescription: Enforce unique attribute values
+
+# uid uniqueness scopes Active/Delete containers
+dn: cn=uid uniqueness,cn=plugins,cn=config
+add:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
+add:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+remove:uniqueness-across-all-subtrees: off
+add:uniqueness-across-all-subtrees: on
+add:uniqueness-subtree-entries-oc: posixAccount
+
+# krbPrincipalName uniqueness scopes Active/Delete containers
+dn: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
+deleteentry: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
+
+# krbCanonicalName uniqueness scopes Active/Delete containers
+dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
+deleteentry: dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
+
+dn: cn=kerberos name uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: kerberos name uniqueness
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: krbPrincipalName:krbPrincipalMatch:
+default:uniqueness-attribute-name: krbPrincipalAlias:krbPrincipalMatch:
+default:uniqueness-attribute-name: krbCanonicalName:krbPrincipalMatch:
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:uniqueness-subtrees: $SUFFIX
+default:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+
+# Migrate kerberos uniqueness from CaseIgnoreMatch to krbPrincipalMatch
+dn: cn=kerberos name uniqueness,cn=plugins,cn=config
+remove:uniqueness-attribute-name: krbPrincipalName:CaseIgnoreMatch:
+add:uniqueness-attribute-name: krbPrincipalName:krbPrincipalMatch:
+remove:uniqueness-attribute-name: krbPrincipalAlias:CaseIgnoreMatch:
+add:uniqueness-attribute-name: krbPrincipalAlias:krbPrincipalMatch:
+remove:uniqueness-attribute-name: krbCanonicalName:CaseIgnoreMatch:
+add:uniqueness-attribute-name: krbCanonicalName:krbPrincipalMatch:
+
+# ipaUniqueID uniqueness scopes Active/Delete containers
+dn: cn=ipaUniqueID uniqueness,cn=plugins,cn=config
+add:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+add:uniqueness-across-all-subtrees: on
+
+dn: cn=caacl name uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: caacl name uniqueness
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: cn
+default:uniqueness-subtrees: cn=caacls,cn=ca,$SUFFIX
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+
+dn: cn=ipaSubordinateIdEntry ipaOwner uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: ipaSubordinateIdEntry ipaOwner uniqueness
+default:nsslapd-pluginDescription: Enforce unique attribute values of ipaOwner
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: ipaOwner
+default:uniqueness-subtrees: cn=subids,cn=accounts,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: ipaSubordinateIdEntry
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+
+# A unique ipaCertSubject is no longer required
+dn: cn=certificate store subject uniqueness,cn=plugins,cn=config
+deleteentry: cn=certificate store subject uniqueness,cn=plugins,cn=config

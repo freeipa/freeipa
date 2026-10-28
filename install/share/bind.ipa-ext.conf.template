@@ -1,0 +1,16 @@
+/* User customization for BIND named
+ *
+ * This file is included in $NAMED_CONF and is not modified during IPA
+ * upgrades.
+ *
+ * "options" settings must be configured in $NAMED_CUSTOM_OPTIONS_CONF.
+ *
+ * Example: ACL for recursion access:
+ *
+ * acl "trusted_network" {
+ *   localnets;
+ *   localhost;
+ *   234.234.234.0/24;
+ *   2001::co:ffee:babe:1/48;
+ * };
+ */

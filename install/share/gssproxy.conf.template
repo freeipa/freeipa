@@ -1,0 +1,24 @@
+#Installed and maintained by ipa update tools, please do not modify
+[service/ipa-httpd]
+  mechs = krb5
+  cred_store = keytab:$HTTP_KEYTAB
+  cred_store = client_keytab:$HTTP_KEYTAB
+  allow_protocol_transition = true
+  allow_client_ccache_sync = true
+  cred_usage = both
+  euid = $HTTPD_USER
+
+[service/ipa-api]
+  mechs = krb5
+  cred_store = keytab:$HTTP_KEYTAB
+  allow_constrained_delegation = true
+  allow_client_ccache_sync = true
+  cred_usage = initiate
+  euid = $IPAAPI_USER
+
+[service/ipa-sweeper]
+  mechs = krb5
+  cred_store = keytab:$HTTP_KEYTAB
+  socket = $SWEEPER_SOCKET
+  euid = $IPAAPI_USER
+  cred_usage = initiate

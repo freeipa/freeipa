@@ -1,0 +1,10 @@
+# Create the SELinux User map container
+dn: cn=selinux,$SUFFIX
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: selinux
+
+dn: cn=usermap,cn=selinux,$SUFFIX
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: usermap

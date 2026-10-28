@@ -1,0 +1,14 @@
+# Create default Domain Level entry if it does not exist
+dn: cn=Domain Level,cn=ipa,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: objectClass: ipaDomainLevelConfig
+default: ipaDomainLevel: 0
+
+# Create entry proclaiming Domain Level support of this master
+# This will update the supported Domain Levels during upgrade
+dn: cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+add: objectClass: ipaConfigObject
+add: objectClass: ipaSupportedDomainLevelConfig
+only: ipaMinDomainLevel: $MIN_DOMAIN_LEVEL
+only: ipaMaxDomainLevel: $MAX_DOMAIN_LEVEL

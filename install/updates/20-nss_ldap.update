@@ -1,0 +1,33 @@
+#
+# Add profile for RFC 4876 agents (Solaris and HP/ux)
+#
+
+# Update the top-level entry 
+dn: $SUFFIX
+add:objectClass: domain
+add:objectClass: domainRelatedObject
+add:objectClass: nisDomainObject
+add:associatedDomain: $DOMAIN
+add:nisDomain: $DOMAIN
+
+# Add a place to store the nss_ldap default profile
+dn: ou=profile,$SUFFIX
+add: objectClass: top
+add: objectClass: organizationalUnit
+add: ou: profiles
+
+# The DUA profile. On Solaris one can run:
+# ldap_client init ipa.example.com
+dn: cn=default,ou=profile,$SUFFIX
+default:ObjectClass: top
+default:ObjectClass: DUAConfigProfile
+default:defaultServerList: $FQDN
+default:defaultSearchBase: $SUFFIX
+default:authenticationMethod: none
+default:searchTimeLimit: 15
+default:cn: default
+default:serviceSearchDescriptor: passwd:cn=users,cn=accounts,$SUFFIX
+default:serviceSearchDescriptor: group:cn=groups,cn=compat,$SUFFIX
+default:bindTimeLimit: 5
+default:objectClassMap: shadow:shadowAccount=posixAccount
+default:followReferrals:TRUE

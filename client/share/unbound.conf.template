@@ -1,0 +1,11 @@
+server:
+    tls-system-cert: yes
+    tls-upstream: yes
+    interface: 127.0.0.55
+    log-servfail: yes
+    ${MODULE_CONFIG_ITERATOR}module-config: "iterator"
+forward-zone:
+    name: "."
+    forward-tls-upstream: yes
+    forward-first: no
+    $FORWARD_ADDRS

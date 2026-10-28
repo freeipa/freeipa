@@ -1,0 +1,231 @@
+steps:
+- script: |
+    set -e
+    export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/podman/podman.sock
+    env | sort
+  displayName: Print Host Enviroment
+
+- script: |
+    set -e
+    sudo apt list --installed
+  displayName: Show Host's installed packages
+
+- script: |
+    set -e
+    sudo apt-get purge --auto-remove docker-ce-cli
+    sudo apt-get update
+    sudo apt-get install -y \
+        apparmor-utils \
+        parallel \
+        moreutils \
+        rng-tools \
+        systemd-coredump \
+        podman podman-docker python3-pip python3-venv
+    sudo pip3 install podman-compose
+  displayName: Install Host's tests requirements
+
+- script: |
+    set -e
+    sudo systemctl
+  displayName: Show Host's systemd status
+
+- script: |
+    set -e
+    systemctl --user enable --now podman.socket ||:
+  displayName: Enable podman emulation of docker
+
+- script: |
+    set -e
+    # most of the time systemd killed hostnamed with SIGKILL on timeout
+    # kill without waiting for graceful termination
+    sudo systemctl kill -s SIGKILL azsecd ||:
+    sudo systemctl disable --now azsecmond ||:
+    sudo systemctl disable --now azsecd ||:
+    sudo systemctl disable --now clamav-freshclam ||:
+  displayName: Disable azsec services (clamav)
+
+- script: |
+    set -e
+    printf "AppArmor status\n"
+    sudo aa-status
+    printf "Disable AppArmor conflicting profiles\n"
+    sudo aa-disable /etc/apparmor.d/usr.sbin.chronyd ||:
+    printf "Recheck AppArmor status\n"
+    sudo aa-status
+  displayName: Disable AppArmor conflicting profiles on Host
+
+- script: |
+    set -e
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+    sudo service rng-tools start
+    sleep 3
+    printf "Available entropy: %s\n" $(cat /proc/sys/kernel/random/entropy_avail)
+  displayName: Increase entropy level
+
+- script: |
+    set -eu
+    date +'%Y-%m-%d %H:%M:%S' > coredumpctl.time.mark
+    systemd_conf="/etc/systemd/system.conf"
+    sudo sed -i 's/^DumpCore=.*/#&/g' "$systemd_conf"
+    sudo sed -i 's/^DefaultLimitCORE=.*/#&/g' "$systemd_conf"
+    echo -e 'DumpCore=yes\nDefaultLimitCORE=infinity' | \
+        sudo tee -a "$systemd_conf" >/dev/null
+    cat "$systemd_conf"
+    coredump_conf="/etc/systemd/coredump.conf"
+    cat "$coredump_conf"
+    sudo systemctl daemon-reexec
+    # for ns-slapd debugging
+    sudo sysctl -w fs.suid_dumpable=1
+  displayName: Allow coredumps
+
+- template: setup-test-environment.yml
+
+- script: |
+    set -eu
+    sudo top -b -o +%MEM -n 1
+  displayName: Show Host's top
+
+- script: |
+    set -eu
+    sudo ps -auxf
+  displayName: Show Host's processes
+
+- script: |
+    set -eu
+    id
+    cat /proc/$$/subuid_map ||:
+    cat /proc/$$/subgid_map ||:
+    cat /etc/subuid ||:
+    cat /etc/subgid ||:
+  displayName: Show Host's subuid settings
+
+- script: |
+    set -e
+    sudo mkdir -p /sys/fs/cgroup/systemd
+  displayName: Create /sys/fs/cgroup/systemd for the volume
+
+- template: run-test.yml
+
+- script: |
+    set -eux
+    free -m
+    cat /sys/fs/cgroup/systemd/memory.swap.peak
+    cat /sys/fs/cgroup/systemd/memory.peak
+    cat /proc/sys/vm/swappiness
+  condition: succeededOrFailed()
+  displayName: Host's memory statistics
+
+- script: |
+    set -eu
+    function emit_warning() {
+        printf "##vso[task.logissue type=warning]%s\n" "$1"
+    }
+
+    for memory_warn in $(find ${IPA_TESTS_ENV_WORKING_DIR}/*/ -maxdepth 1 -name memory.warnings);
+    do
+        env_name="$(basename $(dirname $memory_warn))"
+        emit_warning "Test env '$env_name' has high memory usage: $(echo '' && cat $memory_warn)"
+    done
+  condition: succeededOrFailed()
+  displayName: Check memory consumption
+
+- script: |
+    set -eu
+    HOST_JOURNAL=host_journal.log
+    HOST_JOURNAL_PATH="${IPA_TESTS_ENV_WORKING_DIR}/${HOST_JOURNAL}.tar.gz"
+    sudo journalctl -b | tee "$HOST_JOURNAL"
+
+    function emit_warning() {
+        printf "##vso[task.logissue type=warning]%s\n" "$1"
+    }
+
+    printf "AVC:\n"
+    grep 'AVC apparmor="DENIED"' "$HOST_JOURNAL" && \
+        emit_warning "There are Host's AVCs. Please, check the logs."
+    printf "SECCOMP:\n"
+    grep ' SECCOMP ' "$HOST_JOURNAL" && \
+        emit_warning "There are reported SECCOMP syscalls. Please, check the logs."
+    tar -czf "$HOST_JOURNAL_PATH" "$HOST_JOURNAL"
+  condition: succeededOrFailed()
+  displayName: Host's systemd journal
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: 'ipa_envs/*/$(CI_RUNNER_LOGS_DIR)/nosetests.xml'
+    testRunTitle: $(System.JobIdentifier) results
+  condition: succeededOrFailed()
+
+- script: |
+    set -eu
+    # check the host first, containers cores were dumped here
+    COREDUMPS_SUBDIR="coredumps"
+    COREDUMPS_DIR="${IPA_TESTS_ENV_WORKING_DIR}/${COREDUMPS_SUBDIR}"
+    rm -rfv "$COREDUMPS_DIR" ||:
+    mkdir "$COREDUMPS_DIR"
+    since_time="$(cat coredumpctl.time.mark || echo '-1h')"
+    sudo coredumpctl --no-pager --since="$since_time" list ||:
+
+    pids="$(sudo coredumpctl --no-pager --since="$since_time" -F COREDUMP_PID || echo '')"
+    # nothing to dump
+    [ -z "$pids" ] && exit 0
+
+    # continue in container
+    HOST_JOURNAL="/var/log/host_journal"
+    CONTAINER_COREDUMP="dump_cores"
+    podman create --privileged \
+        -v "$(realpath coredumpctl.time.mark)":/coredumpctl.time.mark:ro \
+        -v /var/lib/systemd/coredump:/var/lib/systemd/coredump:ro \
+        -v /var/log/journal:"$HOST_JOURNAL":ro \
+        -v "${BUILD_REPOSITORY_LOCALPATH}":"${IPA_TESTS_REPO_PATH}" \
+        --name "$CONTAINER_COREDUMP" freeipa-azure-builder
+    podman start "$CONTAINER_COREDUMP"
+
+    podman exec -t \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/wait-for-systemd.sh"
+
+    podman exec -t \
+        --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
+        --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
+        --env IPA_PLATFORM="${IPA_PLATFORM}" \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/install-debuginfo.sh"
+
+    podman exec -t \
+        --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
+        --env COREDUMPS_SUBDIR="$COREDUMPS_SUBDIR" \
+        --env HOST_JOURNAL="$HOST_JOURNAL" \
+        "$CONTAINER_COREDUMP" \
+        /bin/bash --noprofile --norc -eux \
+            "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/dump_cores.sh"
+    # there should be no crashes
+    exit 1
+  condition: succeededOrFailed()
+  displayName: Check for coredumps
+
+- script: |
+    set -e
+
+    artifacts_ignore_path="${IPA_TESTS_ENV_WORKING_DIR}/.artifactignore"
+    cat > "$artifacts_ignore_path" <<EOF
+    **/*
+    !coredumps/*.core.tar.gz
+    !coredumps/*.stacktrace.tar.gz
+    !*/logs/**
+    !*/*.yml
+    !*/*.yaml
+    !*/*.log
+    !*/systemd_boot_logs/*.log
+    !*/installed_packages/*.log
+    !*/memory.stats
+    !*.tar.gz
+    EOF
+    cat "$artifacts_ignore_path"
+  condition: succeededOrFailed()
+  displayName: Generating artifactignore file
+
+- template: save-test-artifacts.yml
+  parameters:
+    logsArtifact: logs-$(System.JobIdentifier)-$(Build.BuildId)-$(System.StageAttempt)-$(System.PhaseAttempt)-$(System.JobPositionInPhase)-$(Agent.OS)-$(Agent.OSArchitecture)

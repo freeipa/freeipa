@@ -1,0 +1,77 @@
+{
+   "result" : {
+      "result" : {
+         "loginshell" : [
+            "/bin/bash"
+         ],
+         "has_keytab" : true,
+         "krbprincipalname" : [
+            "admin@DOM.EXAMPLE.COM"
+         ],
+         "dn" : "uid=admin,cn=users,cn=accounts,dc=dom,dc=example,dc=com",
+         "uidnumber" : [
+            "771200000"
+         ],
+         "cn" : [
+            "Administrator"
+         ],
+         "sn" : [
+            "Administrator"
+         ],
+         "krblastpwdchange" : [
+            {
+               "__datetime__" : "20170613145754Z"
+            }
+         ],
+         "gecos" : [
+            "Administrator"
+         ],
+         "ipauniqueid" : [
+            "0805fdfa-5048-11e7-b863-001a4a231594"
+         ],
+         "memberof_group" : [
+            "trust admins",
+            "admins"
+         ],
+         "nsaccountlock" : false,
+         "krbextradata" : [
+            {
+               "__base64__" : "AAJy/T9Zcm9vdC9hZG1pbkBET00tMDg0LkFCQy5JRE0uTEFCLkVORy5CUlEuUkVESEFULkNPTQA="
+            }
+         ],
+         "objectclass" : [
+            "top",
+            "person",
+            "posixaccount",
+            "krbprincipalaux",
+            "krbticketpolicyaux",
+            "inetuser",
+            "ipaobject",
+            "ipasshuser",
+            "ipaSshGroupOfPubKeys"
+         ],
+         "krbpasswordexpiration" : [
+            {
+               "__datetime__" : "20170911145754Z"
+            }
+         ],
+         "homedirectory" : [
+            "/home/admin"
+         ],
+         "gidnumber" : [
+            "771200000"
+         ],
+         "uid" : [
+            "admin"
+         ],
+         "has_password" : true,
+         "preserved" : false
+      },
+      "summary" : null,
+      "value" : "admin"
+   },
+   "principal" : "admin@DOM.EXAMPLE.COM",
+   "version" : "4.5.90.dev201706131442+gitd665224",
+   "error" : null,
+   "id" : null
+}

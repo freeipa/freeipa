@@ -1,0 +1,9 @@
+dn: cn=custodia,cn=ipa,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: custodia
+
+dn: cn=dogtag,cn=custodia,cn=ipa,cn=etc,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: dogtag

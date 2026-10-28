@@ -1,0 +1,1 @@
+deleteentry: cn=MEMCACHE,cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX

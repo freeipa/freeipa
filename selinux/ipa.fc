@@ -1,0 +1,63 @@
+/etc/httpd/alias/ipasession.key     --     gen_context(system_u:object_r:ipa_cert_t,s0)
+
+/usr/lib/systemd/system/ipa-otpd.*		--	gen_context(system_u:object_r:ipa_otpd_unit_file_t,s0)
+
+/usr/lib/systemd/system/ipa-dnskeysyncd.*		--	gen_context(system_u:object_r:ipa_dnskey_unit_file_t,s0)
+
+/usr/lib/systemd/system/ipa-ods-exporter.*		--	gen_context(system_u:object_r:ipa_ods_exporter_unit_file_t,s0)
+
+/usr/libexec/ipa-otpd		--	gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
+/usr/libexec/ipa/ipa-otpd		--	gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
+/usr/libexec/sssd/oidc_child 	-- gen_context(system_u:object_r:sssd_mfa_exec_t,s0)
+/usr/libexec/sssd/passkey_child 	-- gen_context(system_u:object_r:sssd_mfa_exec_t,s0)
+
+/usr/libexec/ipa/ipa-ods-exporter	--	gen_context(system_u:object_r:ipa_ods_exporter_exec_t,s0)
+
+/usr/libexec/ipa/ipa-dnskeysyncd		--	gen_context(system_u:object_r:ipa_dnskey_exec_t,s0)
+/usr/libexec/ipa/ipa-dnskeysync-replica		--	gen_context(system_u:object_r:ipa_dnskey_exec_t,s0)
+
+/usr/libexec/ipa/oddjob/com\.redhat\.idm.*  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
+/usr/libexec/ipa/oddjob/org\.freeipa.*  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
+
+
+/var/lib/ipa/pki(/.*)?        gen_context(system_u:object_r:ipa_public_pki_t,s0)
+/var/lib/ipa(/.*)?            gen_context(system_u:object_r:ipa_var_lib_t,s0)
+
+/var/lib/ipa/gssproxy/http.keytab -- gen_context(system_u:object_r:ipa_http_keytab_t,s0)
+
+/var/lib/ipa/dnssec/tokens -- gen_context(system_u:object_r:ipa_dnskey_t,s0)
+/var/lib/ipa/dnssec/softhsm_pin -- gen_context(system_u:object_r:ipa_dnskey_t,s0)
+
+/var/log/ipa(/.*)?              gen_context(system_u:object_r:ipa_log_t,s0)
+
+/var/log/ipabackup.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclient-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclient-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclientsamba-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclientsamba-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-ca-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-conncheck.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/iparestore.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-enable-sid.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-adtrust-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-dns-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-kra-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaupgrade.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipatrust-enable-agent.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaepn.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipa-migrate.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipa-migrate-conflict.ldif	--	gen_context(system_u:object_r:ipa_log_t,s0)
+
+/var/run/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_run_t,s0)
+
+/usr/libexec/ipa/ipa-custodia					--	gen_context(system_u:object_r:ipa_custodia_exec_t,s0)
+/usr/libexec/ipa/custodia/ipa-custodia-dmldap			--	gen_context(system_u:object_r:ipa_custodia_dmldap_exec_t,s0)
+/usr/libexec/ipa/custodia/ipa-custodia-pki-tomcat		--	gen_context(system_u:object_r:ipa_custodia_pki_tomcat_exec_t,s0)
+/usr/libexec/ipa/custodia/ipa-custodia-pki-tomcat-wrapped	--	gen_context(system_u:object_r:ipa_custodia_pki_tomcat_exec_t,s0)
+/usr/libexec/ipa/custodia/ipa-custodia-ra-agent		--	gen_context(system_u:object_r:ipa_custodia_ra_agent_exec_t,s0)
+/usr/libexec/ipa/ipa-pki-retrieve-key				--	gen_context(system_u:object_r:ipa_pki_retrieve_key_exec_t,s0)
+
+/var/log/ipa-custodia.audit.log(/.*)?				--	gen_context(system_u:object_r:ipa_custodia_log_t,s0)

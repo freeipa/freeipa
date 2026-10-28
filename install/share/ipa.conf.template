@@ -1,0 +1,261 @@
+#
+# VERSION 41 - DO NOT REMOVE THIS LINE
+#
+# This file may be overwritten on upgrades.
+#
+
+# Load lookup_identity module in case it has not been loaded yet
+# The module is used to search users according the certificate.
+<IfModule !lookup_identity_module>
+    LoadModule lookup_identity_module modules/mod_lookup_identity.so
+</IfModule>
+
+TraceEnable Off
+
+ProxyRequests Off
+
+#We use xhtml, a file format that the browser validates
+DirectoryIndex index.html
+
+
+# Substantially increase the request field size to support MS-PAC
+# requests, ticket #2767. This should easily support a 64KiB PAC.
+LimitRequestFieldSize 100000
+
+# Increase connection keep alive time. Default value is 5 seconds, which is too
+# short for interactive ipa commands. 30 seconds is a good compromise.
+KeepAlive On
+KeepAliveTimeout 30
+
+# Slow-read / slowloris protection (mod_reqtimeout).
+# handshake=5: 5s TLS handshake deadline (normal completes in <100ms)
+# header=20-40,MinRate=500: 20s initial + extension up to 40s at 500 B/s
+#   (accommodates large SPNEGO Negotiate headers, including PQC tokens
+#    such as ML-DSA-65 which produce 5KB+ headers)
+# body=30,MinRate=500: 30s body read timeout at 500 B/s
+#   (accommodates large JSON-RPC batch operations)
+<IfModule reqtimeout_module>
+    RequestReadTimeout handshake=5 header=20-40,MinRate=500 body=30,MinRate=500
+</IfModule>
+
+# ipa-rewrite.conf is loaded separately
+
+# Proper header for .tff fonts
+AddType application/x-font-ttf          ttf
+
+# Enable compression
+AddOutputFilterByType DEFLATE text/html text/plain text/xml \
+ application/javascript application/json text/css \
+ application/x-font-ttf
+
+# FIXME: WSGISocketPrefix is a server-scope directive.  The mod_wsgi package
+# should really be fixed by adding this its /etc/httpd/conf.d/wsgi.conf:
+WSGISocketPrefix $WSGI_PREFIX_DIR
+
+# Configure mod_wsgi handler for /ipa
+WSGIDaemonProcess ipa processes=$WSGI_PROCESSES threads=1 maximum-requests=500 \
+  user=ipaapi group=ipaapi display-name=%{GROUP} socket-timeout=2147483647 \
+  lang=C.UTF-8 locale=C.UTF-8
+WSGIScriptAlias /ipa /usr/share/ipa/wsgi.py process-group=ipa \
+  application-group=%{GLOBAL}
+WSGIScriptReloading Off
+
+# Disallow sniffing server software versions
+ServerSignature Off
+ServerTokens Prod
+
+# Turn off mod_msgi handler for errors, config, crl:
+<Location "/ipa/errors">
+  SetHandler None
+</Location>
+<Location "/ipa/config">
+  SetHandler None
+</Location>
+<Location "/ipa/crl">
+  SetHandler None
+</Location>
+
+# Protect /ipa and everything below it in webspace with Apache Kerberos auth
+<Location "/ipa">
+  AuthType GSSAPI
+  AuthName "Kerberos Login"
+  GssapiUseSessions On
+  Session On
+  SessionCookieName ipa_session path=/ipa;httponly;secure;SameSite=strict;
+  SessionHeader IPASESSION
+  # Uncomment the following to have shorter sessions, but beware this may break
+  # old IPA client tols that incorrectly parse cookies.
+  # SessionMaxAge 1800
+  GssapiSessionKey file:$GSSAPI_SESSION_KEY
+
+  GssapiImpersonate On
+  GssapiDelegCcacheDir $IPA_CCACHES
+  GssapiDelegCcachePerms mode:0660
+  GssapiDelegCcacheUnique On
+  GssapiUseS4U2Proxy on
+  GssapiAllowedMech krb5
+  GssapiNegotiateOnce On
+  Require valid-user
+  ErrorDocument 401 /ipa/errors/unauthorized.html
+  Header always append X-Frame-Options DENY
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header setifempty Content-Security-Policy "upgrade-insecure-requests; frame-ancestors 'none'; default-src 'none'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'"
+
+  # mod_session always sets two copies of the cookie, and this confuses our
+  # legacy clients, the unset here works because it ends up unsetting only one
+  # of the 2 header tables set by mod_session, leaving the other intact
+  Header unset Set-Cookie
+
+  # Disable etag http header. Doesn't work well with mod_deflate
+  # https://issues.apache.org/bugzilla/show_bug.cgi?id=45023
+  # Usage of last-modified header and modified-since validator is sufficient.
+  Header unset ETag
+  FileETag None
+</Location>
+
+# Target for login with internal connections
+Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
+
+# Turn off Apache authentication for i18n messages
+<Location "/ipa/i18n_messages">
+  Require all granted
+</Location>
+
+# Turn off Apache authentication for password/token based login pages
+<Location "/ipa/session/login_password">
+  Satisfy Any
+  Require all granted
+</Location>
+
+# Login with user certificate/smartcard configuration
+# This configuration needs to be loaded after <Location "/ipa">
+<Location "/ipa/session/login_x509">
+  AuthType none
+  GssapiDelegCcacheDir $IPA_CCACHES
+  GssapiDelegCcachePerms mode:0660
+  GssapiDelegCcacheUnique On
+  SSLVerifyClient require
+  SSLUserName SSL_CLIENT_CERT
+  LookupUserByCertificate On
+  LookupUserByCertificateParamName "username"
+  WSGIProcessGroup ipa
+  WSGIApplicationGroup ipa
+  GssapiImpersonate On
+
+  GssapiUseSessions On
+  Session On
+  SessionCookieName ipa_session path=/ipa;httponly;secure;SameSite=strict;
+  SessionHeader IPASESSION
+  SessionMaxAge 1800
+  GssapiSessionKey file:$GSSAPI_SESSION_KEY
+
+  Header unset Set-Cookie
+</Location>
+
+<Location "/ipa/session/change_password">
+  Satisfy Any
+  Require all granted
+</Location>
+
+<Location "/ipa/session/sync_token">
+  Satisfy Any
+  Require all granted
+</Location>
+
+# Custodia stuff is redirected to the custodia daemon
+# after authentication
+<Location "/ipa/keys/">
+    ProxyPass "unix:${IPA_CUSTODIA_SOCKET}|http://localhost/keys/"
+    RequestHeader set GSS_NAME %{GSS_NAME}s
+    RequestHeader set REMOTE_USER %{REMOTE_USER}s
+</Location>
+
+# This is where we redirect on failed auth
+Alias /ipa/errors "/usr/share/ipa/html"
+
+# For the MIT Windows config files
+Alias /ipa/config "/usr/share/ipa/html"
+
+# Do no authentication on the directory that contains error messages
+<Directory "/usr/share/ipa/html">
+  SetHandler None
+  AllowOverride None
+  Satisfy Any
+  Require all granted
+  ExpiresActive On
+  ExpiresDefault "access plus 0 seconds"
+</Directory>
+
+
+# For CRL publishing
+Alias /ipa/crl "$CRL_PUBLISH_PATH"
+<Directory "$CRL_PUBLISH_PATH">
+  SetHandler None
+  AllowOverride None
+  Options Indexes FollowSymLinks
+  Satisfy Any
+  Require all granted
+</Directory>
+
+
+#  List explicitly only the fonts we want to serve
+Alias /ipa/ui/fonts/open-sans "${FONTS_OPENSANS_DIR}"
+Alias /ipa/ui/fonts/fontawesome "${FONTS_FONTAWESOME_DIR}"
+<Directory "${FONTS_DIR}">
+  SetHandler None
+  AllowOverride None
+  Satisfy Any
+  Require all granted
+  ExpiresActive On
+  ExpiresDefault "access plus 1 year"
+</Directory>
+
+
+#  webUI  is now completely static, and served out of that directory
+Alias /ipa/ui "/usr/share/ipa/ui"
+<Directory "/usr/share/ipa/ui">
+  SetHandler None
+  AllowOverride None
+  Satisfy Any
+  Require all granted
+  ExpiresActive On
+  ExpiresDefault "access plus 1 year"
+  <FilesMatch "(index.html|loader.js|login.html|reset_password.html)">
+        ExpiresDefault "access plus 0 seconds"
+  </FilesMatch>
+</Directory>
+
+# Modern WebUI
+Alias /ipa/modern-ui "/usr/share/ipa/modern-ui"
+<Directory "/usr/share/ipa/modern-ui">
+  SetHandler None
+  AllowOverride None
+  Satisfy Any
+  Require all granted
+  RewriteEngine On
+  RewriteRule ^(.*)/assets/(.*)$$ assets/$$2 [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.html [QSA,L]
+  Header set Content-Security-Policy "upgrade-insecure-requests; frame-ancestors 'none'; default-src 'none'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; style-src 'self'; script-src 'self'"
+</Directory>
+
+#  Simple wsgi scripts required by ui
+Alias /ipa/wsgi "/usr/share/ipa/wsgi"
+<Directory "/usr/share/ipa/wsgi">
+    AllowOverride None
+    Satisfy Any
+    Require all granted
+    Options ExecCGI
+    AddHandler wsgi-script .py
+</Directory>
+
+# migration related pages
+Alias /ipa/migration "/usr/share/ipa/migration"
+<Directory "/usr/share/ipa/migration">
+    AllowOverride None
+    Satisfy Any
+    Require all granted
+    Options ExecCGI
+    AddHandler wsgi-script .py
+</Directory>

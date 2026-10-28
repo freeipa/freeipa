@@ -1,0 +1,44 @@
+# add plugin configuration for user private groups
+
+dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Posix IDs
+dnaType: uidNumber
+dnaType: gidNumber
+dnaNextValue: eval($IDSTART)
+dnaMaxValue: eval($IDMAX)
+dnaMagicRegen: -1
+dnaFilter: (|(objectClass=posixAccount)(objectClass=posixGroup)(objectClass=ipaIDobject))
+dnaScope: $SUFFIX
+dnaThreshold: 500
+dnaSharedCfgDN: cn=posix-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+dnaExcludeScope: cn=provisioning,$SUFFIX
+dnaRemoteBindMethod: SASL/GSSAPI
+dnaRemoteConnProtocol: LDAP
+
+dn: cn=Subordinate IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Subordinate IDs
+dnaType: ipasubuidnumber
+dnaType: ipasubgidnumber
+dnaNextValue: eval($SUBID_RANGE_START)
+dnaMaxValue: eval($SUBID_RANGE_MAX)
+dnaMagicRegen: -1
+dnaFilter: (objectClass=ipaSubordinateId)
+dnaScope: $SUFFIX
+dnaThreshold: eval($SUBID_DNA_THRESHOLD)
+dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+dnaExcludeScope: cn=provisioning,$SUFFIX
+dnaInterval: eval($SUBID_COUNT)
+dnaRemoteBindMethod: SASL/GSSAPI
+dnaRemoteConnProtocol: LDAP
+
+# Enable the DNA plugin
+dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: modify
+replace: nsslapd-pluginEnabled
+nsslapd-pluginEnabled: on

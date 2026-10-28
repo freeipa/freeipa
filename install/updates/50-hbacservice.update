@@ -1,0 +1,50 @@
+dn: cn=crond,cn=hbacservices,cn=hbac,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: crond
+default:description: crond
+default:ipauniqueid:autogenerate
+
+dn: cn=vsftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: vsftpd
+default:description: vsftpd
+default:ipauniqueid:autogenerate
+
+dn: cn=proftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: proftpd
+default:description: proftpd
+default:ipauniqueid:autogenerate
+
+dn: cn=pure-ftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: pure-ftpd
+default:description: pure-ftpd
+default:ipauniqueid:autogenerate
+
+dn: cn=gssftp,cn=hbacservices,cn=hbac,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: gssftp
+default:description: gssftp
+default:ipauniqueid:autogenerate
+
+dn: cn=ftp,cn=hbacservicegroups,cn=hbac,$SUFFIX
+default:objectClass: ipaobject
+default:objectClass: ipahbacservicegroup
+default:objectClass: nestedGroup
+default:objectClass: groupOfNames
+default:objectClass: top
+default:cn: ftp
+default:ipauniqueid:autogenerate
+default:description: Default group of ftp related services
+default:member: cn=ftp,cn=hbacservices,cn=hbac,$SUFFIX
+default:member: cn=proftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:member: cn=pure-ftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:member: cn=vsftpd,cn=hbacservices,cn=hbac,$SUFFIX
+default:member: cn=gssftp,cn=hbacservices,cn=hbac,$SUFFIX
+

@@ -1,0 +1,24 @@
+[kdcdefaults]
+ kdc_ports = 88
+ kdc_tcp_ports = 88
+ restrict_anonymous_to_tgt = true
+ spake_preauth_kdc_challenge = edwards25519
+
+[realms]
+ $REALM = {
+  master_key_type = $MASTER_KEY_TYPE
+  supported_enctypes = $SUPPORTED_ENCTYPES
+  max_life = 7d
+  max_renewable_life = 14d
+  acl_file = $KRB5KDC_KADM5_ACL
+  dict_file = $DICT_WORDS
+  default_principal_flags = +preauth
+;  admin_keytab = $KRB5KDC_KADM5_KEYTAB
+  pkinit_identity = FILE:$KDC_CERT,$KDC_KEY
+  pkinit_anchors = FILE:$KDC_CERT
+  pkinit_anchors = FILE:$CACERT_PEM
+  pkinit_pool = FILE:$CA_BUNDLE_PEM
+  pkinit_indicator = pkinit
+  spake_preauth_indicator = hardened
+  encrypted_challenge_indicator = hardened
+ }

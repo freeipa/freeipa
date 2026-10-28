@@ -1,0 +1,6 @@
+# change configured ciphers
+# the result of this update will be that default ciphers
+# provided by DS which are not weak will be enabled
+dn: cn=encryption,cn=config
+only:nsSSL3Ciphers: default
+addifnew:allowWeakCipher: off

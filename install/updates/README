@@ -1,0 +1,23 @@
+The update files are sorted before being processed because there are
+cases where order matters (such as getting schema added first, creating
+parent entries, etc).
+
+Updates are applied in blocks of ten so that any entries that are dependant
+on another can be added successfully without having to rely on the length
+of the DN to get the sorting correct.
+
+The file names should use the format #-<description>.update where # conforms
+to this:
+
+10 - 19: Configuration
+20 - 29: 389-ds configuration, new indices
+30 - 39: Structual elements of the DIT
+40 - 49: Pre-loaded data
+50 - 59: Cleanup existing data
+60 - 69: AD Trust
+70 - 79: Reserved
+80 - 89: Reserved
+
+These numbers aren't absolute, there may be reasons to put an update
+into one place or another, but by adhereing to the scheme it will be
+easier to find existing updates and know where to put new ones.

@@ -1,0 +1,17 @@
+# Configuration for Passkey Authentication
+dn: cn=passkeyconfig,cn=etc,$SUFFIX
+default:objectclass: top
+default:objectclass: nscontainer
+default:objectclass: ipaPasskeyConfigObject
+default:ipaRequireUserVerification: TRUE
+
+# Passkey Administrators
+dn: cn=Passkey Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: Passkey Administrators
+default:description: Passkey Administrators
+
+dn: $SUFFIX
+add:aci: (targetattr = "ipapasskey")(targattrfilters="add=objectclass:(objectclass=ipapasskeyuser)")(version 3.0;acl "selfservice:Users can manage their own passkey mappings";allow (write) userdn = "ldap:///self";)

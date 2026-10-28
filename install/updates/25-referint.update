@@ -1,0 +1,25 @@
+# Expand attributes checked by Referential Integrity plugin
+# pres and eq indexes defined in 20-indices.update must be set for all these
+# attributes
+# NOTE: migration to new style is done in update_referint.py
+dn: cn=referential integrity postoperation,cn=plugins,cn=config
+add: referint-membership-attr: manager
+add: referint-membership-attr: secretary
+add: referint-membership-attr: memberuser
+add: referint-membership-attr: memberhost
+add: referint-membership-attr: sourcehost
+add: referint-membership-attr: memberservice
+add: referint-membership-attr: managedby
+add: referint-membership-attr: memberallowcmd
+add: referint-membership-attr: memberdenycmd
+add: referint-membership-attr: ipasudorunas
+add: referint-membership-attr: ipasudorunasgroup
+add: referint-membership-attr: ipatokenradiusconfiglink
+add: referint-membership-attr: ipaassignedidview
+add: referint-membership-attr: ipaallowedtarget
+add: referint-membership-attr: ipamemberca
+add: referint-membership-attr: ipamembercertprofile
+add: referint-membership-attr: ipalocation
+add: referint-membership-attr: membermanager
+add: referint-membership-attr: ipaowner
+add: referint-membership-attr: ipaidpconfiglink

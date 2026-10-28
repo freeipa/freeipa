@@ -1,0 +1,28 @@
+dn: cn=ipa-winsync,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa-winsync
+nsslapd-pluginpath: libipa_winsync
+nsslapd-plugininitfunc: ipa_winsync_plugin_init
+nsslapd-pluginDescription: Allows IPA to work with the DS windows sync feature
+nsslapd-pluginid: ipa-winsync
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat
+nsslapd-plugintype: preoperation
+nsslapd-pluginenabled: on
+nsslapd-plugin-depends-on-type: database
+ipaWinSyncRealmFilter: (objectclass=krbRealmContainer)
+ipaWinSyncRealmAttr: cn
+ipaWinSyncNewEntryFilter: (cn=ipaConfig)
+ipaWinSyncNewUserOCAttr: ipauserobjectclasses
+ipaWinSyncUserFlatten: true
+ipaWinsyncHomeDirAttr: ipaHomesRootDir
+ipaWinsyncLoginShellAttr: ipaDefaultLoginShell
+ipaWinSyncDefaultGroupAttr: ipaDefaultPrimaryGroup
+ipaWinSyncDefaultGroupFilter: (gidNumber=*)(objectclass=posixGroup)(objectclass=groupOfNames)
+ipaWinSyncAcctDisable: both
+ipaWinSyncForceSync: true
+ipaWinSyncUserAttr: uidNumber -1
+ipaWinSyncUserAttr: gidNumber -1

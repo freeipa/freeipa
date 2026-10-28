@@ -1,0 +1,77 @@
+/*  Authors:
+ *    Petr Vobornik <pvoborni@redhat.com>
+ *
+ * Copyright (C) 2013 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// this file should be overridden with brand/platform specific content
+
+@login-details-border: #777777;
+
+.login-pf {
+
+    .login-pf-body {
+        padding-top: 50px;
+    }
+
+    #badge img {
+        display: none;
+    }
+
+    #brand {
+        position: absolute;
+        top: -135px;
+        img {
+            height: auto;
+        }
+    }
+
+    .container {
+        padding-top: 40px;
+
+        .details p:first-child {
+            border-top: 1px solid @login-details-border;
+        }
+    }
+}
+
+// 768px == @screen-sm-min
+@media (min-width: 768px) {
+    .navbar-pf .navbar-brand {
+        padding: 2px 0 3px;
+    }
+
+    .login-pf .container .details {
+        p:first-child {
+            border-top: 0;
+        }
+        border-left: 1px solid @login-details-border;
+    }
+}
+
+@media (max-height: 520px) {
+    .reset-login-pf-height;
+    .login-pf {
+        .login-pf-body {
+            padding-top: 0;
+        }
+        #badge {
+            margin-top: 0;
+            height: 70px;
+        }
+    }
+}

@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2020  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_acme_manage import IPAACMEManage
+
+IPAACMEManage.run_cli()

@@ -1,0 +1,66 @@
+/* WARNING: This config file is managed by IPA.
+ *
+ * DO NOT MODIFY! Any modification will be overwritten by upgrades.
+ *
+ *
+ * - $NAMED_CUSTOM_OPTIONS_CONF (for options)
+ * - $NAMED_LOGGING_OPTIONS_CONF (for logging options)
+ * - $NAMED_CUSTOM_CONF (all other settings)
+ */
+
+options {
+	// Put files that named is allowed to write in the data/ directory:
+	directory "$NAMED_VAR_DIR"; // the default
+	dump-file		"${NAMED_DATA_DIR}cache_dump.db";
+	statistics-file		"${NAMED_DATA_DIR}named_stats.txt";
+	memstatistics-file	"${NAMED_DATA_DIR}named_mem_stats.txt";
+
+	tkey-gssapi-keytab "$NAMED_KEYTAB";
+
+	pid-file "$NAMED_PID";
+
+	managed-keys-directory "$MANAGED_KEYS_DIR";
+
+	$NAMED_DNS_OVER_TLS_OPTIONS_CONF
+
+	/* user customizations of options */
+	include "$NAMED_CUSTOM_OPTIONS_CONF";
+
+	/* crypto policy snippet on platforms with system-wide policy. */
+	$INCLUDE_CRYPTO_POLICY
+};
+
+/* If you want to enable debugging, eg. using the 'rndc trace' command,
+ * By default, SELinux policy does not allow named to modify the /var/named directory,
+ * so put the default debug log file in data/ :
+ */
+logging {
+	channel default_debug {
+		file "${NAMED_DATA_DIR}named.run";
+		severity dynamic;
+		print-time yes;
+	};
+	include "$NAMED_LOGGING_OPTIONS_CONF";
+};
+
+${NAMED_ZONE_COMMENT}zone "." IN {
+${NAMED_ZONE_COMMENT}	type hint;
+${NAMED_ZONE_COMMENT}	file "named.ca";
+${NAMED_ZONE_COMMENT}};
+
+include "$RFC1912_ZONES";
+include "$ROOT_KEY";
+
+$NAMED_DNS_OVER_TLS_CONF
+
+/* user customization */
+include "$NAMED_CUSTOM_CONF";
+
+dyndb "ipa" "$BIND_LDAP_SO" {
+	uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
+	base "cn=dns,$SUFFIX";
+	server_id "$FQDN";
+	auth_method "sasl";
+	sasl_mech "EXTERNAL";
+	krb5_keytab "FILE:$NAMED_KEYTAB";
+};

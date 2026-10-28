@@ -1,0 +1,165 @@
+#!/usr/bin/python3
+
+# Authors:
+#   Petr Viktorin <pviktori@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function
+
+import sys
+import os
+import argparse
+import json
+
+from ipalib.constants import FQDN
+from ipatests.pytest_ipa.integration import config, env_config
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+    description='Prints out IPA test configuration for use in shell scripts.'
+        'IPA integration tests are configured via environment variables')
+
+    parser.add_argument('host', nargs='?',
+                        help='Print config for the given hostname')
+
+    parser.add_argument('--global', action='store_true', dest='global_',
+                        help='Print global config (not specific to a host '
+                             'or domain)')
+
+    parser.add_argument('--domain',
+                        help='IPA domain name, or number (the X in _envX)')
+
+    parser.add_argument('--master',
+                        help='Print config for the master',
+                        action='store_true')
+
+    parser.add_argument('--replica', type=int,
+                        help='Print config for the replica with this number')
+
+    parser.add_argument('--client', type=int,
+                        help='Print config for the client with this number')
+
+    parser.add_argument('--role', type=str,
+                        help='Print config for machine with this role')
+
+    parser.add_argument('--no-simple', dest='simple', action='store_false',
+                        help='Do not print Simple Vars '
+                             '(normally included backwards-compatibility)')
+
+    parser.add_argument('--yaml', action='store_const', dest='output_format',
+                        const='yaml',
+                        help='Output configuration in YAML format')
+
+    parser.add_argument('--json', action='store_const', dest='output_format',
+                        const='json',
+                        help='Output configuration in JSON format')
+
+    args = parser.parse_args(argv)
+
+    hostsargs = [bool(args.host), bool(args.master), bool(args.replica),
+             bool(args.client)]
+    if hostsargs.count(True) > 1:
+        parser.error('Must specify at most one of host selection options')
+    if any(hostsargs) or args.domain:
+        if args.global_:
+            parser.error('--global may not be combined with host selection options')
+    else:
+        args.host = FQDN
+
+    kwargs = {}
+    if not args.simple:
+        kwargs['simple'] = False
+
+    conf = config.Config.from_env(os.environ)
+
+    if args.output_format == 'json':
+        return json.dumps(conf.to_dict(), indent=2)
+    elif args.output_format == 'yaml':
+        import yaml
+        return yaml.safe_dump(conf.to_dict(), default_flow_style=False)
+    else:
+        env = get_object(conf, args).to_env(**kwargs)
+        return env_config.env_to_script(env)
+
+
+def get_object(conf, args):
+    if args.global_:
+        return conf
+    elif args.host:
+        try:
+            return conf.host_by_name(args.host)
+        except LookupError:
+            sys.exit('Host %s not found in config. Try --global' % args.host)
+    else:
+        if args.domain:
+            try:
+                num = int(args.domain) - 1
+            except ValueError:
+                domains = [d for d in conf.domains if d.name == args.domain]
+                if not domains:
+                    sys.exit('Domain %s not found' % args.domain)
+                domain = domains[0]
+            else:
+                try:
+                    domain = conf.domains[num]
+                except LookupError:
+                    sys.exit('Domain %s not found.' % args.domain)
+        else:
+            try:
+                domain = conf.domains[0]
+            except IndexError:
+                sys.exit('No domains are configured.')
+        if args.master:
+            return domain.master
+
+        elif args.replica:
+            num = int(args.replica) - 1
+            try:
+                return domain.replicas[args.replica]
+            except LookupError:
+                sys.exit(
+                    'Domain %s not found in domain %s'
+                    % (args.replica, domain.name)
+                )
+
+        elif args.client:
+            num = int(args.client) - 1
+            try:
+                return domain.replicas[args.client]
+            except LookupError:
+                sys.exit(
+                    'Client %s not found in domain %s'
+                    % (args.client, domain.name)
+                )
+
+        elif args.role:
+            try:
+                return domain.get_host_by_role(args.role)
+            except LookupError:
+                sys.exit(
+                    'No host with role %s not found in domain %s'
+                    % (args.role, domain.name)
+                )
+
+        else:
+            return domain
+
+
+if __name__ == '__main__':
+    print(main(sys.argv[1:]), end=' ')

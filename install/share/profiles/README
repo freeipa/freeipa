@@ -1,0 +1,20 @@
+This directory contains profile TEMPLATES for certificate profiles
+included in FreeIPA.  Do not import these files or modifications
+thereof - it is likely that Dogtag will accept the configuration,
+but certificate issuance will fail with the updated configuration.
+At best, it will not give you the certificates you want.
+
+If you want to modify a profile configuration or create a new
+profile based on an existing profile configuration, you should
+export the current profile configuration with the command:
+
+    ipa certprofile-show --out FILENAME PROFILE_NAME
+
+After modifying the configuration, update the profile configuration:
+
+    ipa certprofile-mod --file FILENAME PROFILE_NAME
+
+Or if you are creating a new profile:
+
+    ipa certprofile-import --desc DESC --store 1 \
+        --file FILENAME NEW_PROFILE_NAME

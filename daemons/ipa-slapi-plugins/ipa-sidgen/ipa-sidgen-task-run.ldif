@@ -1,0 +1,10 @@
+dn: cn=sidgen,cn=ipa-sidgen-task,cn=tasks,cn=config
+changetype: add
+objectClass: top
+objectClass: extensibleObject
+cn: sidgen
+# $SUFFIX must be replaced with the base DN of the IPA directory tree
+nsslapd-basedn: $SUFFIX
+# delay specifies the time the task should sleep between the generation of SIDs
+# in nanoseconds
+delay: 0

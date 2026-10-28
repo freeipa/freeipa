@@ -1,0 +1,16 @@
+#
+# Schema derived from RFC 2307bis:
+#       "An Approach for Using LDAP as a Network Information Service"
+#
+dn: cn=schema
+attributeTypes: ( 1.3.6.1.1.1.1.28 NAME 'nisPublickey' DESC 'nisPublickey' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 1.3.6.1.1.1.1.29 NAME 'nisSecretkey' DESC 'nisSecretkey' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 1.3.6.1.4.1.1.1.1.12 NAME 'nisDomain' DESC 'NIS domain' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 2.16.840.1.113730.3.1.30 NAME 'mgrpRFC822MailMember' DESC 'mgrpRFC822MailMember' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.12 NAME 'nisNetIdUser' DESC 'nisNetIdUser' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.13 NAME 'nisNetIdGroup' DESC 'nisNetIdGroup' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.1.1.14 NAME 'nisNetIdHost' DESC 'nisNetIdHost' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'RFC2307bis' )
+objectClasses: ( 1.3.6.1.1.1.2.14 NAME 'nisKeyObject' DESC 'nisKeyObject' SUP top MUST ( cn $ nisPublickey $ nisSecretkey ) MAY ( uidNumber $ description ) )
+objectClasses: ( 1.3.1.6.1.1.1.2.15 NAME 'nisDomainObject' DESC 'nisDomainObject' SUP top AUXILIARY MUST nisDomain )
+objectClasses: ( 2.16.840.1.113730.3.2.4 NAME 'mailGroup' DESC 'mailGroup' SUP top MUST mail MAY ( cn $ mgrpRFC822MailMember ) )
+objectClasses: ( 1.3.6.1.4.1.42.2.27.1.2.6 NAME 'nisNetId' DESC 'nisNetId' SUP top MUST cn MAY ( nisNetIdUser $ nisNetIdGroup $ nisNetIdHost ) )

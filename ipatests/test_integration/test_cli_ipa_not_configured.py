@@ -1,0 +1,34 @@
+from ipapython.admintool import SERVER_NOT_CONFIGURED
+from ipatests.test_integration.base import IntegrationTest
+
+
+class TestIPANotConfigured(IntegrationTest):
+    """
+    Test class for CLI commands with ipa server not configured.
+    Topology parameter is omitted in order to prevent IPA from configuring.
+    """
+
+    def test_var_log_message_with_ipa_backup(self):
+        """
+        Test for PG6843: ipa-backup does not create log file at /var/log
+        Launches ipa backup command on system with ipa server not configured.
+        As the server is not configured yet, command should fail and stderr
+        should not contain link to /var/log, as no such log is created.
+        Issue URl: https://codeberg.org/freeipa/freeipa/issues/6843
+        """
+        exp_str = "not configured on this system"
+        unexp_str = "/var/log"
+        cmd = self.master.run_command(["ipa-backup"], raiseonerr=False)
+        assert (exp_str in cmd.stderr_text and
+                cmd.returncode == SERVER_NOT_CONFIGURED and
+                unexp_str not in cmd.stderr_text)
+
+    def test_ipa_idrange_fix(self):
+        """
+        Test for https://codeberg.org/freeipa/freeipa/issues/9809
+        Launch ipa-idrange-fix command when the server is not configured.
+        """
+        exp_str = "IPA is not configured"
+        cmd = self.master.run_command(["ipa-idrange-fix"], raiseonerr=False)
+        assert (exp_str in cmd.stderr_text
+                and cmd.returncode == SERVER_NOT_CONFIGURED)

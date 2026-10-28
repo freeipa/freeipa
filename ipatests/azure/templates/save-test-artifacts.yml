@@ -1,0 +1,12 @@
+parameters:
+  logsPath: $(IPA_TESTS_ENV_WORKING_DIR)
+  logsArtifact: ''
+steps:
+- task: PublishPipelineArtifact@1
+  displayName: Publish logs
+  inputs:
+    artifactName: ${{parameters.logsArtifact}}
+    # globbing is adjusted in .artifactignore on IPA_TESTS_ENV_WORKING_DIR
+    targetPath: ${{parameters.logsPath}}
+  condition: always()
+

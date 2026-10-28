@@ -1,0 +1,204 @@
+.\" A man page for ipa-test-config
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Petr Viktorin <pviktori@redhat.com>
+.\"
+.TH "ipa-test-config" "1" "Aug 29 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-test\-config \- Generate FreeIPA test configuration for use in Bash scripts
+.SH "SYNOPSIS"
+ipa\-test\-config [options]
+.br
+ipa\-test\-config [options] \-\-global
+.br
+ipa\-test\-config [options] hostname
+.SH "DESCRIPTION"
+The FreeIPA integration test suite is configured by setting environment
+variables.
+The ipa\-run\-tests command reads these variables and prints detailed
+configuration for shell-based scripts to standard output.
+The default output of ipa\-run\-tests consists of export statements that can be
+sourced by Bash.
+
+If run without arguments, it prints out configuration specific to the local
+host.
+Another host may be specified as an argument, or via the \-\-master,
+\-\-replica, and \-\-client options.
+With the \-\-global option, it prints only configuration that is not specific to
+any host.
+
+.SH "OPTIONS"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print out the command's usage and exit
+.TP
+\fB\-\-global\fR
+Output global configuration.
+.TP
+\fB\-\-domain\fR
+Output configuration for the given domain (environment).
+May be given as an index or name.
+By default, domain 1 is used.
+.TP
+\fB\-\-master\fR
+Output configuration for the master
+.TP
+\fB\-\-replica\fR
+Output configuration for the replica with the given number
+.TP
+\fB\-\-replica\fR
+Output configuration for the client with the given number
+.TP
+\fB\-\-role\fR
+Output configuration for the host with the given role.
+.TP
+\fB\-\-no\-simple\fR
+Do not output Simple Vars.
+These are normally included for backwards compatibility.
+.TP
+\fB\-\-yaml\fR
+Output configuration in YAML format instead of Bash script.
+This requires the PyYAML library to be installed.
+.TP
+\fB\-\-json\fR
+Output configuration in JSON format instead of Bash script.
+
+.SH "ENVIRONMENT VARIABLES"
+
+.TP
+File\-based configuration:
+
+.TP
+\fB$IPATEST_YAML_CONFIG\fR
+    Specifies a file that contains configuration in YAML format,
+    as given by \fBipa\-test\-config \-\-global \-\-yaml\fR.
+    If given, the other environment variables are ignored.
+    This requires the PyYAML library to be installed.
+
+.TP
+\fB$IPATEST_JSON_CONFIG\fR
+    Specifies a file that contains configuration in JSON format,
+    as given by \fBipa\-test\-config \-\-global \-\-json\fR.
+    If given, the other environment variables are ignored.
+
+.TP
+Domain configuration:
+    Domain is implicitly defined by _envX suffix of the environment variables,
+    if either AD_envX or MASTER_envX is defined.
+
+.TP
+Host configuration:
+
+.TP
+\fB$MASTER\fR
+    FQDN of the first IPA server
+.TP
+\fB$REPLICA\fR
+    FQDNs of other IPA servers (space-separated)
+.TP
+\fB$CLIENT\fR
+    FQDNs of IPA clients (space-separated)
+.TP
+\fB$MASTER_env2\fR, \fB$REPLICA_env2\fR, \fB$CLIENT_env2\fR, \fB$MASTER_env3\fR, \fB$AD_env4\fR,...
+    can be used for additional domains when needed
+.TP
+\fB$AD_env1\fR, \fB$AD_env2\fR, \fB$AD_env3\fR, \fB$AD_env4\fR, ...
+    can be used to define Active Directory domains. Please note that these
+    domains are not treated as separate from the IPA domains, so please use an
+    unique environment suffix for each of your Active Directory domains.
+.TP
+\fB$TESTHOST_\fR<keyword>\fB_env\fR<e>, e.g. \fB$TESTHOST_LEGACY_env1
+    Defines a host with extra role identified as lowercased <keyword>, e.g. 'legacy'.
+.TP
+\fB$BEAKER\fR<role><num>\fB_IP_env\fR<e>, e.g. \fB$BEAKERREPLICA1_IP_env1\fR
+    the IP address of the given host
+    Default: resolved via gethostbyname (or DNS if $IPv6SETUP is set)
+
+.TP
+Basic configuration:
+
+.TP
+\fB$IPATEST_DIR\fR
+    Directory for test data on the remote hosts
+    Default: /root/ipatests
+.TP
+\fB$DNSFORWARD\fR
+    IP of a DNS forwarder
+    Default: 8.8.8.8
+.TP
+\fB$IPA_ROOT_SSH_PASSWORD\fR
+    root password for the remote machines
+    Used if $IPA_ROOT_SSH_KEY is not set.
+.TP
+\fB$IPA_ROOT_SSH_KEY\fR
+    name of a file containing the private RSA key for root on the remote machines
+    Default: ~/.ssh/id_rsa
+
+.TP
+Test customization:
+
+.TP
+\fB$DOMAIN\fR
+    IPA domain name
+    Default: taken from $MASTER
+.TP
+\fB$NISDOMAIN\fR
+    NIS domain name
+    Default: ipatest
+.TP
+\fB$NTPSERVER\fR
+    NIS domain name
+    Default: ipatest
+.TP
+\fB$IPv6SETUP\fR
+    Set to TRUE for IPv6-only connectivity
+.TP
+\fB$IPADEBUG\fR
+    Set to enable test debugging
+
+.TP
+\fB$ADMINID\fR
+    Admin username
+    Default: admin
+.TP
+\fB$ADMINPW\fR
+    Admin user password
+    Default: Secret123
+.TP
+\fB$ADADMINID\fR
+    Active Directory Administrator username
+    Default: Administrator
+.TP
+\fB$ADADMINPW\fR
+    Active Directory Administrator password
+    Default: Secret123
+.TP
+\fB$ROOTDN\fR
+    Directory manager DN
+    Default: cn=Directory Manager
+.TP
+\fB$ROOTDNPWD\fR
+    Directory manager password
+    Default: Secret123
+
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+.SH "REFERENCES"
+A full description of the FreeIPA integration testing framework is available at
+http://www.freeipa.org/page/V3/Integration_testing

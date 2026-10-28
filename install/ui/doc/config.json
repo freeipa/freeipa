@@ -1,0 +1,13 @@
+{
+    "--title": "FreeIPA Web UI Documentation",
+    "--categories": "categories.json",
+    "--guides": "guides.json",
+    "--css": ["doc.css"],
+    "--external": ["jQuery", "Store", "QueryResult", "Stateful", "Evented",
+                   "XMLHttpRequest", "Promise"],
+    "--warnings": ["-link", "-nodoc"],
+    "--": [
+        "../src/freeipa/"
+    ],
+    "--output": "../build/code_doc"
+}

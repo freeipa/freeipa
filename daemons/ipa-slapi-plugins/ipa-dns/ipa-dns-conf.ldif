@@ -1,0 +1,15 @@
+dn: cn=IPA DNS,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsslapdPlugin
+objectclass: extensibleObject
+cn: IPA DNS
+nsslapd-plugindescription: IPA DNS support plugin
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_dns
+nsslapd-plugininitfunc: ipadns_init
+nsslapd-pluginpath: libipa_dns.so
+nsslapd-plugintype: preoperation
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-pluginversion: 1.0
+nsslapd-plugin-depends-on-type: database

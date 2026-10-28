@@ -1,0 +1,11 @@
+[Unit]
+Description=ipa-otpd socket
+
+[Socket]
+ListenStream=@krb5rundir@/DEFAULT.socket
+RemoveOnStop=true
+SocketMode=0600
+Accept=true
+
+[Install]
+WantedBy=@KRB5KDC_SERVICE@

@@ -1,0 +1,15 @@
+Ground rules on adding new schema
+
+Brand new schema, particularly when written specifically for IPA, should be
+added in share/*.ldif. Any new files need to be explicitly loaded in
+ipaserver/install/dsinstance.py. These simply get copied directly into
+the new instance schema directory.
+
+Existing schema (e.g. in an LDAP draft) may either be added as a separate
+ldif in share or as an update in the updates directory. The advantage of
+adding the schema as an update is if 389-ds ever adds the schema then the
+installation won't fail due to existing schema failing to load during
+bootstrap.
+
+If the new schema requires a new container then this should be added
+to install/bootstrap-template.ldif.

@@ -1,0 +1,16 @@
+dn: cn=IPA SIDGEN,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: IPA SIDGEN
+nsslapd-pluginpath: libipa_sidgen
+nsslapd-plugininitfunc: ipa_sidgen_init
+nsslapd-plugintype: postoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa_sidgen_postop
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat, Inc.
+nsslapd-plugindescription: IPA SIDGEN post operation
+nsslapd-plugin-depends-on-type: database
+nsslapd-basedn: $SUFFIX

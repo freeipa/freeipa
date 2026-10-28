@@ -1,0 +1,11 @@
+dn: cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: nsContainer
+objectclass: ipaReplTopoManagedServer
+objectClass: ipaConfigObject
+objectClass: ipaSupportedDomainLevelConfig
+cn: $FQDN
+ipaReplTopoManagedSuffix: $SUFFIX
+ipaMinDomainLevel: $MIN_DOMAIN_LEVEL
+ipaMaxDomainLevel: $MAX_DOMAIN_LEVEL

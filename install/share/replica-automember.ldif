@@ -1,0 +1,8 @@
+# Configuration for Auto Membership Plugin for Replica
+# installation.  This method should be revisted for
+# optimization due to a bug within 389 DS.
+# dsinstance.py should eventually insert this during common_setup.
+dn: cn=Auto Membership Plugin,cn=plugins,cn=config
+changetype: modify
+add: nsslapd-pluginConfigArea
+nsslapd-pluginConfigArea: cn=automember,cn=etc,$SUFFIX

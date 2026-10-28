@@ -1,0 +1,16 @@
+ADDITIONAL PERMISSIONS
+
+This file is a modification of the main license file (COPYING), which
+contains the license terms. It applies only to specific files in the
+tree that include an "OpenSSL license exception" disclaimer.
+
+In addition to the governing license (GPLv3), as a special exception,
+the copyright holders give permission to link the code of this program
+with the OpenSSL library, and distribute linked combinations including
+the two.
+You must obey the GNU General Public License in all respects for all of
+the code used other than OpenSSL. If you modify file(s) with this
+exception, you may extend this exception to your version of the file(s),
+but you are not obligated to do so. If you do not wish to do so, delete
+this exception statement from your version. If you delete the exception
+statement from all source files in the program, then also delete it here.

@@ -1,0 +1,39 @@
+## IPA Base OID:	2.16.840.1.113730.3.8
+##
+## Attributes:		2.16.840.1.113730.3.8.23 - V4 base attributes
+## ObjectClasses:	2.16.840.1.113730.3.8.24 - V4 base objectclasses
+##
+dn: cn=schema
+# subordinate ids
+# range ceiling OIDs are reserved for future use
+attributeTypes: ( 2.16.840.1.113730.3.8.23.7 NAME 'ipaSubUidNumber' DESC 'Numerical subordinate user ID (range start value)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.8 NAME 'ipaSubUidCount' DESC 'Subordinate user ID count (range size)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+# attributeTypes: ( 2.16.840.1.113730.3.8.23.9 NAME 'ipaSubUidCeiling' DESC 'Numerical subordinate user ID ceiling (largest value in range)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.10 NAME 'ipaSubGidNumber' DESC 'Numerical subordinate group ID (range start value)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.11 NAME 'ipaSubGidCount' DESC 'Subordinate group ID count (range size)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+# attributeTypes: ( 2.16.840.1.113730.3.8.23.12 NAME 'ipaSubGidCeiling' DESC 'Numerical subordinate user ID ceiling (largest value in range)' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.13 NAME 'ipaOwner' DESC 'Owner of an entry' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+# attribute 2.16.840.1.113730.3.8.23.14 'ipaUserDefaultSubordinateId' is defined in 60ipaconfig.ldif
+objectClasses: (2.16.840.1.113730.3.8.24.2 NAME 'ipaSubordinateUid' DESC 'Subordinate uids for users, see subuid(5)' SUP top AUXILIARY MUST ( ipaOwner $ ipaSubUidNumber $ ipaSubUidCount ) X-ORIGIN 'IPA v4.9')
+objectClasses: (2.16.840.1.113730.3.8.24.3 NAME 'ipaSubordinateGid' DESC 'Subordinate gids for users, see subgid(5)' SUP top AUXILIARY MUST ( ipaOwner $ ipaSubGidNumber $ ipaSubGidCount ) X-ORIGIN 'IPA v4.9')
+objectClasses: (2.16.840.1.113730.3.8.24.4 NAME 'ipaSubordinateId' DESC 'Subordinate uid and gid for users' SUP top AUXILIARY MUST ( ipaOwner $ ipaSubUidNumber $ ipaSubUidCount $ ipaSubGidNumber $ ipaSubGidCount ) X-ORIGIN 'IPA v4.9')
+objectClasses: (2.16.840.1.113730.3.8.24.5 NAME 'ipaSubordinateIdEntry' DESC 'Subordinate uid and gid entry' SUP top STRUCTURAL MUST ( ipaUniqueId ) MAY ( description ) X-ORIGIN 'IPA v4.9')
+# External IdP support
+attributeTypes: (2.16.840.1.113730.3.8.23.15 NAME 'ipaIdpDevAuthEndpoint' DESC 'Identity Provider Device Authorization Endpoint' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.16 NAME 'ipaIdpAuthEndpoint' DESC 'Identity Provider Authorization Endpoint' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.17 NAME 'ipaIdpTokenEndpoint' DESC 'Identity Provider Token Endpoint' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.18 NAME 'ipaIdpClientId' DESC 'Identity Provider Client Identifier' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.19 NAME 'ipaIdpClientSecret' DESC 'Identity Provider Client Secret' EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.20 NAME 'ipaIdpScope' DESC 'Identity Provider Scope' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.21 NAME 'ipaIdpConfigLink' DESC 'Corresponding Identity Provider Configuration link' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.9')
+attributeTypes: (2.16.840.1.113730.3.8.23.22 NAME 'ipaIdpSub' DESC 'Identity Provider User Subject' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.23 NAME 'ipaIdpIssuerURL' DESC 'Identity Provider OIDC URL' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.24 NAME 'ipaIdpUserInfoEndpoint' DESC 'Identity Provider UserInfo Endpoint' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+attributeTypes: (2.16.840.1.113730.3.8.23.25 NAME 'ipaIdpKeysEndpoint' DESC 'Identity Provider JWKS Endpoint' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.9' )
+objectClasses: (2.16.840.1.113730.3.8.24.6 NAME 'ipaIdP' SUP top STRUCTURAL DESC 'Identity Provider Configuration' MUST ( cn ) MAY ( ipaIdpDevAuthEndpoint $ ipaIdpAuthEndpoint $ ipaIdpTokenEndpoint $ ipaIdpUserInfoEndpoint $ ipaIdpKeysEndpoint $ ipaIdpClientId $ description $ ipaIdpClientSecret $ ipaIdpScope $ ipaIdpIssuerURL $ ipaIdpSub ) X-ORIGIN 'IPA v4.9' )
+objectClasses: (2.16.840.1.113730.3.8.24.7 NAME 'ipaIdpUser' SUP top AUXILIARY DESC 'User from an external Identity Provider ' MAY ( ipaIdpConfigLink $ ipaIdpSub ) X-ORIGIN 'IPA v4.9' )
+### Passkey support
+attributeTypes: ( 2.16.840.1.113730.3.8.23.26 NAME 'ipaRequireUserVerification' DESC 'require passkey user verification' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'IPA v4.10')
+attributeTypes: ( 2.16.840.1.113730.3.8.23.27 NAME 'ipapasskey' DESC 'Passkey mapping' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.10' )
+objectclasses: ( 2.16.840.1.113730.3.8.24.8 NAME 'ipaPasskeyConfigObject' DESC 'IPA passkey global config options' AUXILIARY MUST ipaRequireUserVerification X-ORIGIN 'IPA v4.10')
+objectclasses: ( 2.16.840.1.113730.3.8.24.9 NAME 'ipaPasskeyUser' DESC 'IPA passkey user' AUXILIARY MAY ipapasskey X-ORIGIN 'IPA v4.10')

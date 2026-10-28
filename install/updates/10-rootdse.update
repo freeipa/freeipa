@@ -1,0 +1,9 @@
+# Set the default attributes to be returned by RootDSE
+dn:
+add:nsslapd-return-default-opattr:namingContexts
+add:nsslapd-return-default-opattr:supportedControl
+add:nsslapd-return-default-opattr:supportedExtension
+add:nsslapd-return-default-opattr:supportedLDAPVersion
+add:nsslapd-return-default-opattr:supportedSASLMechanisms
+add:nsslapd-return-default-opattr:vendorName
+add:nsslapd-return-default-opattr:vendorVersion

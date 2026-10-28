@@ -1,0 +1,8 @@
+# Do not edit. Created by IPA installer.
+
+[Service]
+Environment=KRB5CCNAME=$KRB5CC_HTTPD
+Environment=GSS_USE_PROXY=yes
+Environment=KDCPROXY_CONFIG=$KDCPROXY_CONFIG
+Environment=LC_ALL=C.UTF-8
+ExecStartPre=$IPA_HTTPD_KDCPROXY

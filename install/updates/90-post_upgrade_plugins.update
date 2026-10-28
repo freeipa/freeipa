@@ -1,0 +1,45 @@
+# first
+
+
+# middle
+plugin: update_ca_topology
+plugin: update_ipaconfigstring_dnsversion_to_ipadnsversion
+plugin: update_dnszones
+plugin: update_dns_limits
+plugin: update_sigden_extdom_broken_config
+plugin: update_sids
+plugin: update_default_range
+plugin: update_default_trust_view
+plugin: update_tdo_gidnumber
+plugin: update_tdo_to_new_layout
+plugin: update_host_cifs_keytabs
+plugin: update_tdo_default_read_keys_permissions
+plugin: update_adtrust_agents_members
+plugin: update_ca_renewal_master
+plugin: update_idrange_type
+plugin: update_pacs
+plugin: update_service_principalalias
+plugin: update_fix_duplicate_cacrt_in_ldap
+plugin: update_upload_cacrt
+plugin: update_mapping_Guests_to_nobody
+plugin: fix_kra_people_entry
+plugin: update_pwpolicy
+plugin: update_pwpolicy_grace
+plugin: add_admin_krbcanonicalname
+
+# last
+# DNS version 1
+plugin: update_master_to_dnsforwardzones
+# DNS version 2
+plugin: update_dnsforward_emptyzones
+plugin: update_managed_post
+plugin: update_managed_permissions
+plugin: update_read_replication_agreements_permission
+plugin: update_subid_support
+plugin: update_idrange_baserid
+plugin: update_passync_privilege_update
+plugin: update_dnsserver_configuration_into_ldap
+plugin: update_ldap_server_list
+plugin: update_dna_shared_config
+plugin: update_unhashed_password
+plugin: update_krb_uri_txt_records_for_locations

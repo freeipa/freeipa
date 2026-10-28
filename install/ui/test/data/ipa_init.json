@@ -1,0 +1,240 @@
+{
+   "error" : null,
+   "result" : {
+      "count" : 9,
+      "results" : [
+         {
+            "value" : null,
+            "error" : null,
+            "summary" : null,
+            "result" : {
+               "ipakrbauthzdata" : [
+                  "MS-PAC",
+                  "nfs:NONE"
+               ],
+               "dn" : "cn=ipaConfig,cn=etc,dc=dom,dc=example,dc=com",
+               "ipaconfigstring" : [
+                  "AllowNThash",
+                  "KDC:Disable Last Success"
+               ],
+               "ipacertificatesubjectbase" : [
+                  "O=DOM.EXAMPLE.COM"
+               ],
+               "ipausersearchfields" : [
+                  "uid,givenname,sn,telephonenumber,ou,title"
+               ],
+               "ipasearchtimelimit" : [
+                  "2"
+               ],
+               "ntp_server_server" : [
+                  "vm.example.com"
+               ],
+               "ipamigrationenabled" : [
+                  "FALSE"
+               ],
+               "ipadefaultprimarygroup" : [
+                  "ipausers"
+               ],
+               "ipaselinuxusermaporder" : [
+                  "guest_u:s0$xguest_u:s0$user_u:s0$staff_u:s0-s0:c0.c1023$sysadm_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
+               ],
+               "ca_renewal_master_server" : [
+                  "vm.example.com"
+               ],
+               "ipa_master_server" : [
+                  "vm.example.com"
+               ],
+               "ipagroupsearchfields" : [
+                  "cn,description"
+               ],
+               "ipamaxusernamelength" : [
+                  "32"
+               ],
+               "ipaselinuxusermapdefault" : [
+                  "unconfined_u:s0-s0:c0.c1023"
+               ],
+               "ipadefaultloginshell" : [
+                  "/bin/sh"
+               ],
+               "pkinit_server_server" : [
+                  "vm.example.com"
+               ],
+               "ipadefaultemaildomain" : [
+                  "dom.example.com"
+               ],
+               "ipapwdexpadvnotify" : [
+                  "4"
+               ],
+               "ca_server_server" : [
+                  "vm.example.com"
+               ],
+               "ipahomesrootdir" : [
+                  "/home"
+               ],
+               "ipasearchrecordslimit" : [
+                  "100"
+               ]
+            }
+         },
+         {
+            "object" : "user",
+            "error" : null,
+            "command" : "user_show/1",
+            "arguments" : [
+               "admin"
+            ]
+         },
+         {
+            "summary" : "115 variables",
+            "error" : null,
+            "result" : {
+               "container_service" : "cn=services,cn=accounts",
+               "container_certmaprules" : "cn=certmaprules,cn=certmap",
+               "container_sysaccounts" : "cn=sysaccounts,cn=etc",
+               "dogtag_version" : 10,
+               "container_rolegroup" : "cn=roles,cn=accounts",
+               "container_s4u2proxy" : "cn=s4u2proxy,cn=etc",
+               "container_automount" : "cn=automount",
+               "ca_host" : "vm.example.com",
+               "http_timeout" : 30,
+               "ipalib" : "/usr/lib/python2.7/site-packages/ipalib",
+               "container_sudocmdgroup" : "cn=sudocmdgroups,cn=sudo",
+               "dot_ipa" : "/.ipa",
+               "ca_port" : 80,
+               "container_sudorule" : "cn=sudorules,cn=sudo",
+               "container_netgroup" : "cn=ng,cn=alt",
+               "fallback" : true,
+               "webui_prod" : true,
+               "container_hbac" : "cn=hbac",
+               "skip_version_check" : false,
+               "kinit_lifetime" : null,
+               "container_permission" : "cn=permissions,cn=pbac",
+               "wait_for_dns" : 0,
+               "container_dnsservers" : "cn=servers,cn=dns",
+               "enable_ra" : true,
+               "container_trusts" : "cn=trusts",
+               "container_policygroups" : "cn=policygroups,cn=configs,cn=policies",
+               "container_realm_domains" : "cn=Realm Domains,cn=ipa,cn=etc",
+               "in_tree" : false,
+               "realm" : "DOM.EXAMPLE.COM",
+               "container_otp" : "cn=otp",
+               "ra_plugin" : "dogtag",
+               "nss_dir" : "/etc/ipa/nssdb",
+               "tls_version_max" : "tls1.2",
+               "container_views" : "cn=views,cn=accounts",
+               "container_topology" : "cn=topology,cn=ipa,cn=etc",
+               "script" : "/mod_wsgi",
+               "recommended_max_agmts" : 4,
+               "container_accounts" : "cn=accounts",
+               "container_certmap" : "cn=certmap",
+               "debug" : false,
+               "container_host" : "cn=computers,cn=accounts",
+               "container_selinux" : "cn=usermap,cn=selinux",
+               "fips_mode" : false,
+               "conf" : "/etc/ipa/server.conf",
+               "container_stageuser" : "cn=staged users,cn=accounts,cn=provisioning",
+               "container_hostgroup" : "cn=hostgroups,cn=accounts",
+               "container_policies" : "cn=policies",
+               "confdir" : "/etc/ipa",
+               "tls_ca_cert" : "/etc/ipa/ca.crt",
+               "log" : null,
+               "container_privilege" : "cn=privileges,cn=pbac",
+               "startup_traceback" : false,
+               "mode" : "production",
+               "env_confdir" : null,
+               "verbose" : 0,
+               "host" : "vm.example.com",
+               "server" : "vm.example.com",
+               "validate_api" : false,
+               "container_radiusproxy" : "cn=radiusproxy",
+               "force_schema_check" : false,
+               "in_server" : true,
+               "container_adtrusts" : "cn=ad,cn=trusts",
+               "container_applications" : "cn=applications,cn=configs,cn=policies",
+               "container_automember" : "cn=automember,cn=etc",
+               "container_sudocmd" : "cn=sudocmds,cn=sudo",
+               "ca_agent_port" : 443,
+               "version" : "4.5.90.dev201706131442+gitd665224",
+               "basedn" : "dc=dom,dc=example,dc=com",
+               "container_deleteuser" : "cn=deleted users,cn=accounts,cn=provisioning",
+               "container_roles" : "cn=roles,cn=policies",
+               "ldap_uri" : "ldapi://%2fvar%2frun%2fslapd-DOM-EXAMPLE-COM.socket",
+               "container_locations" : "cn=locations,cn=etc",
+               "bin" : "/",
+               "prompt_all" : false,
+               "startup_timeout" : 300,
+               "container_virtual" : "cn=virtual operations,cn=etc",
+               "api_version" : "2.227",
+               "domain" : "dom.example.com",
+               "container_certprofile" : "cn=certprofiles,cn=ca",
+               "context" : "server",
+               "container_vault" : "cn=vaults,cn=kra",
+               "site_packages" : "/usr/lib/python2.7/site-packages",
+               "container_dna_posix_ids" : "cn=posix-ids,cn=dna,cn=ipa,cn=etc",
+               "container_masters" : "cn=masters,cn=ipa,cn=etc",
+               "container_user" : "cn=users,cn=accounts",
+               "container_group" : "cn=groups,cn=accounts",
+               "container_ranges" : "cn=ranges,cn=etc",
+               "mount_ipa" : "/ipa/",
+               "tls_version_min" : "tls1.0",
+               "config_loaded" : true,
+               "logdir" : "/var/log/ipa",
+               "jsonrpc_uri" : "https://vm.example.com/ipa/json",
+               "delegate" : false,
+               "container_hbacservicegroup" : "cn=hbacservicegroups,cn=hbac",
+               "container_dns" : "cn=dns",
+               "container_custodia" : "cn=custodia,cn=ipa,cn=etc",
+               "container_caacl" : "cn=caacls,cn=ca",
+               "container_ca" : "cn=cas,cn=ca",
+               "ca_install_port" : null,
+               "container_dna" : "cn=dna,cn=ipa,cn=etc",
+               "xmlrpc_uri" : "https://vm.example.com/ipa/xml",
+               "container_hbacservice" : "cn=hbacservices,cn=hbac",
+               "interactive" : true,
+               "container_cifsdomains" : "cn=ad,cn=etc",
+               "container_policylinks" : "cn=policylinks,cn=configs,cn=policies",
+               "plugins_on_demand" : false,
+               "container_configs" : "cn=configs,cn=policies",
+               "conf_default" : "/etc/ipa/default.conf",
+               "rpc_protocol" : "jsonrpc",
+               "home" : "/"
+            },
+            "total" : 115,
+            "count" : 115
+         },
+         {
+            "value" : null,
+            "error" : null,
+            "result" : true,
+            "summary" : null
+         },
+         {
+            "error_code" : 4001,
+            "error_name" : "NotFound",
+            "error" : ": trust configuration not found",
+            "error_kw" : {
+               "reason" : ": trust configuration not found"
+            }
+         },
+         {
+            "error" : null,
+            "result" : 1
+         },
+         {
+            "error" : null,
+            "summary" : null,
+            "value" : null,
+            "result" : true
+         },
+         {
+            "error_code" : 3000,
+            "error_kw" : {},
+            "error_name" : "InvocationError",
+            "error" : "KRA service is not enabled"
+         }
+      ]
+   },
+   "principal" : "admin@dom.example.com",
+   "version" : "4.5.90.dev201706131442+gitd665224",
+   "id" : null
+}

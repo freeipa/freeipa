@@ -1,0 +1,330 @@
+############################################
+# Configure the DIT
+############################################
+dn: cn=roles,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: roles
+
+# Permissions-based Access Control
+dn: cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: pbac
+
+dn: cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: privileges
+
+dn: cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: permissions
+
+############################################
+# Add the default roles
+############################################
+dn: cn=helpdesk,cn=roles,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: helpdesk
+description: Helpdesk
+
+############################################
+# Add the default privileges
+############################################
+dn: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: User Administrators
+description: User Administrators
+
+dn: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Group Administrators
+description: Group Administrators
+
+dn: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Host Administrators
+description: Host Administrators
+
+dn: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Host Group Administrators
+description: Host Group Administrators
+
+dn: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Delegation Administrator
+description: Role administration
+
+dn: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: DNS Administrators
+description: DNS Administrators
+
+dn: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: DNS Servers
+description: DNS Servers
+
+dn: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Service Administrators
+description: Service Administrators
+
+dn: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Automount Administrators
+description: Automount Administrators
+
+dn: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Netgroups Administrators
+description: Netgroups Administrators
+
+dn: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Certificate Administrators
+description: Certificate Administrators
+
+dn: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Replication Administrators
+description: Replication Administrators
+member: cn=admins,cn=groups,cn=accounts,$SUFFIX
+
+dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Host Enrollment
+description: Host Enrollment
+
+dn: cn=Stage User Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Stage User Administrators
+description: Stage User Administrators
+
+dn: cn=Stage User Provisioning,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Stage User Provisioning
+description: Stage User Provisioning
+
+############################################
+# Default permissions.
+############################################
+
+# DNS administration
+
+# The permission and aci for this is in install/updates/dns.ldif
+
+# Replica administration
+
+dn: cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Add Replication Agreements
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Modify Replication Agreements
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Read Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Read Replication Agreements
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Remove Replication Agreements
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Modify DNA Range
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+# Create virtual operations entry. This is used to control access to
+# operations that don't rely on LDAP directly.
+dn: cn=virtual operations,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: virtual operations
+
+# Retrieve Certificate virtual op
+dn: cn=Retrieve Certificates from the CA,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Retrieve Certificates from the CA
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=retrieve certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Retrieve Certificates from the CA" ; allow (write) groupdn = "ldap:///cn=Retrieve Certificates from the CA,cn=permissions,cn=pbac,$SUFFIX";)
+
+# Request Certificate virtual op
+dn: cn=Request Certificate,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Request Certificate
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Request Certificate" ; allow (write) groupdn = "ldap:///cn=Request Certificate,cn=permissions,cn=pbac,$SUFFIX";)
+
+# Request Certificate from different host virtual op
+dn: cn=Request Certificates from a different host,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Request Certificates from a different host
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=request certificate different host,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Request Certificates from a different host" ; allow (write) groupdn = "ldap:///cn=Request Certificates from a different host,cn=permissions,cn=pbac,$SUFFIX";)
+
+# Certificate Status virtual op
+dn: cn=Get Certificates status from the CA,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Get Certificates status from the CA
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate status,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Get Certificates status from the CA" ; allow (write) groupdn = "ldap:///cn=Get Certificates status from the CA,cn=permissions,cn=pbac,$SUFFIX";)
+
+# Revoke Certificate virtual op
+dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Revoke Certificate
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=revoke certificate,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Revoke Certificate"; allow (write) groupdn = "ldap:///cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX";)
+
+# Certificate Remove Hold virtual op
+dn: cn=Certificate Remove Hold,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Certificate Remove Hold
+member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=certificate remove hold,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Certificate Remove Hold"; allow (write) groupdn = "ldap:///cn=Certificate Remove Hold,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=List all profiles from the CA,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: List all profiles from the CA
+member: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+
+dn: $SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "objectclass")(target = "ldap:///cn=list all profiles,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:List all profiles from the CA" ; allow (write) groupdn = "ldap:///cn=List all profiles from the CA,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=External IdP server Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: External IdP server Administrators
+description: External IdP server Administrators

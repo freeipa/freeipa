@@ -1,0 +1,24 @@
+# This file will be processed with automake-1.7 to create Makefile.in
+#
+AUTOMAKE_OPTIONS = 1.7 subdir-objects
+
+NULL =
+
+nodist_noinst_HEADERS = ipa-version.h
+noinst_HEADERS = ipa-version.h.in
+
+SUBDIRS =			\
+	.			\
+	dnssec			\
+	ipa-kdb			\
+	ipa-slapi-plugins	\
+	ipa-sam			\
+	ipa-otpd		\
+	$(NULL)
+
+ipa-version.h: ipa-version.h.in $(top_builddir)/$(CONFIG_STATUS)
+	$(AM_V_GEN)sed						\
+		-e 's|@DATA_VERSION[@]|$(DATA_VERSION)|g'	\
+		-e 's|@NUM_VERSION[@]|$(NUM_VERSION)|g'		\
+		-e 's|@VERSION[@]|$(VERSION)|g'			\
+		$< > $@

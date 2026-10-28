@@ -1,0 +1,3588 @@
+# Authors:
+#   Petr Viktorin <pviktori@redhat.com>
+#
+# Copyright (C) 2013  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Common tasks for FreeIPA integration tests"""
+
+from __future__ import absolute_import
+
+import logging
+import os
+from io import StringIO
+import textwrap
+import re
+import collections
+import itertools
+import shutil
+import copy
+import subprocess
+import tempfile
+import time
+from shlex import quote
+import configparser
+from contextlib import contextmanager
+from packaging.version import parse as parse_version
+import uuid
+
+import dns
+from ldif import LDIFWriter
+import pytest
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+from datetime import datetime, timedelta
+
+from ipapython import certdb
+from ipapython import ipautil
+from ipapython.dnsutil import DNSResolver
+from ipaplatform.paths import paths
+from ipaplatform.services import knownservices
+from ipapython.dn import DN
+from ipalib import errors
+from ipalib.util import get_reverse_zone_default
+from ipalib.constants import (
+    DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0,
+    MIN_DOMAIN_LEVEL, MAX_DOMAIN_LEVEL
+)
+from ipapython.ipaldap import realm_to_serverid
+
+from ipatests.create_external_ca import ExternalCA
+from .env_config import env_to_script
+from .host import Host
+from .firewall import Firewall
+from .resolver import ResolvedResolver
+from .fips import is_fips_enabled, enable_crypto_subpolicy
+
+logger = logging.getLogger(__name__)
+
+
+def check_arguments_are(slice, instanceof):
+    """
+    :param: slice - tuple of integers denoting the beginning and the end
+    of argument list to be checked
+    :param: instanceof - name of the class the checked arguments should be
+    instances of
+    Example: @check_arguments_are((1, 3), int) will check that the second
+    and third arguments are integers
+    """
+    def wrapper(func):
+        def wrapped(*args, **kwargs):
+            for i in args[slice[0]:slice[1]]:
+                assert isinstance(i, instanceof), "Wrong type: %s: %s" % (
+                    i, type(i))
+            return func(*args, **kwargs)
+        return wrapped
+    return wrapper
+
+
+def prepare_reverse_zone(host, ip):
+    zone = get_reverse_zone_default(ip)
+    result = host.run_command(
+        ["ipa", "dnszone-add", zone, '--skip-overlap-check'],
+        raiseonerr=False
+    )
+    if result.returncode > 0:
+        logger.warning("%s", result.stderr_text)
+    return zone, result.returncode
+
+
+def prepare_host(host):
+    if isinstance(host, Host):
+        env_filename = os.path.join(host.config.test_dir, 'env.sh')
+
+        # First we try to run simple echo command to test the connection
+        host.run_command(['true'], set_env=False)
+        try:
+            host.transport.mkdir_recursive(host.config.test_dir)
+        except IOError:
+            # The folder already exists
+            pass
+        host.put_file_contents(env_filename, env_to_script(host.to_env()))
+
+
+def rpcbind_kadmin_workaround(host):
+    """Restart rpcbind in case it blocks 749/TCP, 464/UDP, or 464/TCP
+
+    See https://codeberg.org/freeipa/freeipa/issues/7769
+    See https://bugzilla.redhat.com/show_bug.cgi?id=1592883
+    """
+    cmd = [
+        'ss',
+        '--all',  # listening and non-listening sockets
+        '--tcp', '--udp',  # only TCP and UDP sockets
+        '--numeric',  # don't resolve host and service names
+        '--processes',  # show processes
+    ]
+    # run once to list all ports for debugging
+    host.run_command(cmd)
+    # check for blocked kadmin port
+    cmd.extend((
+        '-o', 'state', 'all',  # ports in any state, not just listening
+        '( sport = :749 or dport = :749 or sport = :464 or dport = :464 )'
+    ))
+    for _i in range(5):
+        result = host.run_command(cmd)
+        if 'rpcbind' in result.stdout_text:
+            logger.error("rpcbind blocks 749, restarting")
+            host.run_command(['systemctl', 'restart', 'rpcbind.service'])
+            time.sleep(2)
+        else:
+            break
+
+
+def disable_systemd_resolved_cache(host):
+    if not ResolvedResolver.is_our_resolver(host):
+        return
+    resolved_conf_file = (
+        '/etc/systemd/resolved.conf.d/zzzz-ipatests-disable-cache.conf')
+    resolved_conf = textwrap.dedent('''
+        # generated by IPA tests
+        [Resolve]
+        Cache=no
+    ''')
+    host.run_command(['mkdir', '-p', os.path.dirname(resolved_conf_file)])
+    host.put_file_contents(resolved_conf_file, resolved_conf)
+    host.run_command(['systemctl', 'restart', 'systemd-resolved'])
+
+
+def apply_common_fixes(host):
+    prepare_host(host)
+    fix_hostname(host)
+    rpcbind_kadmin_workaround(host)
+    disable_systemd_resolved_cache(host)
+
+
+def prepare_dse_changes(host, log_level=8192):
+    """Put custom changes for dse.ldif on the host
+    """
+    ipatests_dse_path = os.path.join(host.config.test_dir, "ipatests_dse.ldif")
+    ldif = textwrap.dedent(
+        """\
+        # replication debugging
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-errorlog-level
+        nsslapd-errorlog-level: {log_level}
+
+        # server writes all access log entries directly to disk
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-accesslog-logbuffering
+        nsslapd-accesslog-logbuffering: off
+        """
+    ).format(log_level=log_level)
+    host.put_file_contents(ipatests_dse_path, ldif)
+    return ipatests_dse_path
+
+
+def allow_sync_ptr(host):
+    kinit_admin(host)
+    host.run_command(["ipa", "dnsconfig-mod", "--allow-sync-ptr=true"],
+                     raiseonerr=False)
+
+
+def backup_file(host, filename):
+    if host.transport.file_exists(filename):
+        backupname = os.path.join(host.config.test_dir, 'file_backup',
+                                  filename.lstrip('/'))
+        host.transport.mkdir_recursive(os.path.dirname(backupname))
+        host.run_command(['cp', '-af', filename, backupname])
+        return True
+    else:
+        rmname = os.path.join(host.config.test_dir, 'file_remove')
+        host.run_command('echo %s >> %s' % (
+            ipautil.shell_quote(filename),
+            ipautil.shell_quote(rmname)))
+        host.transport.mkdir_recursive(os.path.dirname(rmname))
+        return False
+
+
+def fix_hostname(host):
+    backup_file(host, paths.ETC_HOSTNAME)
+    host.put_file_contents(paths.ETC_HOSTNAME, host.hostname + '\n')
+    host.run_command(['hostname', host.hostname])
+
+    backupname = os.path.join(host.config.test_dir, 'backup_hostname')
+    host.run_command('hostname > %s' % ipautil.shell_quote(backupname))
+
+
+def host_service_active(host, service):
+    res = host.run_command(['systemctl', 'is-active', '--quiet', service],
+                           raiseonerr=False)
+
+    return res.returncode == 0
+
+
+def fix_apache_semaphores(master):
+    systemd_available = master.transport.file_exists(paths.SYSTEMCTL)
+
+    if systemd_available:
+        master.run_command(['systemctl', 'stop', 'httpd'], raiseonerr=False)
+    else:
+        master.run_command([paths.SBIN_SERVICE, 'httpd', 'stop'],
+                           raiseonerr=False)
+
+    master.run_command(
+        'for line in `ipcs -s | grep apache ''| cut -d " " -f 2`; ' +
+        'do ipcrm -s $line; done', raiseonerr=False
+    )
+
+
+def unapply_fixes(host):
+    restore_files(host)
+    restore_hostname(host)
+    # Clean ccache to prevent issues like 5741
+    host.run_command(['kdestroy', '-A'], raiseonerr=False)
+
+    # Clean up the test directory
+    host.run_command(['rm', '-rvf', host.config.test_dir])
+
+
+def restore_files(host):
+    backupname = os.path.join(host.config.test_dir, 'file_backup')
+    rmname = os.path.join(host.config.test_dir, 'file_remove')
+
+    # Prepare command for restoring context of the backed-up files
+    sed_remove_backupdir = 's/%s//g' % backupname.replace('/', r'\/')
+    restorecon_command = (
+        "find %s | "
+        "sed '%s' | "
+        "sed '/^$/d' | "
+        "xargs -d '\n' "
+        "/sbin/restorecon -v" % (backupname, sed_remove_backupdir))
+
+    # Prepare command for actual restoring of the backed up files
+    copyfiles_command = 'if [ -d %(dir)s/ ]; then cp -arvf %(dir)s/* /; fi' % {
+        'dir': ipautil.shell_quote(backupname)}
+
+    # Run both commands in one session. For more information, see:
+    # https://fedorahosted.org/freeipa/ticket/4133
+    host.run_command('%s ; (%s ||:)' % (copyfiles_command, restorecon_command))
+
+    # Remove all the files that did not exist and were 'backed up'
+    host.run_command(['xargs', '-d', r'\n', '-a', rmname, 'rm', '-vf'],
+                     raiseonerr=False)
+    host.run_command(['rm', '-rvf', backupname, rmname], raiseonerr=False)
+
+
+def restore_hostname(host):
+    backupname = os.path.join(host.config.test_dir, 'backup_hostname')
+    try:
+        hostname = host.get_file_contents(backupname, encoding='utf-8')
+    except IOError:
+        logger.debug('No hostname backed up on %s', host.hostname)
+    else:
+        host.run_command(['hostname', hostname.strip()])
+        host.run_command(['rm', backupname])
+
+
+def enable_ds_audit_log(host, enabled='on'):
+    """Enable 389-ds audit log and auditfail log
+
+    :param host: the host on which audit log is configured
+    :param enabled: a string (either 'on' or 'off')
+    """
+    logger.info('Set LDAP audit log')
+    logging_ldif = textwrap.dedent("""
+        dn: cn=config
+        changetype: modify
+        replace: nsslapd-auditlog-logging-enabled
+        nsslapd-auditlog-logging-enabled: {enabled}
+        -
+        replace: nsslapd-auditfaillog-logging-enabled
+        nsslapd-auditfaillog-logging-enabled: {enabled}
+        """.format(enabled=enabled))
+    ldapmodify_dm(host, logging_ldif)
+
+
+def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
+    args = [
+        'ipa', 'dnszone-mod', host.domain.name,
+        '--default-ttl', '1',
+        '--ttl', '1'
+    ]
+    result = host.run_command(args, raiseonerr=raiseonerr, stdin_text=None)
+    if result.returncode != 0:
+        logger.info('Failed to set TTL and default TTL for DNS zone %s to 1',
+                    host.domain.name)
+
+
+def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
+                   extra_args=(), domain_level=None, unattended=True,
+                   external_ca=False, stdin_text=None, raiseonerr=True,
+                   random_serial=False, allow_zone_overlap=True):
+    if domain_level is None:
+        domain_level = host.config.domain_level
+    check_domain_level(domain_level)
+    apply_common_fixes(host)
+    if "--dirsrv-config-file" not in extra_args:
+        ipatests_dse = prepare_dse_changes(host)
+    else:
+        ipatests_dse = None
+    fix_apache_semaphores(host)
+    fw = Firewall(host)
+    fw_services = ["freeipa-ldap", "freeipa-ldaps"]
+
+    args = [
+        'ipa-server-install',
+        '-n', host.domain.name,
+        '-r', host.domain.realm,
+        '-p', host.config.dirman_password,
+        '-a', host.config.admin_password,
+        "--domain-level=%i" % domain_level,
+    ]
+
+    if random_serial:
+        args.append('--random-serial-numbers')
+
+    if ipatests_dse:
+        args.extend(["--dirsrv-config-file", ipatests_dse])
+
+    if unattended:
+        args.append('-U')
+
+    if setup_dns:
+        args.extend([
+            '--setup-dns',
+            '--forwarder', host.config.dns_forwarder,
+            '--auto-reverse'
+        ])
+        if allow_zone_overlap:
+            args.extend(['--allow-zone-overlap'])
+        fw_services.append("dns")
+    if setup_kra:
+        args.append('--setup-kra')
+    if setup_adtrust:
+        args.append('--setup-adtrust')
+        fw_services.append("freeipa-trust")
+        if is_fips_enabled(host):
+            enable_crypto_subpolicy(host, "AD-SUPPORT")
+    if external_ca:
+        args.append('--external-ca')
+
+    args.extend(extra_args)
+    result = host.run_command(args, raiseonerr=raiseonerr,
+                              stdin_text=stdin_text)
+    if result.returncode == 0:
+        fw.enable_services(fw_services)
+    if result.returncode == 0 and not external_ca:
+        # external CA step 1 doesn't have DS and KDC fully configured, yet
+        enable_ds_audit_log(host, 'on')
+        setup_sssd_conf(host)
+        kinit_admin(host)
+        if setup_dns:
+            setup_named_debugging(host)
+            # fixup DNS zone default TTL for IPA DNS zone
+            # For tests we should not wait too long
+            set_default_ttl_for_ipa_dns_zone(host, raiseonerr=raiseonerr)
+    return result
+
+
+def check_domain_level(domain_level):
+    if domain_level < MIN_DOMAIN_LEVEL:
+        pytest.fail(
+            "Domain level {} not supported, min level is {}.".format(
+                domain_level, MIN_DOMAIN_LEVEL)
+        )
+    if domain_level > MAX_DOMAIN_LEVEL:
+        pytest.fail(
+            "Domain level {} not supported, max level is {}.".format(
+                domain_level, MAX_DOMAIN_LEVEL)
+        )
+
+
+def domainlevel(host):
+    """
+    Dynamically determines the domainlevel on master. Needed for scenarios
+    when domainlevel is changed during the test execution.
+
+    Sometimes the master is even not installed. Please refer to ca-less
+    tests, where we call tasks.uninstall_master after every test while a lot
+    of them make sure that the server installation fails. Therefore we need
+    to not raise on failures here.
+    """
+    kinit_admin(host, raiseonerr=False)
+    result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
+    level = MIN_DOMAIN_LEVEL
+    domlevel_re = re.compile(r'.*(\d)')
+    if result.returncode == 0:
+        # "domainlevel-get" command doesn't exist on ipa versions prior to 4.3
+        level = int(domlevel_re.findall(result.stdout_text)[0])
+    check_domain_level(level)
+    return level
+
+
+def master_authoritative_for_client_domain(master, client):
+    zone = ".".join(client.hostname.split('.')[1:])
+    result = master.run_command(["ipa", "dnszone-show", zone],
+                                raiseonerr=False)
+    return result.returncode == 0
+
+
+def copy_nfast_data(src_host, dest_host):
+    src_host.run_command(
+        ['tar', '-cf', '/root/token_files.tar', '.'],
+        cwd='/opt/nfast/kmdata/local/'
+    )
+    tarball = src_host.get_file_contents('/root/token_files.tar')
+    dest_host.put_file_contents('/root/token_files.tar', tarball)
+    dest_host.run_command(
+        ['tar', '-xf', '/root/token_files.tar',
+         '-C', '/opt/nfast/kmdata/local']
+    )
+
+
+def install_replica(master, replica, setup_ca=True, setup_dns=False,
+                    setup_kra=False, setup_adtrust=False, extra_args=(),
+                    domain_level=None, unattended=True, stdin_text=None,
+                    raiseonerr=True, promote=True, nameservers='master'):
+    """
+    This task installs client and then promote it to the replica
+
+    :param nameservers: nameservers to write in resolver config. Possible
+       values:
+       * "master" - use ip of `master` parameter
+       * None - do not setup resolver
+       * IP_ADDRESS or [IP_ADDRESS, ...] - use this address as resolver
+
+    """
+    replica_args = list(extra_args)  # needed for client's ntp options
+    if domain_level is None:
+        domain_level = domainlevel(master)
+    check_domain_level(domain_level)
+    apply_common_fixes(replica)
+
+    if "--dirsrv-config-file" not in extra_args:
+        ipatests_dse = prepare_dse_changes(replica)
+    else:
+        ipatests_dse = None
+
+    allow_sync_ptr(master)
+    fw = Firewall(replica)
+    fw_services = ["freeipa-ldap", "freeipa-ldaps"]
+    # Otherwise ipa-client-install would not create a PTR
+    # and replica installation would fail
+    args = ['ipa-replica-install',
+            '--admin-password', replica.config.admin_password]
+
+    if promote:  # while promoting we use directory manager password
+        args.extend(['--password', replica.config.dirman_password])
+        # install client on a replica machine and then promote it to replica
+        # to configure ntp options we have to pass them to client installation
+        # because promotion does not support NTP options
+        ntp_args = [arg for arg in replica_args if "-ntp" in arg]
+
+        for ntp_arg in ntp_args:
+            replica_args.remove(ntp_arg)
+
+        install_client(master, replica, extra_args=ntp_args,
+                       nameservers=nameservers)
+    else:
+        # for one step installation of replica we need authorized user
+        # to enroll a replica and master server to contact
+        args.extend(['--principal', replica.config.admin_name,
+                     '--server', master.hostname])
+        replica.resolver.backup()
+        if nameservers is not None:
+            if nameservers == 'master':
+                nameservers = master.ip
+            replica.resolver.setup_resolver(nameservers, master.domain.name)
+
+    if unattended:
+        args.append('-U')
+    if setup_ca:
+        args.append('--setup-ca')
+    if setup_kra:
+        assert setup_ca, "CA must be installed on replica with KRA"
+        args.append('--setup-kra')
+    if setup_dns:
+        args.extend([
+            '--setup-dns',
+            '--forwarder', replica.config.dns_forwarder
+        ])
+        fw_services.append("dns")
+    if setup_adtrust:
+        args.append('--setup-adtrust')
+        fw_services.append("freeipa-trust")
+        if is_fips_enabled(replica):
+            enable_crypto_subpolicy(replica, "AD-SUPPORT")
+    if master_authoritative_for_client_domain(master, replica):
+        args.extend(['--ip-address', replica.ip])
+
+    args.extend(replica_args)  # append extra arguments to installation
+
+    fix_apache_semaphores(replica)
+    args.extend(['--realm', replica.domain.realm,
+                 '--domain', replica.domain.name])
+    if ipatests_dse:
+        args.extend(["--dirsrv-config-file", ipatests_dse])
+
+    fw.enable_services(fw_services)
+
+    result = replica.run_command(args, raiseonerr=raiseonerr,
+                                 stdin_text=stdin_text)
+    if result.returncode == 0:
+        enable_ds_audit_log(replica, 'on')
+        setup_sssd_conf(replica)
+        kinit_admin(replica)
+        if setup_dns:
+            setup_named_debugging(replica)
+    else:
+        fw.disable_services(fw_services)
+    return result
+
+
+def install_client(master, client, extra_args=[], user=None,
+                   password=None, pkinit_identity=None, unattended=True,
+                   stdin_text=None, nameservers='master'):
+    """
+    :param nameservers: nameservers to write in resolver config. Possible
+           values:
+           * "master" - use ip of `master` parameter
+           * None - do not setup resolver
+           * IP_ADDRESS or [IP_ADDRESS, ...] - use this address as resolver
+    """
+    apply_common_fixes(client)
+    allow_sync_ptr(master)
+    # Now, for the situations where a client resides in a different subnet from
+    # master, we need to explicitly tell master to create a reverse zone for
+    # the client and enable dynamic updates for this zone.
+    zone, error = prepare_reverse_zone(master, client.ip)
+    if not error:
+        master.run_command(["ipa", "dnszone-mod", zone,
+                            "--dynamic-update=TRUE"])
+    if nameservers is not None:
+        client.resolver.backup()
+        if nameservers == 'master':
+            nameservers = master.ip
+        client.resolver.setup_resolver(nameservers, master.domain.name)
+
+    args = [
+        'ipa-client-install',
+        '--domain', client.domain.name,
+        '--realm', client.domain.realm,
+        '--server', master.hostname
+    ]
+
+    if pkinit_identity:
+        args.extend(["--pkinit-identity", pkinit_identity])
+    else:
+        if user is None:
+            user = client.config.admin_name
+        if password is None:
+            password = client.config.admin_password
+        args.extend(['-p', user, '-w', password])
+
+    if unattended:
+        args.append('-U')
+
+    args.extend(extra_args)
+
+    if is_fips_enabled(client) and getattr(master.config, 'ad_domains', False):
+        enable_crypto_subpolicy(client, "AD-SUPPORT")
+    result = client.run_command(args, stdin_text=stdin_text)
+
+    setup_sssd_conf(client)
+    kinit_admin(client)
+
+    return result
+
+
+def install_adtrust(host):
+    """
+    Runs ipa-adtrust-install on the client and generates SIDs for the entries.
+    Configures the compat tree for the legacy clients.
+    """
+    kinit_admin(host)
+    if is_fips_enabled(host):
+        enable_crypto_subpolicy(host, "AD-SUPPORT")
+    host.run_command(['ipa-adtrust-install', '-U',
+                      '--enable-compat',
+                      '--netbios-name', host.netbios,
+                      '-a', host.config.admin_password,
+                      '--add-sids'])
+
+    host.run_command(['net', 'conf', 'setparm', 'global', 'log level', '10'])
+    Firewall(host).enable_service("freeipa-trust")
+
+    # Restart named because it lost connection to dirsrv
+    # (Directory server restarts during the ipa-adtrust-install)
+    host.run_command(['systemctl', 'restart',
+                      knownservices.named.systemd_name])
+
+    # Check that named is running and has loaded the information from LDAP
+    dig_command = ['dig', 'SRV', '+short', '@localhost',
+                   '_ldap._tcp.%s' % host.domain.name]
+    dig_output = '0 100 389 %s.' % host.hostname
+
+    def dig_test(x):
+        return re.search(re.escape(dig_output), x)
+
+    run_repeatedly(host, dig_command, test=dig_test)
+
+
+def disable_dnssec_validation(host):
+    """
+    Edits ipa-options-ext.conf snippet in order to disable dnssec validation
+    """
+    backup_file(host, paths.NAMED_CUSTOM_OPTIONS_CONF)
+    named_conf = host.get_file_contents(paths.NAMED_CUSTOM_OPTIONS_CONF)
+    named_conf = re.sub(br'dnssec-validation\s*yes;', b'dnssec-validation no;',
+                        named_conf)
+    host.put_file_contents(paths.NAMED_CUSTOM_OPTIONS_CONF, named_conf)
+    restart_named(host)
+
+
+def restore_dnssec_validation(host):
+    restore_files(host)
+    restart_named(host)
+
+
+def is_subdomain(subdomain, domain):
+    subdomain_unpacked = subdomain.split('.')
+    domain_unpacked = domain.split('.')
+
+    subdomain_unpacked.reverse()
+    domain_unpacked.reverse()
+
+    subdomain = False
+
+    if len(subdomain_unpacked) > len(domain_unpacked):
+        subdomain = True
+
+        for subdomain_segment, domain_segment in zip(subdomain_unpacked,
+                                                     domain_unpacked):
+            subdomain = subdomain and subdomain_segment == domain_segment
+
+    return subdomain
+
+
+def configure_dns_for_trust(master, *ad_hosts):
+    """
+    This configures DNS on IPA master according to the relationship of the
+    IPA's and AD's domains.
+    """
+
+    kinit_admin(master)
+    dnssec_disabled = False
+    for ad in ad_hosts:
+        if is_subdomain(ad.domain.name, master.domain.name):
+            master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                                '%s.%s' % (ad.shortname, ad.netbios),
+                                '--a-ip-address', ad.ip])
+
+            master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
+                                ad.netbios,
+                                '--ns-hostname',
+                                '%s.%s' % (ad.shortname, ad.netbios)])
+
+            master.run_command(['ipa', 'dnszone-mod', master.domain.name,
+                                '--allow-transfer', ad.ip])
+        else:
+            if not dnssec_disabled:
+                disable_dnssec_validation(master)
+                dnssec_disabled = True
+            master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
+                                '--forwarder', ad.ip,
+                                '--forward-policy', 'only',
+                                ])
+
+
+def unconfigure_dns_for_trust(master, *ad_hosts):
+    """
+    This undoes changes made by configure_dns_for_trust
+    """
+    kinit_admin(master)
+    dnssec_needs_restore = False
+    for ad in ad_hosts:
+        if is_subdomain(ad.domain.name, master.domain.name):
+            master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                                '%s.%s' % (ad.shortname, ad.netbios),
+                                '--a-rec', ad.ip])
+            master.run_command(['ipa', 'dnsrecord-del', master.domain.name,
+                                ad.netbios,
+                                '--ns-rec',
+                                '%s.%s' % (ad.shortname, ad.netbios)])
+        else:
+            master.run_command(['ipa', 'dnsforwardzone-del', ad.domain.name])
+            dnssec_needs_restore = True
+    if dnssec_needs_restore:
+        restore_dnssec_validation(master)
+
+
+def configure_windows_dns_for_trust(ad, master):
+    ad.run_command(['dnscmd', '/zoneadd', master.domain.name,
+                    '/Forwarder', master.ip])
+
+
+def unconfigure_windows_dns_for_trust(ad, master):
+    ad.run_command(['dnscmd', '/zonedelete', master.domain.name, '/f'])
+
+
+def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),
+                            shared_secret=None):
+    """
+    Establishes trust with Active Directory. Trust type is detected depending
+    on the presence of SfU (Services for Unix) support on the AD.
+
+    Use extra arguments to pass extra arguments to the trust-add command, such
+    as --range-type="ipa-ad-trust" to enforce a particular range type.
+
+    If ad_admin is not provided, name will be constructed as
+    "Administrator@<ad_domain>".
+    """
+
+    # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
+    extra_args = list(extra_args)
+    master.run_command(['kinit', '-kt', paths.HTTP_KEYTAB,
+                        'HTTP/%s' % master.hostname])
+    master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
+    master.run_command(['kdestroy', '-A'])
+
+    kinit_admin(master)
+    master.run_command(['klist'])
+    master.run_command(['smbcontrol', 'all', 'debug', '100'])
+
+    if shared_secret:
+        extra_args += ['--trust-secret']
+        stdin_text = shared_secret
+    else:
+        if ad_admin is None:
+            ad_admin = 'Administrator@{}'.format(ad_domain)
+        extra_args += ['--admin', ad_admin, '--password']
+        stdin_text = master.config.ad_admin_password
+    run_repeatedly(
+        master, ['ipa', 'trust-add', '--type', 'ad', ad_domain] + extra_args,
+        stdin_text=stdin_text)
+    master.run_command(['smbcontrol', 'all', 'debug', '1'])
+    clear_sssd_cache(master)
+    master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
+    time.sleep(60)
+
+
+def remove_trust_with_ad(master, ad_domain, ad_hostname):
+    """
+    Removes trust with Active Directory. Also removes the associated ID range.
+    """
+
+    remove_trust_info_from_ad(master, ad_domain, ad_hostname)
+
+    kinit_admin(master)
+
+    # Remove the trust
+    master.run_command(['ipa', 'trust-del', ad_domain])
+
+    # Remove the range
+    range_name = ad_domain.upper() + '_id_range'
+    master.run_command(['ipa', 'idrange-del', range_name])
+
+
+def remove_trust_info_from_ad(master, ad_domain, ad_hostname):
+    # Remove record about trust from AD
+    kinit_as_user(master,
+                  'Administrator@{}'.format(ad_domain.upper()),
+                  master.config.ad_admin_password)
+    # Find cache for the user
+    cache_args = []
+    cache = get_credential_cache(master)
+    if cache:
+        cache_args = ["--use-krb5-ccache", cache]
+
+    # Detect whether rpcclient supports -k or --use-kerberos option
+    res = master.run_command(['rpcclient', '-h'], raiseonerr=False)
+    if "--use-kerberos" in res.stderr_text:
+        rpcclient_krb5_knob = "--use-kerberos=desired"
+    else:
+        rpcclient_krb5_knob = "-k"
+    cmd_args = ['rpcclient', rpcclient_krb5_knob, ad_hostname]
+    cmd_args.extend(cache_args)
+    cmd_args.extend(['-c', 'deletetrustdom {}'.format(master.domain.name)])
+    master.run_command(cmd_args, raiseonerr=False)
+
+
+def configure_auth_to_local_rule(master, ad):
+    """
+    Configures auth_to_local rule in /etc/krb5.conf
+    """
+
+    section_identifier = " %s = {" % master.domain.realm
+    line1 = ("  auth_to_local = RULE:[1:$1@$0](^.*@%s$)s/@%s/@%s/"
+             % (ad.domain.realm, ad.domain.realm, ad.domain.name))
+    line2 = "  auth_to_local = DEFAULT"
+
+    krb5_conf_content = master.get_file_contents(paths.KRB5_CONF)
+    krb5_lines = [line.rstrip() for line in krb5_conf_content.split('\n')]
+    realm_section_index = krb5_lines.index(section_identifier)
+
+    krb5_lines.insert(realm_section_index + 1, line1)
+    krb5_lines.insert(realm_section_index + 2, line2)
+
+    krb5_conf_new_content = '\n'.join(krb5_lines)
+    master.put_file_contents(paths.KRB5_CONF, krb5_conf_new_content)
+
+    master.run_command(['systemctl', 'restart', 'sssd'])
+
+
+def setup_sssd_conf(host):
+    """
+    Configures sssd
+    """
+    # sssd in not published on PyPI
+    from SSSDConfig import NoOptionError
+
+    with remote_sssd_config(host) as sssd_config:
+        # sssd 2.5.0 https://github.com/SSSD/sssd/issues/5635
+        try:
+            sssd_config.edit_domain(host.domain, "ldap_sudo_random_offset", 0)
+        except NoOptionError:
+            # sssd doesn't support ldap_sudo_random_offset
+            pass
+
+        for sssd_service_name in sssd_config.list_services():
+            sssd_config.edit_service(sssd_service_name, "debug_level", 7)
+
+        for sssd_domain_name in sssd_config.list_domains():
+            sssd_config.edit_domain(sssd_domain_name, "debug_level", 7)
+
+    # Clear the cache and restart SSSD
+    clear_sssd_cache(host)
+
+
+def setup_named_debugging(host):
+    """
+    Sets debug level to debug in each section of custom logging config
+    """
+
+    host.run_command(
+        [
+            "sed",
+            "-i",
+            "s/severity info;/severity debug;/",
+            paths.NAMED_LOGGING_OPTIONS_CONF,
+        ],
+    )
+    host.run_command(["cat", paths.NAMED_LOGGING_OPTIONS_CONF])
+    result = host.run_command(
+        [
+            "python3",
+            "-c",
+            (
+                "from ipaplatform.services import knownservices; "
+                "print(knownservices.named.systemd_name)"
+            ),
+        ]
+    )
+    service_name = result.stdout_text.strip()
+    host.run_command(["systemctl", "restart", service_name])
+
+
+@contextmanager
+def remote_sssd_config(host):
+    """Context manager for editing sssd config file on a remote host.
+
+    It provides SimpleSSSDConfig object which is automatically serialized and
+    uploaded to remote host upon exit from the context.
+
+    If exception is raised inside the context then the ini file is NOT updated
+    on remote host.
+
+    SimpleSSSDConfig is a SSSDConfig descendant with added helper methods
+    for modifying options: edit_domain and edit_service.
+
+
+    Example:
+
+        with remote_sssd_config(master) as sssd_conf:
+            # use helper methods
+            # add/replace option
+            sssd_conf.edit_domain(master.domain, 'filter_users', 'root')
+            # add/replace provider option
+            sssd_conf.edit_domain(master.domain, 'sudo_provider', 'ipa')
+            # delete option
+            sssd_conf.edit_service('pam', 'pam_verbosity', None)
+
+            # use original methods of SSSDConfig
+            domain = sssd_conf.get_domain(master.domain.name)
+            domain.set_name('example.test')
+            self.save_domain(domain)
+        """
+
+    from SSSDConfig import SSSDConfig
+
+    class SimpleSSSDConfig(SSSDConfig):
+        def edit_domain(self, domain_or_name, option, value):
+            """Add/replace/delete option in a domain section.
+
+            :param domain_or_name: Domain object or domain name
+            :param option: option name
+            :param value: value to assign to option. If None, option will be
+                deleted
+            """
+            if hasattr(domain_or_name, 'name'):
+                domain_name = domain_or_name.name
+            else:
+                domain_name = domain_or_name
+            domain = self.get_domain(domain_name)
+            if value is None:
+                domain.remove_option(option)
+            else:
+                domain.set_option(option, value)
+            self.save_domain(domain)
+
+        def edit_service(self, service_name, option, value):
+            """Add/replace/delete option in a service section.
+
+            :param service_name: a string
+            :param option: option name
+            :param value: value to assign to option. If None, option will be
+                deleted
+            """
+            service = self.get_service(service_name)
+            if value is None:
+                service.remove_option(option)
+            else:
+                service.set_option(option, value)
+            self.save_service(service)
+
+    fd, temp_config_file = tempfile.mkstemp()
+    os.close(fd)
+    try:
+        current_config = host.transport.get_file_contents(paths.SSSD_CONF)
+
+        with open(temp_config_file, 'wb') as f:
+            f.write(current_config)
+
+        # In order to use SSSDConfig() locally we need to import the schema
+        # Create a tar file with /usr/share/sssd.api.conf and
+        # /usr/share/sssd/sssd.api.d
+        tmpname = create_temp_file(host)
+        host.run_command(
+            ['tar', 'cJvf', tmpname,
+             'sssd.api.conf',
+             'sssd.api.d'],
+            log_stdout=False, cwd="/usr/share/sssd")
+        # fetch tar file
+        tar_dir = tempfile.mkdtemp()
+        tarname = os.path.join(tar_dir, "sssd_schema.tar.xz")
+        with open(tarname, 'wb') as f:
+            f.write(host.get_file_contents(tmpname))
+        # delete from remote
+        host.run_command(['rm', '-f', tmpname])
+        # Unpack on the local side
+        ipautil.run([paths.TAR, 'xJvf', tarname], cwd=tar_dir)
+        os.unlink(tarname)
+
+        # Use the imported schema
+        sssd_config = SimpleSSSDConfig(
+            schemafile=os.path.join(tar_dir, "sssd.api.conf"),
+            schemaplugindir=os.path.join(tar_dir, "sssd.api.d"))
+        sssd_config.import_config(temp_config_file)
+
+        yield sssd_config
+
+        new_config = sssd_config.dump(sssd_config.opts).encode('utf-8')
+        host.transport.put_file_contents(paths.SSSD_CONF, new_config)
+    finally:
+        try:
+            os.remove(temp_config_file)
+            shutil.rmtree(tar_dir)
+        except OSError:
+            pass
+
+
+def clear_sssd_cache(host):
+    """
+    Clears SSSD cache by removing the cache files. Restarts SSSD.
+    """
+
+    systemd_available = host.transport.file_exists(paths.SYSTEMCTL)
+
+    if systemd_available:
+        host.run_command(['systemctl', 'stop', 'sssd'])
+    else:
+        host.run_command([paths.SBIN_SERVICE, 'sssd', 'stop'])
+
+    host.run_command("find /var/lib/sss/db -name '*.ldb' | "
+                     "xargs rm -fv")
+    host.run_command(['rm', '-fv', paths.SSSD_MC_GROUP])
+    host.run_command(['rm', '-fv', paths.SSSD_MC_PASSWD])
+    host.run_command(['rm', '-fv', paths.SSSD_MC_INITGROUPS])
+
+    if systemd_available:
+        host.run_command(['systemctl', 'start', 'sssd'])
+    else:
+        host.run_command([paths.SBIN_SERVICE, 'sssd', 'start'])
+
+    # To avoid false negatives due to SSSD not responding yet
+    time.sleep(10)
+
+
+def sync_time(host, server):
+    """
+    Syncs the time with the remote server. Please note that this function
+    leaves chronyd stopped.
+    """
+
+    host.run_command(['systemctl', 'stop', 'chronyd'])
+    host.run_command(['chronyd', '-q',
+                      "server {srv} iburst maxdelay 1000".format(
+                          srv=server.hostname),
+                      'pidfile /tmp/chronyd.pid', 'bindcmdaddress /',
+                      'maxdistance 1000', 'maxjitter 1000'])
+
+
+def connect_replica(master, replica, domain_level=None,
+                    database=DOMAIN_SUFFIX_NAME):
+    if domain_level is None:
+        domain_level = master.config.domain_level
+    check_domain_level(domain_level)
+    if domain_level == DOMAIN_LEVEL_0:
+        if database == DOMAIN_SUFFIX_NAME:
+            cmd = 'ipa-replica-manage'
+        else:
+            cmd = 'ipa-csreplica-manage'
+        replica.run_command([cmd, 'connect', master.hostname])
+    else:
+        kinit_admin(master)
+        master.run_command(["ipa", "topologysegment-add", database,
+                            "%s-to-%s" % (master.hostname, replica.hostname),
+                            "--leftnode=%s" % master.hostname,
+                            "--rightnode=%s" % replica.hostname
+                            ])
+
+
+def disconnect_replica(master, replica, domain_level=None,
+                       database=DOMAIN_SUFFIX_NAME):
+    if domain_level is None:
+        domain_level = master.config.domain_level
+    check_domain_level(domain_level)
+    if domain_level == DOMAIN_LEVEL_0:
+        if database == DOMAIN_SUFFIX_NAME:
+            cmd = 'ipa-replica-manage'
+        else:
+            cmd = 'ipa-csreplica-manage'
+        replica.run_command([cmd, 'disconnect', master.hostname])
+    else:
+        kinit_admin(master)
+        master.run_command(["ipa", "topologysegment-del", database,
+                            "%s-to-%s" % (master.hostname, replica.hostname),
+                            "--continue"
+                            ])
+
+
+def kinit_user(host, user, password, raiseonerr=True):
+    return host.run_command(['kinit', user], raiseonerr=raiseonerr,
+                            stdin_text=password)
+
+
+def kinit_admin(host, raiseonerr=True):
+    return kinit_user(host, 'admin', host.config.admin_password,
+                      raiseonerr=raiseonerr)
+
+
+def get_credential_cache(host):
+    # Return the credential cache currently in use on host or None
+    result = host.run_command(["klist"]).stdout_text
+    pattern = re.compile(r'Ticket cache: (?P<cache>.*)\n')
+    res = pattern.search(result)
+    if res:
+        return res['cache']
+    return None
+
+
+def uninstall_master(host, ignore_topology_disconnect=True,
+                     ignore_last_of_role=True, clean=True, verbose=False):
+    uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
+
+    host_domain_level = domainlevel(host)
+
+    if ignore_topology_disconnect and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('--ignore-topology-disconnect')
+
+    if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('--ignore-last-of-role')
+
+    if verbose and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('-v')
+
+    result = host.run_command(uninstall_cmd)
+    assert "Traceback" not in result.stdout_text
+
+    # Check that IPA certs have been deleted after uninstall
+    # Related: https://codeberg.org/freeipa/freeipa/issues/8614
+    assert host.run_command(['test', '-f', paths.IPA_CA_CRT],
+                            raiseonerr=False).returncode == 1
+    assert host.run_command(['test', '-f', paths.IPA_P11_KIT],
+                            raiseonerr=False).returncode == 1
+    assert "IPA CA" not in host.run_command(
+        ["trust", "list"], log_stdout=False
+    ).stdout_text
+
+    if clean:
+        Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
+                                         "freeipa-trust", "dns"])
+
+    host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
+                     raiseonerr=False)
+    host.run_command(['rm', '-rf',
+                      paths.TOMCAT_TOPLEVEL_DIR,
+                      paths.SYSCONFIG_PKI_TOMCAT,
+                      paths.SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR,
+                      paths.VAR_LIB_PKI_TOMCAT_DIR,
+                      paths.PKI_TOMCAT,
+                      paths.IPA_RENEWAL_LOCK,
+                      paths.REPLICA_INFO_GPG_TEMPLATE % host.hostname],
+                     raiseonerr=False)
+    host.run_command("find %s -name '*.keytab' | "
+                     "xargs rm -fv" % paths.SSSD_KEYTABS_DIR, raiseonerr=False)
+    host.run_command("find /run/ipa -name 'krb5*' | xargs rm -fv",
+                     raiseonerr=False)
+    while host.resolver.has_backups():
+        # Network Manager may rewrite resolv.conf during replica
+        # install/uninstall (RHEL)
+        host.resolver.resync_state()
+        host.resolver.restore()
+    if clean:
+        unapply_fixes(host)
+
+
+def uninstall_client(host):
+    host.run_command(['ipa-client-install', '--uninstall', '-U'],
+                     raiseonerr=False)
+    while host.resolver.has_backups():
+        # Network Manager may rewrite resolv.conf during client
+        # install/uninstall (RHEL)
+        host.resolver.resync_state()
+        host.resolver.restore()
+    unapply_fixes(host)
+
+
+@check_arguments_are((0, 2), Host)
+def clean_replication_agreement(master, replica, cleanup=False,
+                                raiseonerr=True):
+    """
+    Performs `ipa-replica-manage del replica_hostname --force`.
+    """
+    args = ['ipa-replica-manage', 'del', replica.hostname, '--force']
+    if cleanup:
+        args.append('--cleanup')
+    master.run_command(args, raiseonerr=raiseonerr)
+
+
+@check_arguments_are((0, 3), Host)
+def create_segment(master, leftnode, rightnode, suffix=DOMAIN_SUFFIX_NAME):
+    """
+    creates a topology segment. The first argument is a node to run the command
+    :returns: a hash object containing segment's name, leftnode, rightnode
+    information and an error string.
+    """
+    kinit_admin(master)
+    lefthost = leftnode.hostname
+    righthost = rightnode.hostname
+    segment_name = "%s-to-%s" % (lefthost, righthost)
+    result = master.run_command(
+        ["ipa", "topologysegment-add", suffix,
+         segment_name,
+         "--leftnode=%s" % lefthost,
+         "--rightnode=%s" % righthost],
+        raiseonerr=False
+    )
+    if result.returncode == 0:
+        return {'leftnode': lefthost,
+                'rightnode': righthost,
+                'name': segment_name}, ""
+    else:
+        return {}, result.stderr_text
+
+
+def destroy_segment(master, segment_name, suffix=DOMAIN_SUFFIX_NAME):
+    """
+    Destroys topology segment.
+    :param master: reference to master object of class Host
+    :param segment_name: name of the segment to be created
+    """
+    assert isinstance(master, Host), "master should be an instance of Host"
+    kinit_admin(master)
+    command = ["ipa",
+               "topologysegment-del",
+               suffix,
+               segment_name]
+    result = master.run_command(command, raiseonerr=False)
+    return result.returncode, result.stderr_text
+
+
+def get_topo(name_or_func):
+    """Get a topology function by name
+
+    A topology function receives a master and list of replicas, and yields
+    (parent, child) pairs, where "child" should be installed from "parent"
+    (or just connected if already installed)
+
+    If a callable is given instead of name, it is returned directly
+    """
+    if callable(name_or_func):
+        return name_or_func
+    return topologies[name_or_func]
+
+
+def _topo(name):
+    """Decorator that registers a function in topologies under a given name"""
+    def add_topo(func):
+        topologies[name] = func
+        return func
+    return add_topo
+
+
+topologies = collections.OrderedDict()
+
+
+@_topo('star')
+def star_topo(master, replicas):
+    r"""All replicas are connected to the master
+
+          Rn R1 R2
+           \ | /
+        R7-- M -- R3
+           / | \
+          R6 R5 R4
+    """
+    for replica in replicas:
+        yield master, replica
+
+
+@_topo('line')
+def line_topo(master, replicas):
+    r"""Line topology
+
+          M
+           \
+           R1
+            \
+            R2
+             \
+             R3
+              \
+              ...
+    """
+    for replica in replicas:
+        yield master, replica
+        master = replica
+
+
+@_topo('complete')
+def complete_topo(master, replicas):
+    r"""Each host connected to each other host
+
+          M--R1
+          |\/|
+          |/\|
+         R2-R3
+    """
+    for replica in replicas:
+        yield master, replica
+    for replica1, replica2 in itertools.combinations(replicas, 2):
+        yield replica1, replica2
+
+
+@_topo('tree')
+def tree_topo(master, replicas):
+    r"""Binary tree topology
+
+             M
+            / \
+           /   \
+          R1   R2
+         /  \  / \
+        R3 R4 R5 R6
+       /
+      R7 ...
+
+    """
+    replicas = list(replicas)
+
+    def _masters():
+        for host in [master] + replicas:
+            yield host
+            yield host
+
+    for parent, child in zip(_masters(), replicas):
+        yield parent, child
+
+
+@_topo('tree2')
+def tree2_topo(master, replicas):
+    r"""First replica connected directly to master, the rest in a line
+
+          M
+         / \
+        R1 R2
+            \
+            R3
+             \
+             R4
+              \
+              ...
+
+    """
+    if replicas:
+        yield master, replicas[0]
+    for replica in replicas[1:]:
+        yield master, replica
+        master = replica
+
+
+@_topo('2-connected')
+def two_connected_topo(master, replicas):
+    r"""No replica has more than 4 agreements and at least two
+        replicas must fail to disconnect the topology.
+
+         .     .     .     .
+         .     .     .     .
+         .     .     .     .
+     ... R --- R     R --- R ...
+          \   / \   / \   /
+           \ /   \ /   \ /
+        ... R     R     R ...
+             \   / \   /
+              \ /   \ /
+               M0 -- R2
+               |     |
+               |     |
+               R1 -- R3
+              . \   /  .
+             .   \ /    .
+            .     R      .
+                 .  .
+                .    .
+               .      .
+    """
+    grow = []
+    pool = [master] + replicas
+
+    try:
+        v0 = pool.pop(0)
+        v1 = pool.pop(0)
+        yield v0, v1
+
+        v2 = pool.pop(0)
+        yield v0, v2
+        grow.append((v0, v2))
+
+        v3 = pool.pop(0)
+        yield v2, v3
+        yield v1, v3
+        grow.append((v1, v3))
+
+        i = 0
+        while i < len(grow):
+            r, s = grow[i]
+            t = pool.pop(0)
+
+            for (u, v) in [(r, t), (s, t)]:
+                yield u, v
+                w = pool.pop(0)
+                yield u, w
+                x = pool.pop(0)
+                yield v, x
+                yield w, x
+                grow.append((w, x))
+            i += 1
+
+    except IndexError:
+        pass
+
+
+@_topo('double-circle')
+def double_circle_topo(master, replicas, site_size=6):
+    r"""
+                      R--R
+                      |\/|
+                      |/\|
+                      R--R
+                     /    \
+                     M -- R
+                    /|    |\
+                   / |    | \
+          R - R - R--|----|--R - R - R
+          | X |   |  |    |  |   | X |
+          R - R - R -|----|--R - R - R
+                   \ |    | /
+                    \|    |/
+                     R -- R
+                     \    /
+                      R--R
+                      |\/|
+                      |/\|
+                      R--R
+    """
+    # to provide redundancy there must be at least two replicas per site
+    assert site_size >= 2
+    # do not handle master other than the rest of the servers
+    servers = [master] + replicas
+
+    # split servers into sites
+    it = [iter(servers)] * site_size
+    sites = [(x[0], x[1], x[2:]) for x in zip(*it)]
+    num_sites = len(sites)
+
+    for i in range(num_sites):
+        (a, b, _ignore) = sites[i]
+        # create agreement inside the site
+        yield a, b
+
+        # create agreement to one server in two next sites
+        for c, _d, _ignore in [sites[(i+n) % num_sites] for n in [1, 2]]:
+            yield b, c
+
+    if site_size > 2:
+        # deploy servers inside the site
+        for site in sites:
+            site_servers = list(site[2])
+            yield site[0], site_servers[0]
+            for edge in complete_topo(site_servers[0], site_servers[1:]):
+                yield edge
+            yield site[1], site_servers[-1]
+
+
+def install_topo(topo, master, replicas, clients, domain_level=None,
+                 skip_master=False, setup_replica_cas=True,
+                 setup_replica_kras=False, clients_extra_args=(),
+                 random_serial=False, extra_args=()):
+    """Install IPA servers and clients in the given topology"""
+    if setup_replica_kras and not setup_replica_cas:
+        raise ValueError("Option 'setup_replica_kras' requires "
+                         "'setup_replica_cas' set to True")
+    replicas = list(replicas)
+    installed = {master}
+    if not skip_master:
+        install_master(
+            master,
+            domain_level=domain_level,
+            setup_kra=setup_replica_kras,
+            random_serial=random_serial,
+        )
+
+    add_a_records_for_hosts_in_master_domain(master)
+
+    for parent, child in get_topo(topo)(master, replicas):
+        if child in installed:
+            logger.info('Connecting replica %s to %s', parent, child)
+            connect_replica(parent, child)
+        else:
+            logger.info('Installing replica %s from %s', child, parent)
+            install_replica(
+                parent, child,
+                setup_ca=setup_replica_cas,
+                setup_kra=setup_replica_kras,
+                nameservers=master.ip,
+                extra_args=extra_args,
+            )
+        installed.add(child)
+    install_clients([master] + replicas, clients, clients_extra_args)
+
+
+def install_clients(servers, clients, extra_args=(),
+                    nameservers='first'):
+    """Install IPA clients, distributing them among the given servers
+
+       :param nameservers: nameservers to write in resolver config on clients.
+       Possible values:
+       * "first" - use ip of the first item in `servers` parameter
+       * "distribute" - use ip of master/replica which is used for client
+                        installation
+       * None - do not setup resolver
+       * IP_ADDRESS or [IP_ADDRESS, ...] - use this address as resolver
+    """
+    izip = getattr(itertools, 'izip', zip)
+    client_nameservers = nameservers
+    for server, client in izip(itertools.cycle(servers), clients):
+        logger.info('Installing client %s on %s', server, client)
+        if nameservers == 'distribute':
+            client_nameservers = server.ip
+        if nameservers == 'first':
+            client_nameservers = servers[0].ip
+        install_client(server, client, extra_args,
+                       nameservers=client_nameservers)
+
+
+def _entries_to_ldif(entries):
+    """Format LDAP entries as LDIF"""
+    io = StringIO()
+    writer = LDIFWriter(io)
+    for entry in entries:
+        writer.unparse(str(entry.dn), dict(entry.raw))
+    return io.getvalue()
+
+
+def wait_for_replication(ldap, timeout=30,
+                         target_status_re=r'^0 |^Error \(0\) ',
+                         raise_on_timeout=False):
+    """Wait for all replication agreements to reach desired state
+
+    With defaults waits until updates on all replication agreements are
+    done (or failed) and exits without exception
+    :param ldap: LDAP client
+        autenticated with necessary rights to read the mapping tree
+    :param timeout: Maximum time to wait, in seconds
+    :param target_status_re: Regexp of status to wait for
+    :param raise_on_timeout: if True, raises AssertionError if status not
+        reached in specified time
+
+    Note that this waits for updates originating on this host, not those
+    coming from other hosts.
+    """
+    logger.debug('Waiting for replication to finish')
+    start = time.time()
+    while True:
+        status_attr = 'nsds5replicaLastUpdateStatus'
+        progress_attr = 'nsds5replicaUpdateInProgress'
+        entries = ldap.get_entries(
+            DN(('cn', 'mapping tree'), ('cn', 'config')),
+            filter='(objectclass=nsds5replicationagreement)',
+            attrs_list=[status_attr, progress_attr])
+        logger.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
+        statuses = [entry.single_value[status_attr] for entry in entries]
+        wrong_statuses = [s for s in statuses
+                          if not re.match(target_status_re, s)]
+        if any(e.single_value[progress_attr] for e in entries):
+            msg = 'Replication not finished'
+            logger.debug(msg)
+        elif wrong_statuses:
+            msg = 'Unexpected replication status: %s' % wrong_statuses[0]
+            logger.debug(msg)
+        else:
+            logger.debug('Replication finished')
+            return
+        if time.time() - start > timeout:
+            logger.error('Giving up wait for replication to finish')
+            if raise_on_timeout:
+                raise AssertionError(msg)
+            break
+        time.sleep(1)
+
+
+def wait_for_cleanallruv_tasks(ldap, timeout=30):
+    """Wait until cleanallruv tasks are finished
+    """
+    logger.debug('Waiting for cleanallruv tasks to finish')
+    success_status = 'Successfully cleaned rid'
+    for i in range(timeout):
+        status_attr = 'nstaskstatus'
+        try:
+            entries = ldap.get_entries(
+                DN(('cn', 'cleanallruv'), ('cn', 'tasks'), ('cn', 'config')),
+                scope=ldap.SCOPE_ONELEVEL,
+                attrs_list=[status_attr])
+        except errors.EmptyResult:
+            logger.debug("No cleanallruv tasks")
+            break
+        # Check status
+        if all(
+            e.single_value[status_attr].startswith(success_status)
+            for e in entries
+        ):
+            logger.debug("All cleanallruv tasks finished successfully")
+            break
+        logger.debug("cleanallruv task in progress, (waited %s/%ss)",
+                     i, timeout)
+        time.sleep(1)
+    else:
+        logger.error('Giving up waiting for cleanallruv to finish')
+        for e in entries:
+            stat_str = e.single_value[status_attr]
+            if not stat_str.startswith(success_status):
+                logger.debug('%s status: %s', e.dn, stat_str)
+
+
+def add_a_records_for_hosts_in_master_domain(master):
+    for host in master.domain.hosts:
+        # We don't need to take care of the zone creation since it is master
+        # domain
+        add_a_record(master, host)
+
+
+def add_a_record(master, host):
+    # Find out if the record is already there
+    cmd = master.run_command(['ipa',
+                              'dnsrecord-show',
+                              master.domain.name,
+                              host.hostname + "."],
+                             raiseonerr=False)
+
+    # If not, add it
+    if cmd.returncode != 0 or 'A record' not in cmd.stdout_text:
+        master.run_command(['ipa',
+                            'dnsrecord-add',
+                            master.domain.name,
+                            host.hostname + ".",
+                            '--a-rec', host.ip])
+
+
+def add_dns_record(master, zone, name, record_type, record_value,
+                   *extra_args, raiseonerr=True):
+    """Add DNS record of any type.
+
+    :param master: The IPA master host to run command on
+    :param zone: DNS zone name (e.g., 'example.com.')
+    :param name: Record name (e.g., 'www' or '@' for zone apex)
+    :param record_type: Record type like 'a', 'aaaa', 'afsdb', 'cname',
+                        'txt', 'srv', 'mx', 'ptr', 'naptr', 'dname',
+                        'cert', 'loc', 'kx', etc.
+    :param record_value: List of values for the record
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'dnsrecord-add', zone, name]
+    opt = f'--{record_type}-rec'
+    for val in record_value:
+        command.extend([opt, val])
+    command.extend(extra_args)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def del_dns_record(master, zone, name, record_type=None, record_value=None,
+                   del_all=False, raiseonerr=True):
+    """Delete DNS record of any type.
+
+    :param record_type: Record type like 'a', 'aaaa', 'afsdb', 'cname', etc.
+    :param record_value: List of values (optional)
+    :param del_all: If True, delete all records for this name
+    """
+    command = ['ipa', 'dnsrecord-del', zone, name]
+    if del_all:
+        command.append('--del-all')
+    elif record_type and record_value:
+        opt = f'--{record_type}-rec'
+        for val in record_value:
+            command.extend([opt, val])
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def find_dns_record(master, zone, name=None, raiseonerr=True):
+    """Find DNS record.
+
+    :param name: Record name, if not provided searches all records in zone
+    """
+    command = ['ipa', 'dnsrecord-find', zone]
+    if name is not None:
+        command.append(name)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def show_dns_record(master, zone, name, *extra_args, raiseonerr=True):
+    """Show DNS record details.
+
+    :param master: The IPA host to run command on
+    :param zone: DNS zone name
+    :param name: Record name
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'dnsrecord-show', zone, name]
+    command.extend(extra_args)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def mod_dns_record(master, zone, name, *extra_args, raiseonerr=True):
+    """Modify DNS record value.
+
+    :param zone: DNS zone name
+    :param name: Record name
+    :param extra_args: Additional arguments for dnsrecord-mod command
+    """
+    command = ['ipa', 'dnsrecord-mod', zone, name]
+    command.extend(extra_args)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
+    """Resolve DNS record
+    :retry: if resolution failed try again until timeout is reached
+    :timeout: max period of time while method will try to resolve query
+     (requires retry=True)
+    """
+    res = DNSResolver()
+    res.nameservers = [nameserver]
+    res.lifetime = 10  # wait max 10 seconds for reply
+
+    wait_until = time.time() + timeout
+
+    while time.time() < wait_until:
+        try:
+            ans = res.resolve(query, rtype)
+            return ans
+        except dns.exception.DNSException:
+            if not retry:
+                raise
+        time.sleep(1)
+    raise errors.DNSResolverError(exception=ValueError("Record not found"))
+
+
+def ipa_backup(host, disable_role_check=False, data_only=False,
+               raiseonerr=True):
+    """Run backup on host and return the run_command result.
+    """
+    cmd = ['ipa-backup', '-v']
+    if disable_role_check:
+        cmd.append('--disable-role-check')
+    if data_only:
+        cmd.append('--data')
+    result = host.run_command(cmd, raiseonerr=raiseonerr)
+
+    # Test for ticket 7632: check that services are restarted
+    # before the backup is compressed
+    pattern = r'.*{}.*Starting IPA service.*'.format(paths.GZIP)
+    if (re.match(pattern, result.stderr_text, re.DOTALL)):
+        raise AssertionError('IPA Services are started after compression')
+
+    return result
+
+
+def ipa_epn(
+    host, dry_run=False, from_nbdays=None, to_nbdays=None, raiseonerr=True,
+    mailtest=False,
+):
+    """Run EPN on host and return the run_command result.
+    """
+    cmd = ["ipa-epn"]
+    if dry_run:
+        cmd.append("--dry-run")
+    if mailtest:
+        cmd.append("--mail-test")
+    if from_nbdays is not None:
+        cmd.extend(("--from-nbdays", str(from_nbdays)))
+    if to_nbdays is not None:
+        cmd.extend(("--to-nbdays", str(to_nbdays)))
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def get_backup_dir(host, data_only=False, raiseonerr=True):
+    """Wrapper around ipa_backup: returns the backup directory.
+    """
+    result = ipa_backup(host, data_only=data_only, raiseonerr=raiseonerr)
+
+    # Get the backup location from the command's output
+    for line in result.stderr_text.splitlines():
+        prefix = 'ipaserver.install.ipa_backup: INFO: Backed up to '
+        if line.startswith(prefix):
+            backup_path = line[len(prefix):].strip()
+            logger.info('Backup path for %s is %s', host.hostname, backup_path)
+            return backup_path
+    else:
+        if raiseonerr:
+            raise AssertionError('Backup directory not found in output')
+        else:
+            return None
+
+
+def ipa_restore(master, backup_path, backend=None):
+    cmd = ["ipa-restore", "-U",
+           "-p", master.config.dirman_password,
+           backup_path]
+    if backend:
+        cmd.extend(["--data", "--backend", backend])
+    master.run_command(cmd)
+
+
+def install_kra(host, domain_level=None,
+                first_instance=False, raiseonerr=True,
+                extra_args=(),):
+    if domain_level is None:
+        domain_level = domainlevel(host)
+    check_domain_level(domain_level)
+    command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
+    if not isinstance(extra_args, (tuple, list)):
+        raise TypeError("extra_args must be tuple or list")
+    command.extend(extra_args)
+    result = host.run_command(command, raiseonerr=raiseonerr)
+    return result
+
+
+def install_ca(
+        host, domain_level=None, first_instance=False, external_ca=False,
+        cert_files=None, raiseonerr=True, extra_args=(),
+        random_serial=False,
+):
+    if domain_level is None:
+        domain_level = domainlevel(host)
+    check_domain_level(domain_level)
+    command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
+               "-P", 'admin', "-w", host.config.admin_password]
+    if random_serial:
+        command.append('--random-serial-numbers')
+    if not isinstance(extra_args, (tuple, list)):
+        raise TypeError("extra_args must be tuple or list")
+    command.extend(extra_args)
+    # First step of ipa-ca-install --external-ca
+    if external_ca:
+        command.append('--external-ca')
+    # Continue with ipa-ca-install --external-ca
+    if cert_files:
+        for fname in cert_files:
+            command.extend(['--external-cert-file', fname])
+    result = host.run_command(command, raiseonerr=raiseonerr)
+    return result
+
+
+def install_dns(host, raiseonerr=True, extra_args=()):
+    args = [
+        "ipa-dns-install",
+        "--forwarder", host.config.dns_forwarder,
+        "-U",
+    ]
+    args.extend(extra_args)
+    ret = host.run_command(args, raiseonerr=raiseonerr)
+    Firewall(host).enable_service("dns")
+    return ret
+
+
+def uninstall_replica(master, replica):
+    master.run_command(["ipa-replica-manage", "del", "--force",
+                        "-p", master.config.dirman_password,
+                        replica.hostname], raiseonerr=False)
+    uninstall_master(replica)
+
+
+def replicas_cleanup(func):
+    """
+    replicas_cleanup decorator, applied to any test method in integration tests
+    uninstalls all replicas in the topology leaving only master
+    configured
+    """
+    def wrapped(*args):
+        func(*args)
+        for host in args[0].replicas:
+            uninstall_replica(args[0].master, host)
+            uninstall_client(host)
+            result = args[0].master.run_command(
+                ["ipa", "host-del", "--updatedns", host.hostname],
+                raiseonerr=False)
+            # Workaround for 5627
+            if "host not found" in result.stderr_text:
+                args[0].master.run_command(["ipa",
+                                            "host-del",
+                                            host.hostname], raiseonerr=False)
+    return wrapped
+
+
+def run_server_del(host, server_to_delete, force=False,
+                   ignore_topology_disconnect=False,
+                   ignore_last_of_role=False):
+    kinit_admin(host)
+    args = ['ipa', 'server-del', server_to_delete]
+    if force:
+        args.append('--force')
+    if ignore_topology_disconnect:
+        args.append('--ignore-topology-disconnect')
+    if ignore_last_of_role:
+        args.append('--ignore-last-of-role')
+
+    return host.run_command(args, raiseonerr=False)
+
+
+def run_certutil(host, args, reqdir, dbtype=None,
+                 stdin=None, raiseonerr=True):
+    dbdir = reqdir if dbtype is None else '{}:{}'.format(dbtype, reqdir)
+    new_args = [paths.CERTUTIL, '-d', dbdir]
+    new_args.extend(args)
+    return host.run_command(new_args, raiseonerr=raiseonerr,
+                            stdin_text=stdin)
+
+
+def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
+    """Run certutils and get mappings of cert and key files
+    """
+    base_args = ['-f', pwd_file]
+    if token_name is not None:
+        base_args.extend(['-h', token_name])
+    cert_args = base_args + ['-L']
+    key_args = base_args + ['-K']
+
+    result = run_certutil(host, cert_args, reqdir)
+    certs = {}
+    for line in result.stdout_text.splitlines():
+        mo = certdb.CERT_RE.match(line)
+        if mo:
+            certs[mo.group('nick')] = mo.group('flags')
+
+    result = run_certutil(host, key_args, reqdir)
+    assert 'orphan' not in result.stdout_text
+    keys = {}
+    for line in result.stdout_text.splitlines():
+        mo = certdb.KEY_RE.match(line)
+        if mo:
+            keys[mo.group('nick')] = mo.group('keyid')
+    return certs, keys
+
+
+def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
+    """Run certutil and retrieve a cert as cryptography.x509 object
+    """
+    args = ['-f', pwd_file, '-L', '-a', '-n']
+    if token_name is not None:
+        args.extend([
+            '{}:{}'.format(token_name, nickname),
+            '-h', token_name
+        ])
+    else:
+        args.append(nickname)
+    result = run_certutil(host, args, reqdir)
+    return x509.load_pem_x509_certificate(
+        result.stdout_bytes, default_backend()
+    )
+
+
+def upload_temp_contents(host, contents, encoding='utf-8'):
+    """Upload contents to a temporary file
+
+    :param host: Remote host instance
+    :param contents: file content (str, bytes)
+    :param encoding: file encoding
+    :return: Temporary file name
+    """
+    result = host.run_command(['mktemp'])
+    tmpname = result.stdout_text.strip()
+    host.put_file_contents(tmpname, contents, encoding=encoding)
+    return tmpname
+
+
+def assert_error(result, pattern, returncode=None):
+    """
+    Assert that ``result`` command failed and its stderr contains ``pattern``.
+    ``pattern`` may be a ``str`` or a ``re.Pattern`` (regular expression).
+
+    """
+    if hasattr(pattern, "search"):  # re pattern
+        assert pattern.search(result.stderr_text), \
+            f"pattern {pattern} not found in stderr {result.stderr_text!r}"
+    else:
+        assert pattern in result.stderr_text, \
+            f"substring {pattern!r} not found in stderr {result.stderr_text!r}"
+
+    if returncode is not None:
+        assert result.returncode == returncode
+    else:
+        assert result.returncode > 0
+
+
+def restart_named(*args):
+    time.sleep(20)  # give a time to DNSSEC daemons to provide keys for named
+    for host in args:
+        host.run_command(['systemctl', 'restart',
+                          knownservices.named.systemd_name])
+    time.sleep(20)  # give a time to named to be ready (zone loading)
+
+
+def run_repeatedly(host, command, assert_zero_rc=True, test=None,
+                   timeout=30, **kwargs):
+    """
+    Runs command on host repeatedly until it's finished successfully (returns
+    0 exit code and its stdout passes the test function).
+
+    Returns True if the command was executed succesfully, False otherwise.
+
+    This method accepts additional kwargs and passes these arguments
+    to the actual run_command method.
+    """
+
+    time_waited = 0
+    time_step = 2
+
+    # Check that the test is a function
+    if test:
+        assert callable(test)
+
+    while (time_waited <= timeout):
+        result = host.run_command(command, raiseonerr=False, **kwargs)
+
+        return_code_ok = not assert_zero_rc or (result.returncode == 0)
+        test_ok = not test or test(result.stdout_text)
+
+        if return_code_ok and test_ok:
+            # Command successful
+            return True
+        else:
+            # Command not successful
+            time.sleep(time_step)
+            time_waited += time_step
+
+    raise AssertionError("Command: {cmd} repeatedly failed {times} times, "
+                         "exceeding the timeout of {timeout} seconds."
+                         .format(cmd=' '.join(command),
+                                 times=timeout // time_step,
+                                 timeout=timeout))
+
+
+def get_host_ip_with_hostmask(host):
+    """Detects the IP of the host including the hostmask
+
+    Returns None if the IP could not be detected.
+    """
+    ip = host.ip
+    result = host.run_command(['ip', 'addr'])
+    full_ip_regex = r'(?P<full_ip>%s/\d{1,2}) ' % re.escape(ip)
+    match = re.search(full_ip_regex, result.stdout_text)
+
+    if match:
+        return match.group('full_ip')
+    else:
+        return None
+
+
+def ldappasswd_user_change(user, oldpw, newpw, master, use_dirman=False,
+                           raiseonerr=True):
+    container_user = dict(DEFAULT_CONFIG)['container_user']
+    basedn = master.domain.basedn
+
+    userdn = "uid={},{},{}".format(user, container_user, basedn)
+    master_ldap_uri = "ldap://{}".format(master.hostname)
+
+    if use_dirman:
+        args = [paths.LDAPPASSWD, '-D',
+                str(master.config.dirman_dn),
+                '-w', master.config.dirman_password,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri, userdn]
+    else:
+        args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
+    return master.run_command(args, raiseonerr=raiseonerr)
+
+
+def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
+    container_sysaccounts = dict(DEFAULT_CONFIG)['container_sysaccounts']
+    basedn = master.domain.basedn
+
+    userdn = "uid={},{},{}".format(user, container_sysaccounts, basedn)
+    master_ldap_uri = "ldap://{}".format(master.hostname)
+
+    if use_dirman:
+        args = [paths.LDAPPASSWD, '-D',
+                str(master.config.dirman_dn),
+                '-w', master.config.dirman_password,
+                '-a', oldpw,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri,
+                userdn]
+    else:
+        args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
+    master.run_command(args)
+
+
+def add_dns_zone(master, zone, skip_overlap_check=False,
+                 dynamic_update=False, add_a_record_hosts=None,
+                 admin_email=None, refresh=None, retry=None,
+                 expire=None, minimum=None, ttl=None, raiseonerr=True):
+    """
+    Add DNS zone if it is not already added.
+    """
+
+    result = master.run_command(
+        ['ipa', 'dnszone-show', zone], raiseonerr=False)
+
+    # Verify both return code and zone name before adding
+    if result.returncode != 0:
+        command = ['ipa', 'dnszone-add', zone]
+        if skip_overlap_check:
+            command.append('--skip-overlap-check')
+        if dynamic_update:
+            command.append('--dynamic-update=True')
+        if admin_email:
+            command.append('--admin-email=' + admin_email)
+        if refresh:
+            command.append('--refresh=' + str(refresh))
+        if retry:
+            command.append('--retry=' + str(retry))
+        if expire:
+            command.append('--expire=' + str(expire))
+        if minimum:
+            command.append('--minimum=' + str(minimum))
+        if ttl:
+            command.append('--ttl=' + str(ttl))
+
+        master.run_command(command, raiseonerr=raiseonerr)
+
+        if add_a_record_hosts:
+            for host in add_a_record_hosts:
+                master.run_command(['ipa', 'dnsrecord-add', zone,
+                                    host.hostname + ".", '--a-rec', host.ip])
+    else:
+        logger.debug('Zone %s already added.', zone)
+
+
+def del_dns_zone(host, zone, raiseonerr=False):
+    """Delete DNS zone."""
+    return host.run_command(
+        ['ipa', 'dnszone-del', zone], raiseonerr=raiseonerr)
+
+
+def find_dns_zone(host, zone, all_attrs=False, raiseonerr=True):
+    """Find DNS zone."""
+    command = ['ipa', 'dnszone-find', zone]
+    if all_attrs:
+        command.append('--all')
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def show_dns_zone(host, zone, all_attrs=False, raw=False,
+                  *extra_args, raiseonerr=True):
+    """Show DNS zone.
+
+    :param host: The IPA host to run command on
+    :param zone: DNS zone name
+    :param all_attrs: If True, show all attributes
+    :param raw: If True, show raw LDAP attributes
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'dnszone-show', zone]
+    if all_attrs:
+        command.append('--all')
+    if raw:
+        command.append('--raw')
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def mod_dns_zone(host, zone, *extra_args, raiseonerr=True):
+    """Modify DNS zone.
+
+    :param host: The IPA host to run command on
+    :param zone: DNS zone name
+    :param extra_args: Additional arguments (variable positional args)
+    """
+    command = ['ipa', 'dnszone-mod', zone]
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def add_dns_zone_permission(host, zone, raiseonerr=True):
+    """Add permission to manage DNS zone."""
+    return host.run_command(['ipa', 'dnszone-add-permission', zone],
+                            raiseonerr=raiseonerr)
+
+
+def remove_dns_zone_permission(host, zone, raiseonerr=True):
+    """Remove permission to manage DNS zone."""
+    return host.run_command(['ipa', 'dnszone-remove-permission', zone],
+                            raiseonerr=raiseonerr)
+
+
+def find_permission(host, permission, raiseonerr=True):
+    """Find permission."""
+    return host.run_command(['ipa', 'permission-find', permission],
+                            raiseonerr=raiseonerr)
+
+
+def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name,
+                          root_ca_path_length=None, ipa_ca_path_length=1,
+                          key_size=None, root_ca_extensions=()):
+    """
+    Sign ipa csr and save signed CA together with root CA back to the host.
+    Returns root CA and IPA CA paths on the host.
+    """
+
+    test_dir = host.config.test_dir
+
+    # Get IPA CSR as bytes
+    ipa_csr = host.get_file_contents(csr_name)
+
+    external_ca = ExternalCA(key_size=key_size)
+    # Create root CA
+    root_ca = external_ca.create_ca(
+        path_length=root_ca_path_length,
+        extensions=root_ca_extensions,
+    )
+    # Sign CSR
+    ipa_ca = external_ca.sign_csr(ipa_csr, path_length=ipa_ca_path_length)
+
+    root_ca_fname = os.path.join(test_dir, root_ca_name)
+    ipa_ca_fname = os.path.join(test_dir, ipa_ca_name)
+
+    # Transport certificates (string > file) to master
+    host.put_file_contents(root_ca_fname, root_ca)
+    host.put_file_contents(ipa_ca_fname, ipa_ca)
+
+    return root_ca_fname, ipa_ca_fname
+
+
+def generate_ssh_keypair():
+    """
+    Create SSH keypair for key authentication testing
+    """
+    key = rsa.generate_private_key(backend=default_backend(),
+                                   public_exponent=65537,
+                                   key_size=2048)
+
+    public_key = key.public_key().public_bytes(
+        serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH)
+
+    pem = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        # paramiko does not support PKCS#8 format, yet.
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    private_key_str = pem.decode('utf-8')
+    public_key_str = public_key.decode('utf-8')
+
+    return (private_key_str, public_key_str)
+
+
+def strip_cert_header(pem):
+    """
+    Remove the header and footer from a certificate.
+    """
+    regexp = (
+        r"^-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----"
+    )
+    s = re.search(regexp, pem, re.MULTILINE | re.DOTALL)
+    if s is not None:
+        return s.group(1)
+    else:
+        return pem
+
+
+def user_add(host, login, first='test', last='user', extra_args=(),
+             password=None):
+    cmd = [
+        "ipa", "user-add", login,
+        "--first", first,
+        "--last", last
+    ]
+    if password is not None:
+        cmd.append('--password')
+        stdin_text = '{0}\n{0}\n'.format(password)
+    else:
+        stdin_text = None
+    cmd.extend(extra_args)
+    return host.run_command(cmd, stdin_text=stdin_text)
+
+
+def user_del(host, login, raiseonerr=True):
+    cmd = ["ipa", "user-del", login]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def group_add(host, groupname, extra_args=()):
+    cmd = [
+        "ipa", "group-add", groupname,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def group_del(host, groupname, raiseonerr=True):
+    cmd = [
+        "ipa", "group-del", groupname,
+    ]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def group_add_member(host, groupname, users=None,
+                     raiseonerr=True, extra_args=(), noninteractive=False):
+    cmd = ["ipa"]
+    if noninteractive:
+        cmd.append("-n")
+    cmd.extend(["group-add-member", groupname])
+    if users:
+        cmd.append("--users")
+        cmd.append(users)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_add(host, rulename, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add", rulename,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacrule_add_user(host, rulename, users=None, groups=None,
+                      raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-user", rulename
+    ]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_add_host(host, rulename, hosts=None,
+                      raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-host", rulename
+    ]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_add_service(host, rulename, services=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-service", rulename
+    ]
+    if services:
+        cmd.append("--hbacsvcs")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hostgroup_add(host, groupname, extra_args=()):
+    cmd = [
+        "ipa", "hostgroup-add", groupname,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hostgroup_add_member(host, groupname, hosts=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hostgroup-add-member", groupname
+    ]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_show(host, rulename, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-show", rulename
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacrule_remove_user(host, rulename, users=None, groups=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-remove-user", rulename
+    ]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_remove_service(host, rulename, services=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-remove-service", rulename
+    ]
+    if services:
+        cmd.append("--hbacsvcs")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_del(host, rulename, extra_args=(), raiseonerr=True):
+    cmd = [
+        "ipa", "hbacrule-del", rulename
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_enable(host, rulename, raiseonerr=True):
+    cmd = ["ipa", "hbacrule-enable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_disable(host, rulename, raiseonerr=True):
+    cmd = ["ipa", "hbacrule-disable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-add", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_del(host, mapname, extra_args=(), raiseonerr=True):
+    cmd = ["ipa", "selinuxusermap-del", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_show(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-show", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_add_user(host, mapname, users=None, groups=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-add-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add_hosts(
+        host,
+        mapname,
+        hosts=None,
+        raiseonerr=True,
+        extra_args=None,
+):
+    cmd = ["ipa", "selinuxusermap-add-host", mapname]
+    if hosts:
+        cmd.extend(["--hosts", hosts])
+    if extra_args:
+        cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_enable(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-enable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_disable(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-disable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_mod(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-mod", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_find(host, criteria=None, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-find"]
+    if criteria is not None:
+        cmd.append(criteria)
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_remove_user(host, mapname, users=None, groups=None,
+                               raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-remove-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_remove_hosts(
+        host,
+        mapname,
+        hosts=None,
+        raiseonerr=True,
+        extra_args=None,
+):
+    cmd = ["ipa", "selinuxusermap-remove-host", mapname]
+    if hosts:
+        cmd.extend(["--hosts", hosts])
+    if extra_args:
+        cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvc_add(host, svcname, extra_args=(), raiseonerr=True):
+    cmd = ["ipa", "hbacsvc-add", svcname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvc_del(host, svcname, raiseonerr=True):
+    cmd = ["ipa", "hbacsvc-del", svcname]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvcgroup_add(host, groupname, extra_args=()):
+    cmd = ["ipa", "hbacsvcgroup-add", groupname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacsvcgroup_add_member(host, groupname, services=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "hbacsvcgroup-add-member", groupname]
+    if services:
+        cmd.append("--hbacsvc")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hostgroup_del(host, groupname, raiseonerr=True):
+    cmd = ["ipa", "hostgroup-del", groupname]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def ldapmodify_dm(host, ldif_text, **kwargs):
+    """Run ldapmodify as Directory Manager
+
+    :param host: host object
+    :param ldif_text: ldif string
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    # no hard-coded hostname, let ldapmodify pick up the host from ldap.conf.
+    args = [
+        'ldapmodify',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def ldapadd_dm(host, ldif_text, **kwargs):
+    """Run ldapadd as Directory Manager
+
+    :param host: host object
+    :param ldif_text: ldif string
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapadd',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def ldapdelete_dm(host, dn, **kwargs):
+    """Run ldapdelete as Directory Manager
+
+    :param host: host object
+    :param dn: DN of the entry to delete
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapdelete',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+        dn,
+    ]
+    return host.run_command(args, **kwargs)
+
+
+def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
+    """Run ldapsearch as Directory Manager
+
+    :param host: host object
+    :param base: Base DN
+    :param ldap_args: additional arguments to ldapsearch (filter, attributes)
+    :param scope: search scope (base, sub, one)
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapsearch',
+        '-x', '-ZZ',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+        '-s', scope,
+        '-b', base,
+        '-o', 'ldif-wrap=no',
+        '-LLL',
+    ]
+    args.extend(ldap_args)
+    return host.run_command(args, **kwargs)
+
+
+def run_ldapsearch(host, bind_dn, bind_pw, base,
+                   ldap_args, scope='sub', **kwargs
+                   ):
+    """Run ldapsearch with specified bind credentials
+
+    :param host: host object
+    :param bind_dn: DN to bind as
+    :param bind_pw: password for bind
+    :param base: base DN for search
+    :param ldap_args: additional arguments to ldapsearch (filter, attributes)
+    :param scope: search scope (base, sub, one), default: 'sub'
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapsearch',
+        '-x',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', bind_dn,
+        '-w', bind_pw,
+        '-s', scope,
+        '-b', base,
+    ]
+    args.extend(ldap_args)
+    return host.run_command(args, **kwargs)
+
+
+def run_ldapmodify(host, bind_dn, bind_pwd, ldif_text, **kwargs):
+    """Run ldapmodify with specified bind credentials
+
+    :param host: host object
+    :param bind_dn: DN to bind as
+    :param bind_pwd: password for bind
+    :param ldif_text: LDIF text to apply
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapmodify',
+        '-x',
+        '-ZZ',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', bind_dn,
+        '-w', bind_pwd,
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def create_temp_file(host, directory=None, suffix=None, create_file=True):
+    """Creates temporary file using mktemp. See `man 1 mktemp`."""
+    cmd = ['mktemp']
+    if create_file is False:
+        cmd += ['--dry-run']
+    if directory is not None:
+        cmd += ['-p', directory]
+    if suffix is not None:
+        cmd.extend(["--suffix", suffix])
+    return host.run_command(cmd).stdout_text.strip()
+
+
+def create_active_user(host, login, password, first='test', last='user',
+                       extra_args=(), krb5_trace=False):
+    """Create user and do login to set password"""
+    temp_password = 'Secret456789'
+    kinit_admin(host)
+    user_add(host, login, first=first, last=last, extra_args=extra_args,
+             password=temp_password)
+    if krb5_trace:
+        # Retrieve kdcinfo.$REALM before changing the user's password.
+        get_kdcinfo(host)
+        # This tends to fail when the KDC the password is
+        # reset on is not the same as the one we immediately
+        # request a TGT from. This should not be the case as SSSD
+        # tries to pin itself to an IPA server.
+        #
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = host.run_command(
+            f"KRB5_TRACE=/dev/stdout SSSD_KRB5_LOCATOR_DEBUG=1 kinit {login}",
+            stdin_text='{0}\n{1}\n{1}\n'.format(
+                temp_password, password
+            ), raiseonerr=False
+        )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        get_kdcinfo(host)
+        assert result.returncode == 0
+    else:
+        host.run_command(
+            ['kinit', login],
+            stdin_text='{0}\n{1}\n{1}\n'.format(temp_password, password)
+        )
+    kdestroy_all(host)
+
+
+def set_user_password(host, username, password):
+    temppass = "redhat\nredhat"
+    sendpass = f"redhat\n{password}\n{password}"
+    kdestroy_all(host)
+    kinit_admin(host)
+    host.run_command(["ipa", "passwd", username], stdin_text=temppass)
+    host.run_command(["kinit", username], stdin_text=sendpass)
+    kdestroy_all(host)
+    kinit_admin(host)
+
+
+def kdestroy_all(host):
+    return host.run_command(['kdestroy', '-A'])
+
+
+def run_command_as_user(host, user, command, *args, **kwargs):
+    """Run command on remote host using 'su -l'
+
+    Arguments are similar to Host.run_command
+    """
+    if not isinstance(command, str):
+        command = ' '.join(quote(s) for s in command)
+    cwd = kwargs.pop('cwd', None)
+    if cwd is not None:
+        command = 'cd {}; {}'.format(quote(cwd), command)
+    command = ['su', '-l', user, '-c', command]
+    return host.run_command(command, *args, **kwargs)
+
+
+def kinit_as_user(host, user, password, krb5_trace=False, raiseonerr=True):
+    """Launch kinit as user on host.
+    If krb5_trace, then set KRB5_TRACE=/dev/stdout, SSSD_KRB5_LOCATOR_DEBUG=1
+    and collect /var/lib/sss/pubconf/kdcinfo.$REALM
+    as this file contains the list of KRB5KDC IPs SSSD uses.
+    https://codeberg.org/freeipa/freeipa/issues/8510
+    """
+
+    if krb5_trace:
+        # Retrieve kdcinfo.$REALM before changing the user's password.
+        get_kdcinfo(host)
+        # This tends to fail when the KDC the password is
+        # reset on is not the same as the one we immediately
+        # request a TGT from. This should not be the case as SSSD
+        # tries to pin itself to an IPA server.
+        #
+        # Note raiseonerr=False:
+        # the assert is located after kdcinfo retrieval.
+        result = host.run_command(
+            f"KRB5_TRACE=/dev/stdout SSSD_KRB5_LOCATOR_DEBUG=1 kinit {user}",
+            stdin_text='{0}\n'.format(password),
+            raiseonerr=False
+        )
+        # Retrieve kdc.$REALM after the password change, just in case SSSD
+        # domain status flipped to online during the password change.
+        get_kdcinfo(host)
+        if raiseonerr:
+            assert result.returncode == 0
+        return result
+    else:
+        return host.run_command(
+            ['kinit', user],
+            stdin_text='{0}\n'.format(password),
+            raiseonerr=raiseonerr)
+
+
+def get_kdcinfo(host):
+    """Retrieve /var/lib/sss/pubconf/kdcinfo.$REALM on host.
+    That file contains the IP of the KDC SSSD should be pinned to.
+    """
+    logger.info(
+        'Collecting kdcinfo log from: %s', host.hostname
+    )
+    if check_if_sssd_is_online(host):
+        logger.info("SSSD considers domain %s online.", host.domain.realm)
+    else:
+        logger.warning(
+            "SSSD considers domain %s offline.", host.domain.realm
+        )
+    kdcinfo = None
+    try:
+        kdcinfo = host.get_file_contents(
+            "/var/lib/sss/pubconf/kdcinfo.{}".format(host.domain.realm)
+        )
+        logger.info(
+            'kdcinfo %s contains:\n%s', host.hostname, kdcinfo
+        )
+        if check_if_sssd_is_online(host) is False:
+            logger.warning(
+                "SSSD still considers domain %s offline.",
+                host.domain.realm
+            )
+    except (OSError, IOError) as e:
+        logger.warning(
+            "Exception collecting kdcinfo.%s: %s\n"
+            "SSSD is able to function without this file but logon "
+            "attempts immediately after a password change might break.",
+            host.domain.realm, e
+        )
+    return kdcinfo
+
+
+KeyEntry = collections.namedtuple('KeyEntry',
+                                  ['kvno', 'principal', 'etype', 'key'])
+
+
+class KerberosKeyCopier:
+    """Copy Kerberos keys from a keytab to a keytab on a target host
+
+    Example:
+       Copy host/master1.ipa.test principal as MASTER$ in a temporary keytab
+
+       # host - master1.ipa.test
+       copier = KerberosKeyCopier(host)
+       realm = host.domain.realm
+       principal = copier.host_princ_template.format(
+           master=host.hostname, realm=realm)
+       replacement = {principal: f'MASTER$@{realm}'}
+
+       result = host.run_command(['mktemp'])
+       tmpname = result.stdout_text.strip()
+
+       copier.copy_keys('/etc/krb5.keytab', tmpname, replacement=replacement)
+    """
+    host_princ_template = "host/{master}@{realm}"
+    valid_etypes = ['aes256-cts-hmac-sha384-192', 'aes128-cts-hmac-sha256-128',
+                    'aes256-cts-hmac-sha1-96', 'aes128-cts-hmac-sha1-96']
+
+    def __init__(self, host):
+        self.host = host
+        self.realm = host.domain.realm
+
+    def extract_key_refs(self, keytab, princ=None):
+        if princ is None:
+            princ = self.host_princ_template.format(master=self.host.hostname,
+                                                    realm=self.realm)
+        result = self.host.run_command(
+            [paths.KLIST, "-eK", "-k", keytab], log_stdout=False)
+
+        keys_to_sync = []
+        for line in result.stdout_text.splitlines():
+            if (princ in line and any(e in line for e in self.valid_etypes)):
+
+                els = line.split()
+                els[-2] = els[-2].strip('()')
+                els[-1] = els[-1].strip('()')
+                keys_to_sync.append(KeyEntry._make(els))
+
+        return keys_to_sync
+
+    def copy_key(self, keytab, keyentry):
+        def get_keytab_mtime():
+            """Get keytab file mtime.
+
+            Returns mtime with sub-second precision as a string with format
+            "2020-08-25 14:35:05.980503425 +0200" or None if file does not
+            exist.
+            """
+            if self.host.transport.file_exists(keytab):
+                return self.host.run_command(
+                    ['stat', '-c', '%y', keytab]).stdout_text.strip()
+            return None
+
+        mtime_before = get_keytab_mtime()
+
+        with self.host.spawn_expect(paths.KTUTIL, default_timeout=5,
+                                    extra_ssh_options=['-t']) as e:
+            e.expect_exact('ktutil:')
+            e.sendline('rkt {}'.format(keytab))
+            e.expect_exact('ktutil:')
+            e.sendline(
+                'addent -key -p {principal} -k {kvno} -e {etype}'
+                .format(principal=keyentry.principal, kvno=keyentry.kvno,
+                        etype=keyentry.etype,))
+            e.expect('Key for.+:')
+            # keyentry.key is a hex value of the actual key
+            # prefixed with 0x, as produced by klist -K -k.
+            # However, ktutil accepts hex value without 0x, so
+            # we should strip first two characters.
+            e.sendline(keyentry.key[2:])
+            e.expect_exact('ktutil:')
+            e.sendline('wkt {}'.format(keytab))
+            e.expect_exact('ktutil:')
+            e.sendline('q')
+
+        if mtime_before == get_keytab_mtime():
+            raise Exception('{} did not update keytab file "{}"'.format(
+                paths.KTUTIL, keytab))
+
+    def copy_keys(self, origin, destination, principal=None, replacement=None):
+        def sync_keys(origkeys, destkeys):
+            for origkey in origkeys:
+                copied = False
+                uptodate = False
+                if origkey.principal in replacement:
+                    origkey = copy.deepcopy(origkey)
+                    origkey.principal = replacement.get(origkey.principal)
+                for destkey in destkeys:
+                    if all([destkey.principal == origkey.principal,
+                            destkey.etype == origkey.etype]):
+                        if any([destkey.key != origkey.key,
+                                destkey.kvno != origkey.kvno]):
+                            self.copy_key(destination, origkey)
+                            copied = True
+                            break
+                        uptodate = True
+                if not (copied or uptodate):
+                    self.copy_key(destination, origkey)
+
+        if not self.host.transport.file_exists(origin):
+            raise ValueError('File "{}" does not exist'.format(origin))
+        origkeys = self.extract_key_refs(origin, princ=principal)
+        if self.host.transport.file_exists(destination):
+            destkeys = self.extract_key_refs(destination)
+            if any([origkeys is None, destkeys is None]):
+                raise Exception(
+                    'Either {} or {} are missing or unreadable'.format(
+                        origin, destination))
+            sync_keys(origkeys, destkeys)
+        else:
+            for origkey in origkeys:
+                if origkey.principal in replacement:
+                    newkey = KeyEntry._make(
+                        [origkey.kvno, replacement.get(origkey.principal),
+                         origkey.etype, origkey.key])
+                    origkey = newkey
+                self.copy_key(destination, origkey)
+
+
+class FileBackup:
+    """Create file backup and do restore on remote host
+
+    Examples:
+
+        config_backup = FileBackup(host, '/etc/some.conf')
+        ... modify the file and do the test ...
+        config_backup.restore()
+
+    Use as a context manager:
+
+        with FileBackup(host, '/etc/some.conf'):
+            ... modify the file and do the test ...
+
+    """
+
+    def __init__(self, host, filename):
+        """Create file backup."""
+        self._host = host
+        self._filename = filename
+        self._backup = create_temp_file(host)
+        host.run_command(['cp', '--preserve=all', filename, self._backup])
+
+    def restore(self):
+        """Restore file. Can be called only once."""
+        self._host.run_command(['mv', self._backup, self._filename])
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.restore()
+
+
+@contextmanager
+def remote_ini_file(host, filename):
+    """Context manager for editing an ini file on a remote host.
+
+    It provides RawConfigParser object which is automatically serialized and
+    uploaded to remote host upon exit from the context.
+
+    If exception is raised inside the context then the ini file is NOT updated
+    on remote host.
+
+    Example:
+
+        with remote_ini_file(master, '/etc/some.conf') as some_conf:
+            some_conf.set('main', 'timeout', 10)
+
+
+    """
+    data = host.get_file_contents(filename, encoding='utf-8')
+    ini_file = configparser.RawConfigParser()
+    ini_file.read_string(data)
+    yield ini_file
+    data = StringIO()
+    ini_file.write(data)
+    host.put_file_contents(filename, data.getvalue())
+
+
+def is_selinux_enabled(host):
+    res = host.run_command('selinuxenabled', ok_returncode=(0, 1))
+    return res.returncode == 0
+
+
+def get_logsize(host, logfile):
+    """ get current logsize"""
+    logsize = len(host.get_file_contents(logfile))
+    return logsize
+
+
+def get_platform(host):
+    result = host.run_command([
+        'python3', '-c',
+        'from ipaplatform.osinfo import OSInfo; print(OSInfo().platform)'
+    ], raiseonerr=False)
+    assert result.returncode == 0
+    return result.stdout_text.strip()
+
+
+def get_platform_version(host):
+    result = host.run_command([
+        'python3', '-c',
+        'from ipaplatform.osinfo import OSInfo; print(OSInfo().version_number)'
+    ], raiseonerr=False)
+    assert result.returncode == 0
+    # stdout_text is a str in format "(X, Y)" and needs to be
+    # converted back to a functional tuple. This approach works with
+    # any number of version numbers filled, e.g. (34, ) or (8, 6) etc.
+    return tuple(map(int, re.findall(r'[0-9]+', result.stdout_text.strip())))
+
+
+def install_packages(host, pkgs):
+    """Install packages on a remote host.
+    :param host: the host where the installation takes place
+    :param pkgs: packages to install, provided as a list of strings
+    """
+    platform = get_platform(host)
+    if platform in {'rhel', 'fedora'}:
+        install_cmd = ['/usr/bin/dnf', 'install', '-y']
+    elif platform in {'debian', 'ubuntu'}:
+        install_cmd = ['apt-get', 'install', '-y']
+    else:
+        raise ValueError('install_packages: unknown platform %s' % platform)
+    host.run_command(install_cmd + pkgs)
+
+
+def reinstall_packages(host, pkgs):
+    """Install packages on a remote host.
+    :param host: the host where the installation takes place
+    :param pkgs: packages to install, provided as a list of strings
+    """
+    platform = get_platform(host)
+    if platform in {'rhel', 'fedora'}:
+        install_cmd = ['/usr/bin/dnf', 'reinstall', '-y']
+    elif platform in {'debian', 'ubuntu'}:
+        install_cmd = ['apt-get', '--reinstall', 'install', '-y']
+    else:
+        raise ValueError('install_packages: unknown platform %s' % platform)
+    host.run_command(install_cmd + pkgs)
+
+
+def download_packages(host, pkgs):
+    """Download packages on a remote host.
+    :param host: the host where the download takes place
+    :param pkgs: packages to download, provided as a list of strings
+
+    Returns the temporary directory where the packages are.
+    The caller is responsible for cleanup.
+    """
+    platform = get_platform(host)
+    tmpdir = os.path.join('/tmp', str(uuid.uuid4()))
+    # Only supports RHEL 8+ and Fedora for now
+    if platform in ('rhel', 'fedora'):
+        download_cmd = ['/usr/bin/dnf', 'download']
+    else:
+        raise ValueError('download_packages: unknown platform %s' % platform)
+    host.run_command(['mkdir', tmpdir])
+    host.run_command(download_cmd + pkgs, cwd=tmpdir)
+    return tmpdir
+
+
+def uninstall_packages(host, pkgs, nodeps=False):
+    """Uninstall packages on a remote host.
+    :param host: the host where the uninstallation takes place.
+    :param pkgs: packages to uninstall, provided as a list of strings.
+    :param nodeps: ignore dependencies (dangerous!).
+    """
+    platform = get_platform(host)
+    if platform not in {"rhel", "fedora", "debian", "ubuntu"}:
+        raise ValueError(f"uninstall_packages: unknown platform {platform}")
+    if nodeps:
+        if platform in {"rhel", "fedora"}:
+            cmd = ["rpm", "-e", "--nodeps"]
+        elif platform in {"debian", "ubuntu"}:
+            cmd = ["dpkg", "-P", "--force-depends"]
+        for package in pkgs:
+            # keep raiseonerr=True here. --fcami
+            host.run_command(cmd + [package])
+    else:
+        if platform in {"rhel", "fedora"}:
+            cmd = ["/usr/bin/dnf", "remove", "-y"]
+        elif platform in {"debian", "ubuntu"}:
+            cmd = ["apt-get", "remove", "-y"]
+        host.run_command(cmd + pkgs, raiseonerr=False)
+
+
+def wait_for_request(host, request_id, timeout=120):
+    for _i in range(0, timeout, 5):
+        result = host.run_command(
+            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
+            request_id
+        )
+
+        state = result.stdout_text.strip()
+        logger.info("certmonger request is in state %s", state)
+        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state
+
+
+def wait_for_certmonger_status(host, status, request_id, timeout=120):
+    """Aggressively wait for a specific certmonger status.
+
+       This checks the status every second in order to attempt to
+       catch transient states like SUBMITTED. There are no guarantees.
+
+       :param host: the host where the uninstallation takes place
+       :param status: tuple of statuses to look for
+       :param request_id: request_id of request to check status on
+       :param timeout: max time in seconds to wait for the status
+    """
+    for _i in range(0, timeout, 1):
+        result = host.run_command(
+            "getcert list -i %s | grep status: | awk '{ print $2 }'" %
+            request_id
+        )
+
+        state = result.stdout_text.strip()
+        logger.info("certmonger request is in state %s", state)
+        if state in status:
+            break
+        time.sleep(1)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state
+
+
+def check_if_sssd_is_online(host):
+    """Check whether SSSD considers the IPA domain online.
+
+    Analyse sssctl domain-status <domain>'s output to see if SSSD considers
+    the IPA domain of the host online.
+
+    Could be extended for Trust domains as well.
+    """
+    pattern = re.compile(r'Online status: (?P<state>.*)\n')
+    result = host.run_command(
+        [paths.SSSCTL, "domain-status", host.domain.name, "-o"]
+    )
+    match = pattern.search(result.stdout_text)
+    state = match.group('state')
+    return state == 'Online'
+
+
+def wait_for_sssd_domain_status_online(host, timeout=120):
+    """Wait up to timeout (in seconds) for sssd domain status to become Online
+
+    The method is checking the Online Status of the domain as displayed by
+    the command sssctl domain-status <domain> -o and returns successfully
+    when the status is Online.
+    This call is useful for instance when 389-ds has been stopped and restarted
+    as SSSD may need a while before it reconnects and switches from Offline
+    mode to Online.
+    """
+    for _i in range(0, timeout, 5):
+        if check_if_sssd_is_online(host):
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("SSSD still offline")
+
+
+def get_sssd_version(host):
+    """Get sssd version on remote host."""
+    version = host.run_command('sssd --version').stdout_text.strip()
+    return parse_version(version)
+
+
+def get_pki_version(host):
+    """Get pki version on remote host."""
+    data = host.get_file_contents("/usr/share/pki/VERSION", encoding="utf-8")
+
+    groups = re.match(r'.*\nSpecification-Version: ([\d+\.]*)\n.*', data)
+    if groups:
+        version_string = groups.groups(0)[0]
+        return parse_version(version_string)
+    else:
+        raise ValueError("get_pki_version: pki is not installed")
+
+
+def get_package_version(host, pkgname):
+    """
+    Get package version on remote host
+    """
+    platform = get_platform(host)
+    if platform in ("rhel", "fedora"):
+        cmd = host.run_command(
+            ["rpm", "-qa", "--qf", "%{VERSION}", pkgname]
+        )
+        get_package_version = cmd.stdout_text
+        if not get_package_version:
+            raise ValueError(
+                "get_package_version: "
+                "pkgname package is not installed"
+            )
+    else:
+        raise ValueError(
+            "get_package_version: unknown platform %s" % platform
+        )
+    return get_package_version
+
+
+def get_package_version_and_release(host, pkgname):
+    """
+    Get package version-release on remote host
+    """
+    platform = get_platform(host)
+    if platform in ("rhel", "fedora"):
+        cmd = host.run_command(
+            ["rpm", "-qa", "--qf", "%{VERSION}-%{RELEASE}", pkgname]
+        )
+        get_package_version = cmd.stdout_text
+        if not get_package_version:
+            raise ValueError(
+                "get_package_version: "
+                "pkgname package is not installed"
+            )
+    else:
+        raise ValueError(
+            "get_package_version: unknown platform %s" % platform
+        )
+    return get_package_version
+
+
+def get_openldap_client_version(host):
+    """Get openldap-clients version on remote host"""
+    return get_package_version(host, 'openldap-clients')
+
+
+def get_healthcheck_version(host):
+    return get_package_version(host, '*ipa-healthcheck')
+
+
+def get_softhsm_version(host):
+    """Get softhsm version on remote host"""
+    return get_package_version(host, 'softhsm')
+
+
+def wait_for_ipa_to_start(host, timeout=60):
+    """Wait up to timeout seconds for ipa to start on a given host.
+
+    If DS is restarted, and SSSD must be online, please consider using
+    wait_for_sssd_domain_status_online(host) in the test after calling
+    this method.
+    """
+    interval = 1
+    end_time = datetime.now() + timedelta(seconds=timeout)
+    for _i in range(0, timeout, interval):
+        if datetime.now() > end_time:
+            raise RuntimeError("Request timed out")
+        time.sleep(interval)
+        result = host.run_command(
+            [paths.IPACTL, "status"], raiseonerr=False
+        )
+        if result.returncode == 0:
+            break
+
+
+def stop_ipa_server(host):
+    """Stop the entire IdM server using the ipactl utility.
+    """
+    host.run_command([paths.IPACTL, "stop"])
+
+
+def start_ipa_server(host):
+    """Start the entire IdM server using the ipactl utility
+    """
+    host.run_command([paths.IPACTL, "start"])
+
+
+def restart_ipa_server(host):
+    """Restart the entire IdM server using the ipactl utility
+    """
+    host.run_command([paths.IPACTL, "restart"])
+
+
+def dns_update_system_records(host):
+    """Runs "ipa dns-update-system-records" on "host".
+    """
+    kinit_admin(host)
+    host.run_command(
+        ["ipa", "dns-update-system-records"]
+    )
+
+
+def run_ssh_cmd(
+    from_host=None, to_host=None, username=None, cmd=None,
+    auth_method=None, password=None, private_key_path=None,
+    expect_auth_success=True, expect_auth_failure=None,
+    verbose=True, connect_timeout=2, strict_host_key_checking=False
+):
+    """Runs an ssh connection from the controller to the host.
+       - auth_method can be either "password" or "key".
+       - In the first case, set password to the user's password ; in the
+         second case, set private_key_path to the path of the private key.
+       - If expect_auth_success or expect_auth_failure, analyze the ssh
+         client's log and check whether the selected authentication method
+         worked. expect_auth_failure takes precedence over expect_auth_success.
+       - If verbose, display the ssh client verbose log.
+       - Both expect_auth_success and verbose are True by default. Debugging
+         ssh client failures is next to impossible without the associated
+         debug log.
+       Possible enhancements:
+       - select which host to run from (currently: controller only)
+    """
+
+    if from_host is not None:
+        raise NotImplementedError(
+            "from_host must be None ; running from anywhere but the "
+            "controller is not implemented yet."
+        )
+
+    if expect_auth_failure:
+        expect_auth_success = False
+
+    if to_host is None or username is None or auth_method is None:
+        raise ValueError("host, username and auth_method are mandatory")
+    if cmd is None:
+        # cmd must run properly on all supported platforms.
+        # true(1) ("do nothing, successfully") is the obvious candidate.
+        cmd = "true"
+
+    if auth_method == "password":
+        if password is None:
+            raise ValueError(
+                "password is mandatory if auth_method == password"
+            )
+        ssh_cmd = (
+            "ssh",
+            "-v",
+            "-o", "PubkeyAuthentication=no",
+            "-o", "GSSAPIAuthentication=no",
+            "-o", "ConnectTimeout={connect_timeout}".format(
+                connect_timeout=connect_timeout
+            ),
+        )
+    elif auth_method == "key":
+        if private_key_path is None:
+            raise ValueError(
+                "private_key_path is mandatory if auth_method == key"
+            )
+        ssh_cmd = (
+            "ssh",
+            "-v",
+            "-o", "BatchMode=yes",
+            "-o", "PubkeyAuthentication=yes",
+            "-o", "GSSAPIAuthentication=no",
+            "-o", "ConnectTimeout={connect_timeout}".format(
+                connect_timeout=connect_timeout
+            ),
+        )
+    else:
+        raise ValueError(
+            "auth_method must either be password or key"
+        )
+
+    ssh_cmd_1 = list(ssh_cmd)
+    if strict_host_key_checking is True:
+        ssh_cmd_1.extend(("-o", "StrictHostKeyChecking=yes"))
+    else:
+        ssh_cmd_1.extend(("-o", "StrictHostKeyChecking=no"))
+    if auth_method == "password":
+        ssh_cmd_1 = list(("sshpass", "-p", password)) + ssh_cmd_1
+    elif auth_method == "key":
+        ssh_cmd_1.extend(("-i", private_key_path))
+    ssh_cmd_1.extend(("-l", username, to_host, cmd))
+
+    try:
+        if verbose:
+            output = "OpenSSH command: {sshcmd}".format(sshcmd=ssh_cmd_1)
+            logger.info(output)
+        remote_cmd = subprocess.Popen(
+            ssh_cmd_1,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        while remote_cmd.poll() is None:
+            time.sleep(0.1)
+        return_code = remote_cmd.returncode
+        stderr = os.linesep.join(
+            str(line) for line in remote_cmd.stderr.readlines()
+        )
+        stdout = os.linesep.join(
+            str(line) for line in remote_cmd.stderr.readlines()
+        )
+        if verbose:
+            print_stdout = "Standard output: {stdout}".format(stdout=stdout)
+            print_stderr = "Standard error: {stderr}".format(stderr=stderr)
+            logger.info(print_stdout)
+            logger.info(print_stderr)
+    except Exception as e:
+        pytest.fail("Unable to run ssh command.", e)
+
+    if auth_method == "password":
+        if expect_auth_success is True:
+            patterns = [
+                r'Authenticated to .* using "keyboard-interactive"',
+                r'Authentication succeeded \(keyboard-interactive\)'
+            ]
+            assert any(re.search(pattern, stderr) for pattern in patterns)
+            # do not assert the return code:
+            # it can be >0 if the command failed.
+        elif expect_auth_failure is True:
+            # sshpass return code: 5 for failed auth
+            assert return_code == 5
+            assert "Authentication succeeded" not in stderr
+    elif auth_method == "key":
+        if expect_auth_success is True:
+            patterns = [
+                r'Authenticated to .* using "publickey"',
+                r'Authentication succeeded \(publickey\)'
+            ]
+            assert any(re.search(pattern, stderr) for pattern in patterns)
+            # do not assert the return code:
+            # it can be >0 if the command failed.
+        elif expect_auth_failure is True:
+            # ssh return code: 255 for failed auth
+            assert return_code == 255
+            assert "Authentication succeeded" not in stderr
+            assert "No more authentication methods to try." in stderr
+    return (return_code, stdout, stderr)
+
+
+def is_package_installed(host, pkg):
+    platform = get_platform(host)
+    if platform in {'rhel', 'fedora'}:
+        result = host.run_command(
+            ['rpm', '-q', pkg], raiseonerr=False
+        )
+    elif platform in {'debian', 'ubuntu'}:
+        result = host.run_command(
+            ['dpkg', '-s', pkg], raiseonerr=False
+        )
+    else:
+        raise ValueError(
+            'is_package_installed: unknown platform %s' % platform
+        )
+    return result.returncode == 0
+
+
+def move_date(host, chrony_cmd, date_str):
+    """Helper method to move system date
+    :param host: host on which date is to be manipulated
+    :param chrony_cmd: systemctl command to apply to
+                       chrony service, for instance 'start', 'stop'
+    :param date_str: date string to change the date i.e '3years2months1day1'
+    """
+    host.run_command(['systemctl', chrony_cmd, 'chronyd'])
+    host.run_command(['date', '-s', date_str])
+
+
+def copy_files(source_host, dest_host, filelist):
+    """Helper to copy a file from one host to another
+    :param source_host: source host of the file to copy
+    :param dest_host: destination host
+    :param filelist: list of full path of files to copy
+    """
+    for file in filelist:
+        dest_host.transport.mkdir_recursive(os.path.dirname(file))
+        data = source_host.get_file_contents(file)
+        dest_host.transport.put_file_contents(file, data)
+
+
+def check_journal_does_not_contain_secret(host, cmd):
+    """
+    Helper to check journal logs doesnt reveal secrets
+    """
+    journalctl_cmd = ['journalctl', '-t', cmd, '-n1', '-o', 'json-pretty']
+    result = host.run_command(journalctl_cmd, raiseonerr=False)
+    assert (host.config.admin_password not in result.stdout_text)
+    assert (host.config.dirman_password not in result.stdout_text)
+
+
+def service_control_dirsrv(host, function='restart'):
+    """Function to control the dirsrv service i.e start, stop, restart etc"""
+    instance = realm_to_serverid(host.domain.realm)
+    cmd = host.run_command(['systemctl', function, f"dirsrv@{instance}"])
+    assert cmd.returncode == 0
+
+
+def host_add_with_random_password(host, new_host):
+    """
+    Add a new host with a random password and return the generated password.
+    """
+    kinit_admin(host)
+    cmd = host.run_command(
+        ['ipa', 'host-add', new_host.hostname, '--random']
+    )
+    result = re.search("Random password: (?P<password>.*$)",
+                       cmd.stdout_text,
+                       re.MULTILINE)
+    randpasswd1 = result.group('password')
+    return randpasswd1
+
+
+def ipa_join(host, *extra_args, raiseonerr=True):
+    """Run ipa-join command.
+
+    :param host: The host to run command on
+    :param extra_args: Additional arguments (variable positional args)
+                       e.g., '--hostname=client.example.com',
+                             '--server=master.example.com',
+                             '--keytab=/tmp/test.keytab',
+                             '--bindpw=password',
+                             '-u' (for unenroll)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa-join']
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def host_del(host, hostname, *extra_args, raiseonerr=True):
+    """Delete a host from IPA.
+
+    :param host: The IPA host to run command on
+    :param hostname: Hostname to delete
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'host-del', hostname]
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def host_add(host, hostname, *extra_args, password=None, raiseonerr=True):
+    """Add a host to IPA.
+
+    :param host: The IPA host to run command on
+    :param hostname: Hostname to add
+    :param extra_args: Additional arguments (variable positional args)
+    :param password: OTP/enrollment password for the host (optional)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'host-add', hostname]
+    if password:
+        command.append(f'--password={password}')
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)

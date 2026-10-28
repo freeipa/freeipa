@@ -1,0 +1,393 @@
+#
+# Copyright (C) 2016  FreeIPA Contributors see COPYING for license
+#
+
+
+from . import Command
+from ipalib import parameters, output
+from ipalib.plugable import Registry
+from ipalib.text import _
+
+__doc__ = _("""
+IPA certificate operations
+
+Implements a set of commands for managing server SSL certificates.
+
+Certificate requests exist in the form of a Certificate Signing Request (CSR)
+in PEM format.
+
+The dogtag CA uses just the CN value of the CSR and forces the rest of the
+subject to values configured in the server.
+
+A certificate is stored with a service principal and a service principal
+needs a host.
+
+In order to request a certificate:
+
+* The host must exist
+* The service must exist (or you use the --add option to automatically add it)
+
+SEARCHING:
+
+Certificates may be searched on by certificate subject, serial number,
+revocation reason, validity dates and the issued date.
+
+When searching on dates the _from date does a >= search and the _to date
+does a <= search. When combined these are done as an AND.
+
+Dates are treated as GMT to match the dates in the certificates.
+
+The date format is YYYY-mm-dd.
+
+EXAMPLES:
+
+ Request a new certificate and add the principal:
+   ipa cert-request --add --principal=HTTP/lion.example.com example.csr
+
+ Retrieve an existing certificate:
+   ipa cert-show 1032
+
+ Revoke a certificate (see RFC 5280 for reason details):
+   ipa cert-revoke --revocation-reason=6 1032
+
+ Remove a certificate from revocation hold status:
+   ipa cert-remove-hold 1032
+
+ Check the status of a signing request:
+   ipa cert-status 10
+
+ Search for certificates by hostname:
+   ipa cert-find --subject=ipaserver.example.com
+
+ Search for revoked certificates by reason:
+   ipa cert-find --revocation-reason=5
+
+ Search for certificates based on issuance date
+   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07
+
+IPA currently immediately issues (or declines) all certificate requests so
+the status of a request is not normally useful. This is for future use
+or the case where a CA does not immediately issue a certificate.
+
+The following revocation reasons are supported:
+
+    * 0 - unspecified
+    * 1 - keyCompromise
+    * 2 - cACompromise
+    * 3 - affiliationChanged
+    * 4 - superseded
+    * 5 - cessationOfOperation
+    * 6 - certificateHold
+    * 8 - removeFromCRL
+    * 9 - privilegeWithdrawn
+    * 10 - aACompromise
+
+Note that reason code 7 is not used.  See RFC 5280 for more details:
+
+http://www.ietf.org/rfc/rfc5280.txt
+""")
+
+register = Registry()
+
+
+@register()
+class ca_is_enabled(Command):
+    __doc__ = _("Checks if any of the servers has the CA service enabled.")
+
+    NO_CLI = True
+
+    takes_options = (
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.Output(
+            'result',
+            bool,
+            doc=_('True means the operation was successful'),
+        ),
+        output.PrimaryKey(
+            'value',
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
+        ),
+    )
+
+
+@register()
+class cert_find(Command):
+    __doc__ = _("""
+Search for existing certificates.
+
+    For certificates not issued by IPA CA,
+    only --certificate option is supported.
+    """)
+
+    takes_options = (
+        parameters.Str(
+            'subject',
+            required=False,
+            label=_('Match cn attribute in subject'),
+        ),
+        parameters.Int(
+            'revocation_reason',
+            required=False,
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
+        ),
+        parameters.Int(
+            'min_serial_number',
+            required=False,
+            doc=_('minimum serial number'),
+        ),
+        parameters.Int(
+            'max_serial_number',
+            required=False,
+            doc=_('maximum serial number'),
+        ),
+        parameters.Flag(
+            'exactly',
+            required=False,
+            doc=_('match the common name exactly'),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Str(
+            'validnotafter_from',
+            required=False,
+            doc=_('Valid not after from this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'validnotafter_to',
+            required=False,
+            doc=_('Valid not after to this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'validnotbefore_from',
+            required=False,
+            doc=_('Valid not before from this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'validnotbefore_to',
+            required=False,
+            doc=_('Valid not before to this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'issuedon_from',
+            required=False,
+            doc=_('Issued on from this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'issuedon_to',
+            required=False,
+            doc=_('Issued on to this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'revokedon_from',
+            required=False,
+            doc=_('Revoked on from this date (YYYY-mm-dd)'),
+        ),
+        parameters.Str(
+            'revokedon_to',
+            required=False,
+            doc=_('Revoked on to this date (YYYY-mm-dd)'),
+        ),
+        parameters.Int(
+            'sizelimit',
+            required=False,
+            label=_('Size Limit'),
+            doc=_('Maximum number of certs returned'),
+            default=100,
+        ),
+        parameters.Flag(
+            'all',
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Flag(
+            'raw',
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
+            exclude=('webui',),
+            default=False,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'summary',
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
+        ),
+        output.ListOfEntries(
+            'result',
+        ),
+        output.Output(
+            'count',
+            int,
+            doc=_('Number of entries returned'),
+        ),
+        output.Output(
+            'truncated',
+            bool,
+            doc=_('True if not all results were returned'),
+        ),
+    )
+
+
+@register()
+class cert_remove_hold(Command):
+    __doc__ = _("Take a revoked certificate off hold.")
+
+    takes_args = (
+        parameters.Str(
+            'serial_number',
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+    )
+    has_output = (
+        output.Output(
+            'result',
+        ),
+    )
+
+
+@register()
+class cert_request(Command):
+    __doc__ = _("Submit a certificate signing request.")
+
+    takes_args = (
+        parameters.Str(
+            'csr',
+            cli_name='csr_file',
+            label=_('CSR'),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'principal',
+            label=_('Principal'),
+            doc=_(
+                'Principal for this certificate (e.g. HTTP/test.example.com)'
+            ),
+        ),
+        parameters.Str(
+            'request_type',
+            default='pkcs10',
+            autofill=True,
+        ),
+        parameters.Flag(
+            'add',
+            doc=_("automatically add the principal if it doesn't exist"),
+            default=False,
+            autofill=True,
+        ),
+        parameters.Str(
+            'profile_id',
+            required=False,
+            label=_('Profile ID'),
+            doc=_('Certificate Profile to use'),
+        ),
+    )
+    has_output = (
+        output.Output(
+            'result',
+            dict,
+            doc=_('Dictionary mapping variable name to value'),
+        ),
+    )
+
+
+@register()
+class cert_revoke(Command):
+    __doc__ = _("Revoke a certificate.")
+
+    takes_args = (
+        parameters.Str(
+            'serial_number',
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Int(
+            'revocation_reason',
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
+            default=0,
+            autofill=True,
+        ),
+    )
+    has_output = (
+        output.Output(
+            'result',
+        ),
+    )
+
+
+@register()
+class cert_show(Command):
+    __doc__ = _("Retrieve an existing certificate.")
+
+    takes_args = (
+        parameters.Str(
+            'serial_number',
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
+            no_convert=True,
+        ),
+    )
+    takes_options = (
+        parameters.Str(
+            'out',
+            required=False,
+            label=_('Output filename'),
+            doc=_('File to store the certificate in.'),
+            exclude=('webui',),
+        ),
+    )
+    has_output = (
+        output.Output(
+            'result',
+        ),
+    )
+
+
+@register()
+class cert_status(Command):
+    __doc__ = _("Check the status of a certificate signing request.")
+
+    takes_args = (
+        parameters.Str(
+            'request_id',
+            label=_('Request id'),
+        ),
+    )
+    takes_options = (
+    )
+    has_output = (
+        output.Output(
+            'result',
+        ),
+    )

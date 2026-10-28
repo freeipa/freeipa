@@ -1,0 +1,23 @@
+# add plugin configuration for ipauniqueid
+dn: cn=IPA Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: IPA Unique IDs
+ipaUuidAttr: ipaUniqueID
+ipaUuidMagicRegen: autogenerate
+ipaUuidFilter: (|(objectclass=ipaObject)(objectclass=ipaAssociation))
+ipaUuidScope: $SUFFIX
+ipaUuidEnforce: TRUE
+
+# add plugin configuration for ipk11UniqueId
+dn: cn=IPK11 Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: IPK11 Unique IDs
+ipaUuidAttr: ipk11UniqueID
+ipaUuidMagicRegen: autogenerate
+ipaUuidFilter: (objectclass=ipk11Object)
+ipaUuidScope: $SUFFIX
+ipaUuidEnforce: FALSE
