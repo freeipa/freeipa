@@ -59,6 +59,76 @@ and re-run ipa-adtrust-instal again afterwards.
 """
 
 
+# samba-dcerpcd as a daemon, which smb and winbind require. With "rpc start
+# on demand helpers = no" they start no RPC helper of their own, and the
+# daemon serves RPC on TCP as well as on named pipes. Since Samba 4.23.9 and
+# 4.24.2, winbind on a domain member reaches NETLOGON and LSA of an AD-like
+# domain controller over TCP only.
+DCERPCD_SERVICE = 'ipa-dcerpcd'
+
+
+def dcerpcd_dropins():
+    """The drop-ins that tie ipa-dcerpcd to smb and winbind
+
+    smb and winbind require ipa-dcerpcd, and ipa-dcerpcd stops and restarts
+    with smb, so that a restart of smb also starts a new samba-dcerpcd.
+    """
+    smb = services.service('smb', api).systemd_name
+    winbind = services.service('winbind', api).systemd_name
+    requires = (
+        "[Unit]\n"
+        "Requires=ipa-dcerpcd.service\n"
+        "After=ipa-dcerpcd.service\n"
+    )
+    etc = paths.ETC_SYSTEMD_SYSTEM_DIR
+    return {
+        os.path.join(etc, smb + '.d', 'ipa-dcerpcd.conf'): requires,
+        os.path.join(etc, winbind + '.d', 'ipa-dcerpcd.conf'): requires,
+        os.path.join(etc, 'ipa-dcerpcd.service.d', 'ipa.conf'):
+            "[Unit]\nPartOf={}\n".format(smb),
+    }
+
+
+def configure_dcerpcd():
+    """Tie ipa-dcerpcd to smb and winbind
+
+    Return True when a drop-in changed. Raise RuntimeError when the unit or
+    samba-dcerpcd is not installed, as smb and winbind could not start.
+    """
+    dcerpcd = services.service(DCERPCD_SERVICE, api)
+    for path in (dcerpcd.lib_path, paths.SAMBA_DCERPCD):
+        if not os.path.exists(path):
+            raise RuntimeError("{} is not installed".format(path))
+    changed = False
+    for path, content in dcerpcd_dropins().items():
+        try:
+            with open(path) as f:
+                if f.read() == content:
+                    continue
+        except FileNotFoundError:
+            pass
+        os.makedirs(os.path.dirname(path), 0o755, exist_ok=True)
+        with open(path, 'w') as f:
+            f.write(content)
+        os.chmod(path, 0o644)
+        tasks.restore_context(path)
+        changed = True
+    if changed:
+        tasks.systemd_daemon_reload()
+    return changed
+
+
+def unconfigure_dcerpcd():
+    """Remove the drop-ins of configure_dcerpcd()"""
+    for path in dcerpcd_dropins():
+        ipautil.remove_file(path)
+        try:
+            os.rmdir(os.path.dirname(path))
+        except OSError:
+            pass
+    tasks.systemd_daemon_reload()
+
+
 def check_inst():
     for smbfile in [paths.SMBD, paths.NET]:
         if not os.path.exists(smbfile):
@@ -782,6 +852,8 @@ class ADTRUSTInstance(service.Service):
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
             logger.info("EXTID Service startup entry already exists.")
 
+        configure_dcerpcd()
+
     def __setup_sub_dict(self):
         self.sub_dict = dict(
             REALM=self.realm,
@@ -935,6 +1007,7 @@ class ADTRUSTInstance(service.Service):
             self.disable()
             winbind.stop()
             winbind.disable()
+            unconfigure_dcerpcd()
         except Exception:
             pass
 

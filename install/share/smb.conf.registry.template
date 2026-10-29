@@ -20,15 +20,7 @@ ldap suffix = $SUFFIX
 ldap user suffix = cn=users,cn=accounts
 ldap group suffix = cn=groups,cn=accounts
 ldap machine suffix = cn=computers,cn=accounts
-rpc_server:epmapper = external
-rpc_server:lsarpc = external
-rpc_server:lsass = external
-rpc_server:lsasd = external
-rpc_server:samr = external
-rpc_server:netlogon = external
-rpc_server:tcpip = yes
-rpc_daemon:epmd = fork
-rpc_daemon:lsasd = fork
+rpc start on demand helpers = no
 idmap config * : backend = tdb
 idmap config * : range =  0 - 0
 idmap config $NETBIOS_NAME : backend = sss

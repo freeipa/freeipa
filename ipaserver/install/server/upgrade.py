@@ -358,6 +358,73 @@ def upgrade_adtrust_config():
         if e.returncode != 255:
             logger.warning("Error updating Samba registry: %s", e)
 
+    upgrade_adtrust_dcerpcd()
+
+
+def upgrade_adtrust_dcerpcd():
+    """
+    Run samba-dcerpcd as a daemon, which serves RPC on TCP as well
+
+    The rpc_server and rpc_daemon options configured RPC services on TCP
+    before Samba 4.16, and Samba ignores them since.
+    """
+    logger.info("[Serve Samba's RPC services on TCP through %s]",
+                adtrustinstance.DCERPCD_SERVICE)
+
+    try:
+        changed = adtrustinstance.configure_dcerpcd()
+    except (RuntimeError, OSError) as e:
+        logger.error("%s; Samba keeps serving RPC on named pipes only", e)
+        return
+
+    args = [paths.NET, "conf", "getparm", "global",
+            "rpc start on demand helpers"]
+    result = ipautil.run(args, capture_output=True, raiseonerr=False)
+    # 255: the parameter is not set, and Samba's default is "yes"
+    if result.output.strip().lower() not in ('no', 'false'):
+        for param in ('rpc_server:epmapper', 'rpc_server:lsarpc',
+                      'rpc_server:lsass', 'rpc_server:lsasd',
+                      'rpc_server:samr', 'rpc_server:netlogon',
+                      'rpc_server:tcpip', 'rpc_daemon:epmd',
+                      'rpc_daemon:lsasd'):
+            if ipautil.run([paths.NET, "conf", "getparm", "global", param],
+                           raiseonerr=False).returncode == 0:
+                ipautil.run([paths.NET, "conf", "delparm", "global", param],
+                            raiseonerr=False)
+        args = [paths.NET, "conf", "setparm", "global",
+                "rpc start on demand helpers", "no"]
+        try:
+            ipautil.run(args)
+        except ipautil.CalledProcessError as e:
+            logger.error("Error updating Samba registry: %s", e)
+            # samba-dcerpcd refuses to start as a daemon while smbd starts
+            # it on demand.
+            adtrustinstance.unconfigure_dcerpcd()
+            return
+        changed = True
+
+    smb = services.service('smb', api)
+    winbind = services.service('winbind', api)
+    dcerpcd = services.service(adtrustinstance.DCERPCD_SERVICE, api)
+    running = [s for s in (smb, winbind) if s.is_running()]
+    if not changed and (not running or dcerpcd.is_running()):
+        logger.info("Samba already serves RPC through %s",
+                    adtrustinstance.DCERPCD_SERVICE)
+        return
+
+    # An on-demand helper of smbd or winbindd holds the pid file the daemon
+    # needs: stop both before either starts again.
+    try:
+        for s in (winbind, smb):
+            if s in running:
+                s.stop()
+        for s in (smb, winbind):
+            if s in running:
+                s.start()
+    except ipautil.CalledProcessError as e:
+        logger.error("Failed to restart Samba: %s; run ipactl restart", e)
+
+
 def ca_configure_profiles_acl(ca):
     logger.info('[Authorizing RA Agent to modify profiles]')
 

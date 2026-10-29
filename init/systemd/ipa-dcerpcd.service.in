@@ -1,0 +1,16 @@
+[Unit]
+Description=Samba DCE/RPC services of an IPA trust controller
+Documentation=man:samba-dcerpcd(8)
+Wants=network-online.target
+After=network.target network-online.target
+StopWhenUnneeded=yes
+
+[Service]
+Type=notify
+LimitNOFILE=16384
+EnvironmentFile=-/etc/sysconfig/samba
+ExecStart=/usr/libexec/samba/samba-dcerpcd --foreground --no-process-group --libexec-rpcds
+LimitCORE=infinity
+Environment=KRB5CCNAME=FILE:/run/samba/krb5cc_samba
+Restart=on-failure
+RestartSec=5s

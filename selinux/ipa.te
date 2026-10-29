@@ -251,6 +251,21 @@ optional_policy(`
         ipa_read_public_pki(samba_net_t)
 ')
 
+# ipa-dcerpcd.service runs samba-dcerpcd as a daemon on a trust controller,
+# which serves RPC on TCP: the endpoint mapper on 135, and each service on a
+# port of "rpc server dynamic port range", 49152 to 65535 by default. ipasam
+# in it keeps the cifs credentials in Samba's /run/samba/krb5cc_samba.
+optional_policy(`
+    gen_require(`
+        type samba_dcerpcd_t, samba_dcerpcd_exec_t, smbd_var_run_t;
+    ')
+        init_daemon_domain(samba_dcerpcd_t, samba_dcerpcd_exec_t)
+        allow samba_dcerpcd_t self:tcp_socket { listen accept };
+        corenet_tcp_bind_epmap_port(samba_dcerpcd_t)
+        corenet_tcp_bind_all_unreserved_ports(samba_dcerpcd_t)
+        manage_files_pattern(samba_dcerpcd_t, smbd_var_run_t, smbd_var_run_t)
+')
+
 
 ########################################
 #

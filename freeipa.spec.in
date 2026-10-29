@@ -1419,6 +1419,7 @@ fi
 
 
 %postun server-trust-ad
+%systemd_postun ipa-dcerpcd.service
 if [ "$1" -ge "1" ]; then
     if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
         %{_sbindir}/alternatives --set winbind_krb5_locator.so /dev/null
@@ -1443,6 +1444,7 @@ fi
 
 
 %preun server-trust-ad
+%systemd_preun ipa-dcerpcd.service
 if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
     # Skip systemctl calls when leapp upgrade is in progress
@@ -1915,6 +1917,7 @@ fi
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
 %attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
+%attr(644,root,root) %{_unitdir}/ipa-dcerpcd.service
 
 # ONLY_CLIENT
 %endif

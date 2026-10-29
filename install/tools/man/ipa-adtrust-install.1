@@ -46,8 +46,8 @@ the following ports to be open to allow IPA and Active Directory to communicate 
 .IP
 \(bu 445/tcp Microsoft-DS
 .IP
-\(bu 1024/tcp through 1300/tcp to allow EPMAP on port 135/tcp to create a TCP listener based
-on an incoming request.
+\(bu 49152/tcp through 65535/tcp, the ports EPMAP on port 135/tcp hands out to the RPC services
+(Samba's "rpc server dynamic port range").
 .IP
 \(bu 3268/tcp Microsoft-GC
 .TP
