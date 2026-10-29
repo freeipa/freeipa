@@ -11682,7 +11682,8 @@ msgstr ""
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
-msgstr "Cliente %(cver)s incompatível com o servidor %(sver)s em \"%(server)s\""
+msgstr ""
+"Cliente %(cver)s incompatível com o servidor %(sver)s em \"%(server)s\""
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -11724,8 +11725,9 @@ msgid ""
 "System encoding must be UTF-8, '%(encoding)s' is not supported. Set "
 "LC_ALL=\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
 msgstr ""
-"O sistema de codificação deve ser UTF-8, não tendo suporte a \"%(encoding)"
-"s\". Defina LC_ALL=\"C.UTF-8\", ou LC_ALL=\"\" e LC_CTYPE=\"C.UTF-8\"."
+"O sistema de codificação deve ser UTF-8, não tendo suporte a "
+"\"%(encoding)s\". Defina LC_ALL=\"C.UTF-8\", ou LC_ALL=\"\" e "
+"LC_CTYPE=\"C.UTF-8\"."
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
@@ -11896,8 +11898,8 @@ msgid ""
 "A problem was encountered when verifying that all members were %(verb)s: "
 "%(exc)s"
 msgstr ""
-"Um problema foi encontrado ao verificar se todos os membros eram %(verb)s: %"
-"(exc)s"
+"Um problema foi encontrado ao verificar se todos os membros eram %(verb)s: "
+"%(exc)s"
 
 #, python-format
 msgid "%(attr)s does not contain '%(value)s'"
@@ -12022,8 +12024,8 @@ msgid ""
 "%(key)s cannot be deleted or disabled because it is the last member of "
 "%(label)s %(container)s"
 msgstr ""
-"%(key)s não pode ser excluído ou desabilitado porque é o último membro de %"
-"(label)s %(container)s"
+"%(key)s não pode ser excluído ou desabilitado porque é o último membro de "
+"%(label)s %(container)s"
 
 #, python-format
 msgid "%(label)s %(key)s cannot be deleted/modified: %(reason)s"
