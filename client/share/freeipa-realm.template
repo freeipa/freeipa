@@ -5,7 +5,6 @@
       admin_server = $FQDN:749
       kpasswd_server = $FQDN:464
       default_domain = $DOMAIN
-      auto_fast_armor = true
       pkinit_anchors = FILE:$KDC_CA_BUNDLE_PEM
       pkinit_pool = FILE:$CA_BUNDLE_PEM
    }
