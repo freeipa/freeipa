@@ -358,6 +358,73 @@ def upgrade_adtrust_config():
         if e.returncode != 255:
             logger.warning("Error updating Samba registry: %s", e)
 
+    logger.info("[Configure samba-dcerpcd to serve DCE/RPC over TCP/IP]")
+
+    # Samba 4.16 removed the 'rpc_daemon' and 'rpc_server' options together
+    # with the forked epmd/lsasd daemons they configured. Since then nothing
+    # has listened on the endpoint mapper port, which winbind on IPA domain
+    # members requires since Samba 4.23.9 and 4.24.2. Run samba-dcerpcd as
+    # a standalone daemon instead and remove the dead options.
+    dcerpcd_configured = all(
+        os.path.exists(f) for f in (paths.SYSTEMD_IPA_DCERPCD_SERVICE,
+                                    paths.SYSTEMD_SYSTEM_SMB_IPA_CONF)
+    )
+
+    # The unit comes first: once 'rpc start on demand helpers' is off,
+    # smbd and winbindd no longer start RPC helpers themselves and only the
+    # standalone samba-dcerpcd serves RPC, named pipes included. Keep the
+    # old mode if the unit cannot be set up.
+    try:
+        adtrustinstance.configure_dcerpcd_service()
+    except Exception as e:
+        logger.warning("Error configuring samba-dcerpcd service, keeping "
+                       "on-demand RPC helpers: %s", e)
+        return
+
+    for param in ("rpc_server:epmapper", "rpc_server:lsarpc",
+                  "rpc_server:lsass", "rpc_server:lsasd",
+                  "rpc_server:samr", "rpc_server:netlogon",
+                  "rpc_server:tcpip", "rpc_daemon:epmd",
+                  "rpc_daemon:lsasd"):
+        args = [paths.NET, "conf", "delparm", "global", param]
+        try:
+            ipautil.run(args)
+        except ipautil.CalledProcessError as e:
+            # the parameter is not set, nothing to do
+            logger.debug("Samba registry parameter '%s' not removed: %s",
+                         param, e)
+
+    args = [paths.NET, "conf", "setparm", "global",
+            "rpc start on demand helpers", "no"]
+    try:
+        ipautil.run(args)
+    except ipautil.CalledProcessError as e:
+        # do not leave the smb service requiring a samba-dcerpcd that
+        # refuses to start while on-demand helpers are still enabled
+        logger.warning("Error updating Samba registry, keeping on-demand "
+                       "RPC helpers: %s", e)
+        if not dcerpcd_configured:
+            adtrustinstance.remove_dcerpcd_service()
+        return
+
+    if not dcerpcd_configured:
+        # Switch the running services to the standalone samba-dcerpcd.
+        # Both have to be stopped first: an on-demand helper still held by
+        # winbindd or smbd keeps the samba-dcerpcd pid file, and the
+        # standalone daemon then refuses to start.
+        smb = services.service('smb', api)
+        winbind = services.service('winbind', api)
+        was_running = smb.is_running() or winbind.is_running()
+        if was_running:
+            try:
+                winbind.stop()
+                smb.stop()
+                smb.start()
+                winbind.start()
+            except Exception as e:
+                logger.warning("Error restarting CIFS services: %s", e)
+
+
 def ca_configure_profiles_acl(ca):
     logger.info('[Authorizing RA Agent to modify profiles]')
 
