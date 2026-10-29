@@ -255,7 +255,6 @@ class BasePathNamespace:
     DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit"
     CERTMONGER_DOGTAG_SUBMIT = "/usr/libexec/certmonger/dogtag-submit"
     IPA_SERVER_GUARD = "/usr/libexec/certmonger/ipa-server-guard"
-    GENERATE_RNDC_KEY = "/usr/libexec/generate-rndc-key.sh"
     RNDC_KEY = "/etc/rndc.key"
     LIBEXEC_IPA_DIR = "/usr/libexec/ipa"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/libexec/ipa/ipa-dnskeysync-replica"
