@@ -46,8 +46,10 @@ the following ports to be open to allow IPA and Active Directory to communicate 
 .IP
 \(bu 445/tcp Microsoft-DS
 .IP
-\(bu 1024/tcp through 1300/tcp to allow EPMAP on port 135/tcp to create a TCP listener based
-on an incoming request.
+\(bu 49152/tcp through 65535/tcp, the dynamic port range used by the RPC services
+(NETLOGON, LSA, SAMR) that the endpoint mapper on port 135/tcp refers clients to. The
+range can be narrowed with the Samba option \fBrpc server dynamic port range\fR,
+see smb.conf(5).
 .IP
 \(bu 3268/tcp Microsoft-GC
 .TP

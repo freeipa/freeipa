@@ -173,6 +173,8 @@ class Backup(admintool.AdminTool):
         paths.CACERT_PEM,
         paths.SYSTEMD_IPA_SERVICE,
         paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
+        paths.SYSTEMD_SYSTEM_SMB_IPA_CONF,
+        paths.SYSTEMD_IPA_DCERPCD_SERVICE,
         paths.SYSTEMD_SSSD_SERVICE,
         paths.SYSTEMD_CERTMONGER_SERVICE,
         paths.SYSTEMD_PKI_TOMCAT_SERVICE,

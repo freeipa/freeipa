@@ -60,6 +60,8 @@ dist_app_DATA =				\
 	freeipa-server.template		\
 	smb.conf.template		\
 	smb.conf.registry.template		\
+	ipa-dcerpcd.service.template	\
+	ipa-smb.conf.template		\
 	smb.conf.empty			\
 	referint-conf.ldif		\
 	dna.ldif			\

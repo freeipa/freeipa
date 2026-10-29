@@ -1,0 +1,9 @@
+# This file is managed by ipa-adtrust-install. Do not edit.
+#
+# Start the standalone samba-dcerpcd before smbd. With
+# 'rpc start on demand helpers = no' in the Samba configuration smbd does
+# not start RPC helpers itself, so without this unit no DCE/RPC endpoint,
+# named pipe or TCP, would be served.
+[Unit]
+Requires=$DCERPCD_UNIT
+After=$DCERPCD_UNIT

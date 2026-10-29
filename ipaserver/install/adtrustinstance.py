@@ -81,6 +81,60 @@ def check_inst():
 
     return True
 
+
+def configure_dcerpcd_service():
+    """Run samba-dcerpcd as a standalone daemon together with smbd
+
+    Since Samba 4.16 all DCE/RPC services of a member or classic DC are
+    provided by samba-dcerpcd. By default smbd starts it on demand as a
+    named pipe helper only, so nothing listens on the endpoint mapper
+    port 135/tcp or the dynamic RPC port range. Winbind on IPA domain
+    members requires NETLOGON and LSA over TCP/IP since Samba 4.23.9 and
+    4.24.2 (Samba bug 15987), so the trust controller has to run
+    samba-dcerpcd standalone, which also requires
+    'rpc start on demand helpers = no' in the Samba configuration.
+
+    Write a systemd unit for samba-dcerpcd and a drop-in which makes the
+    smb service require it, so that ipactl keeps managing both together.
+    """
+    if not os.path.isfile(paths.SAMBA_DCERPCD):
+        raise RuntimeError(
+            "%s not found, cannot configure the samba-dcerpcd service"
+            % paths.SAMBA_DCERPCD)
+
+    smb_unit = services.service('smb', api).systemd_name
+    dcerpcd_unit = os.path.basename(paths.SYSTEMD_IPA_DCERPCD_SERVICE)
+
+    ipautil.copy_template_file(
+        os.path.join(paths.USR_SHARE_IPA_DIR, 'ipa-dcerpcd.service.template'),
+        paths.SYSTEMD_IPA_DCERPCD_SERVICE,
+        dict(SAMBA_DCERPCD=paths.SAMBA_DCERPCD, SMB_UNIT=smb_unit,
+             KRB5CC_SAMBA=paths.KRB5CC_SAMBA)
+    )
+    os.chmod(paths.SYSTEMD_IPA_DCERPCD_SERVICE, 0o644)
+    tasks.restore_context(paths.SYSTEMD_IPA_DCERPCD_SERVICE)
+
+    if not os.path.exists(paths.SYSTEMD_SYSTEM_SMB_D_DIR):
+        os.mkdir(paths.SYSTEMD_SYSTEM_SMB_D_DIR, 0o755)
+    ipautil.copy_template_file(
+        os.path.join(paths.USR_SHARE_IPA_DIR, 'ipa-smb.conf.template'),
+        paths.SYSTEMD_SYSTEM_SMB_IPA_CONF,
+        dict(DCERPCD_UNIT=dcerpcd_unit)
+    )
+    os.chmod(paths.SYSTEMD_SYSTEM_SMB_IPA_CONF, 0o644)
+    tasks.restore_context(paths.SYSTEMD_SYSTEM_SMB_IPA_CONF)
+
+    tasks.systemd_daemon_reload()
+
+
+def remove_dcerpcd_service():
+    """Remove the samba-dcerpcd unit and the smb service drop-in"""
+    ipautil.remove_file(paths.SYSTEMD_SYSTEM_SMB_IPA_CONF)
+    ipautil.remove_directory(paths.SYSTEMD_SYSTEM_SMB_D_DIR)
+    ipautil.remove_file(paths.SYSTEMD_IPA_DCERPCD_SERVICE)
+    tasks.systemd_daemon_reload()
+
+
 def ipa_smb_conf_exists():
     try:
         conf_fd = open(paths.SMB_CONF, 'r')
@@ -595,6 +649,9 @@ class ADTRUSTInstance(service.Service):
     def __map_Guests_to_nobody(self):
         map_Guests_to_nobody()
 
+    def __configure_dcerpcd(self):
+        configure_dcerpcd_service()
+
     def __setup_group_membership(self):
         # Add the CIFS and host principals to the 'adtrust agents' group
         # as 389-ds only operates with GroupOfNames, we have to use
@@ -873,6 +930,8 @@ class ADTRUSTInstance(service.Service):
             self.step("retrieve local idmap range",
                       self.__retrieve_local_range)
             self.step("writing samba config file", self.__write_smb_conf)
+            self.step("configuring samba-dcerpcd service",
+                      self.__configure_dcerpcd)
             self.step("creating samba config registry",
                       self.__write_smb_registry)
             self.step("adding cifs Kerberos principal",
@@ -940,6 +999,9 @@ class ADTRUSTInstance(service.Service):
 
         # Since we do not guarantee restoring back to working samba state,
         # we should not restore smb.conf
+
+        # Remove samba-dcerpcd unit and the smb service drop-in
+        remove_dcerpcd_service()
 
         # Restore the state of affected selinux booleans
         boolean_states = {name: self.restore_state(name)

@@ -20,7 +20,6 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import skip_if_fips
-from ipatests.util import xfail_context
 
 
 def wait_smbd_functional(host):
@@ -418,22 +417,6 @@ class TestSMB(IntegrationTest):
             self.cleanup_mount(mountpoint)
             self.smbserver.run_command(['rm', '-f', test_file_server_path])
 
-    def ntlm_failure(self):
-        """
-        Check the samba version and return true if the NTLM
-        authentication is expected to fail with this version.
-        """
-        result = self.smbclient.run_command(["smbclient", "-V"]).stdout_text
-        # Output has the format: Version 4.23.7
-        version = result.split()[1]
-        samba = tasks.parse_version(version)
-        # Versions 4.23.9 and above, 4.24.2 and above fail the test
-        if tasks.parse_version('4.23.9') <= samba < tasks.parse_version('4.24'):
-            return True
-        elif samba >= tasks.parse_version('4.24.2'):
-            return True
-        return False
-
     @skip_if_fips()
     def test_ntlm_authentication_with_auto_domain(self):
         """Repeatedly try to authenticate with username and password with
@@ -449,11 +432,7 @@ class TestSMB(IntegrationTest):
             password=self.ipa_user1_password
         )
 
-        with xfail_context(
-            self.ntlm_failure,
-            reason="https://codeberg.org/freeipa/freeipa/issues/9999"
-        ):
-            self.check_repeated_smb_mount(mount_options)
+        self.check_repeated_smb_mount(mount_options)
 
     @skip_if_fips()
     def test_ntlm_authentication_with_upn_with_lowercase_domain(self):
@@ -464,11 +443,7 @@ class TestSMB(IntegrationTest):
             password=self.ipa_user1_password,
             domain=self.master.domain.name.lower()
         )
-        with xfail_context(
-            self.ntlm_failure,
-            reason="https://codeberg.org/freeipa/freeipa/issues/9999"
-        ):
-            self.check_repeated_smb_mount(mount_options)
+        self.check_repeated_smb_mount(mount_options)
 
     @skip_if_fips()
     def test_ntlm_authentication_with_upn_with_uppercase_domain(self):
@@ -479,11 +454,7 @@ class TestSMB(IntegrationTest):
             password=self.ipa_user1_password,
             domain=self.master.domain.name.upper()
         )
-        with xfail_context(
-            self.ntlm_failure,
-            reason="https://codeberg.org/freeipa/freeipa/issues/9999"
-        ):
-            self.check_repeated_smb_mount(mount_options)
+        self.check_repeated_smb_mount(mount_options)
 
     def test_uninstall_samba(self):
         self.smbserver.run_command(['ipa-client-samba', '--uninstall', '-U'])
