@@ -45,6 +45,7 @@ class DebianPathNamespace(BasePathNamespace):
     OPENSSL_CERTS_DIR = "/usr/lib/ssl/certs"
     OPENSSL_PRIVATE_DIR = "/usr/lib/ssl/private"
     SAMBA_LOCKDIR = "/run/samba"
+    SAMBA_DCERPCD = "/usr/lib/{0}/samba/samba-dcerpcd".format(MULTIARCH)
     ETC_DEBIAN_VERSION = "/etc/debian_version"
     # Old versions of freeipa wrote all trusted certificates to a single
     # file, which is not supported by ca-certificates.
@@ -71,6 +72,8 @@ class DebianPathNamespace(BasePathNamespace):
     BIN_TOMCAT = "/usr/share/tomcat9/bin/version.sh"
     SYSTEMD_SYSTEM_HTTPD_D_DIR = "/etc/systemd/system/apache2.service.d/"
     SYSTEMD_SYSTEM_HTTPD_IPA_CONF = "/etc/systemd/system/apache2.service.d/ipa.conf"
+    SYSTEMD_SYSTEM_SMB_D_DIR = "/etc/systemd/system/smbd.service.d/"
+    SYSTEMD_SYSTEM_SMB_IPA_CONF = "/etc/systemd/system/smbd.service.d/ipa.conf"
     DNSSEC_TRUSTED_KEY = "/etc/bind/trusted-key.key"
     GSSAPI_SESSION_KEY = "/etc/apache2/ipa/ipasession.key"
     OLD_KRA_AGENT_PEM = "/etc/apache2/nssdb/kra-agent.pem"
