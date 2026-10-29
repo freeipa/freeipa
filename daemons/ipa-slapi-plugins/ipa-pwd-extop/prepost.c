@@ -1109,6 +1109,46 @@ static int ipapwd_post_updatecfg(Slapi_PBlock *pb)
     return 0;
 }
 
+/* passwordgraceusertime is excluded from replication so each server keeps
+ * its own grace login counter. When a password change is replicated in,
+ * reset the local counter just like the originating server did. The reset
+ * itself is not replicated either, so it does not generate extra traffic. */
+static void ipapwd_repl_reset_grace(Slapi_PBlock *pb)
+{
+    LDAPMod **mods = NULL;
+    Slapi_Entry *e = NULL;
+    Slapi_Mods *smods;
+    bool pwd_changed = false;
+    int i;
+
+    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+    for (i = 0; mods && mods[i]; i++) {
+        /* krbLastPwdChange is set by the originating server on every
+         * password change and is replicated */
+        if ((mods[i]->mod_op & ~LDAP_MOD_BVALUES) != LDAP_MOD_DELETE &&
+            strcasecmp(mods[i]->mod_type, "krbLastPwdChange") == 0) {
+            pwd_changed = true;
+            break;
+        }
+    }
+    if (!pwd_changed)
+        return;
+
+    /* An absent value already counts as zero, only write if needed */
+    slapi_pblock_get(pb, SLAPI_ENTRY_POST_OP, &e);
+    if (e == NULL ||
+        slapi_entry_attr_get_int(e, "passwordgraceusertime") == 0)
+        return;
+
+    smods = slapi_mods_new();
+    slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "passwordgraceusertime", "0");
+    if (ipapwd_apply_mods(slapi_entry_get_dn_const(e), smods)) {
+        LOG("Failed to reset passwordgraceusertime on replicated "
+            "password change for %s\n", slapi_entry_get_dn_const(e));
+    }
+    slapi_mods_free(&smods);
+}
+
 static int ipapwd_post_modadd(Slapi_PBlock *pb)
 {
     void *op;
@@ -1121,6 +1161,7 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     char *principal = NULL;
     Slapi_Value *ipahost = NULL;
     Slapi_Value *zero = NULL;
+    int is_repl_op = 0;
 
     LOG_TRACE("=>\n");
 
@@ -1130,6 +1171,15 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     if (ret != 0) {
         LOG_FATAL("slapi_pblock_get failed!?\n");
+        return 0;
+    }
+
+    /* the pre-op skips replicated operations, so pwdop is never set up
+     * for them; handle the grace counter reset separately */
+    slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
+    if (is_repl_op) {
+        if (slapi_op_get_type(op) == SLAPI_OPERATION_MODIFY)
+            ipapwd_repl_reset_grace(pb);
         return 0;
     }
 
