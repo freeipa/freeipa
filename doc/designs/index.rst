@@ -4,6 +4,7 @@ FreeIPA design documentation
 .. toctree::
    :maxdepth: 1
 
+   acme/overview.md
    adtrust/oneway-trust-with-shared-secret.md
    adtrust/samba-domain-controller.md
    adtrust/samba-domain-member.md
