@@ -135,7 +135,7 @@ def has_soa_or_ns_record(domain):
 
 def _strip_name_whitespace(name):
     """Remove all whitespace from a name used to derive user defaults."""
-    return re.sub(r'\s+', '', name)
+    return "".join(name.split())
 
 
 def default_user_login(givenname, sn):
