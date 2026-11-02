@@ -541,6 +541,8 @@ class TestManagedHosts(XMLRPC_test):
         host.retrieve()
         host2.retrieve()
 
+        self.remove_itself_man_hosts(host, host2)
+
     def add_managed_host(self, manager, underling):
         command = manager.make_command('host_add_managedby',
                                        underling.fqdn, host=manager.fqdn)
@@ -587,6 +589,14 @@ class TestManagedHosts(XMLRPC_test):
             failed={'managedby': {'host': ()}},
             result=underling.filter_attrs(underling.managedby_keys),
         ), result)
+
+    def remove_itself_man_hosts(self, manager, underling):
+        command = manager.make_command('host_remove_managedby',
+                                       underling.fqdn, host=underling.fqdn)
+        with raises_exact(errors.ValidationError(
+                name='host',
+                error='A host must always be allowed to manage itself')):
+            command()
 
 
 @pytest.mark.tier1
