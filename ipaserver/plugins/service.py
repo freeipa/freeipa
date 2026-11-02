@@ -1080,6 +1080,18 @@ class service_remove_host(LDAPRemoveMember):
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        principal = keys[-1]
+        hostname = principal.hostname
+        for host in options.get('host', []):
+            if host.lower() == hostname.lower():
+                raise errors.ValidationError(
+                    name='host',
+                    error=_('A host must always be allowed to manage '
+                            'its services')
+                )
+        return dn
+
 
 @register()
 class service_allow_retrieve_keytab(LDAPAddMember):
