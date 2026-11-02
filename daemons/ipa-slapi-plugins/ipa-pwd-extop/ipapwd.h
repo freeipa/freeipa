@@ -121,6 +121,8 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
 int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
                       struct ipapwd_krbcfg **config, int check_flags);
 int ipapwd_CheckPolicy(struct ipapwd_data *data);
+int ipapwd_getPolicy(const char *dn, Slapi_Entry *target,
+                     struct ipapwd_policy *policy);
 int ipapwd_getEntry(Slapi_DN *sdn, Slapi_Entry **e2, char **attrlist);
 int ipapwd_get_cur_kvno(Slapi_Entry *target);
 int ipapwd_setdate(Slapi_Entry *source, Slapi_Mods *smods, const char *attr,
