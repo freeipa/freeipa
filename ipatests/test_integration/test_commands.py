@@ -557,6 +557,82 @@ class TestIPACommand(IntegrationTest):
                 master.run_command(['ipa', 'user-del', over_user],
                                    raiseonerr=False)
 
+    def test_user_mod_password_expiration_bounded_by_policy(self):
+        """user-mod setting --password-expiration without a password change.
+
+        A krbPasswordExpiration set on an existing entry without changing
+        the password must be bounded by the effective password policy,
+        like on user-add: a password must never outlive policy. The
+        ipa-pwd-extop DS plugin only enforces policy on the expiration
+        when a password change occurs, so it must also cap a lone
+        expiration modify.
+        """
+        master = self.master
+        tasks.kinit_admin(master)
+        base_dn = str(master.domain.basedn)
+
+        result = master.run_command(['ipa', 'pwpolicy-show', '--raw'])
+        match = re.search(r'krbmaxpwdlife:\s*(\d+)', result.stdout_text)
+        max_life_secs = int(match.group(1)) if match else 0
+
+        def stored_expirations(user):
+            result = tasks.ldapsearch_dm(
+                master,
+                'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                    user=user, base_dn=base_dn),
+                ['krbpasswordexpiration'],
+                scope='base')
+            values = re.findall(r'krbpasswordexpiration: (\S+)',
+                                result.stdout_text.lower())
+            return [datetime.strptime(v.strip().upper(), '%Y%m%d%H%M%SZ')
+                    for v in values]
+
+        user = 'pwdexpmod'
+        master.run_command(['ipa', 'user-add', user,
+                            '--first', user, '--last', user])
+        try:
+            # An expiration within policy must be honored verbatim.
+            if max_life_secs:
+                within_delta = timedelta(seconds=min(max_life_secs // 2,
+                                                     86400))
+            else:
+                within_delta = timedelta(days=1)
+            requested = (datetime.utcnow() + within_delta).replace(
+                microsecond=0)
+            master.run_command(['ipa', 'user-mod', user,
+                                '--password-expiration',
+                                requested.strftime('%Y%m%d%H%M%SZ')])
+            stored = stored_expirations(user)
+            assert len(stored) == 1, (
+                'krbPasswordExpiration must be single-valued, got %r' % stored)
+            assert abs((stored[0] - requested).total_seconds()) < 120, (
+                'within-policy request %s not honored, stored %s'
+                % (requested, stored[0]))
+
+            # An expiration far beyond policy must be capped (only
+            # meaningful when the policy sets a maximum lifetime).
+            if max_life_secs:
+                requested = (datetime.utcnow()
+                             + timedelta(seconds=max_life_secs)
+                             + timedelta(days=3650)).replace(microsecond=0)
+                master.run_command(['ipa', 'user-mod', user,
+                                    '--password-expiration',
+                                    requested.strftime('%Y%m%d%H%M%SZ')])
+                stored = stored_expirations(user)
+                assert len(stored) == 1, (
+                    'krbPasswordExpiration must be single-valued, got %r'
+                    % stored)
+                assert stored[0] < requested - timedelta(days=1), (
+                    'beyond-policy request was not capped, stored %s'
+                    % stored[0])
+                cap = (datetime.utcnow() + timedelta(seconds=max_life_secs)
+                       + timedelta(days=1))
+                assert stored[0] <= cap, (
+                    'stored expiration %s exceeds policy cap %s'
+                    % (stored[0], cap))
+        finally:
+            master.run_command(['ipa', 'user-del', user], raiseonerr=False)
+
     def get_krbinfo(self, user):
         base_dn = str(self.master.domain.basedn)
         result = tasks.ldapsearch_dm(
