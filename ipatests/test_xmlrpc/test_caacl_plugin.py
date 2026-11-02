@@ -8,7 +8,7 @@ Test the `ipalib.plugins.caacl` module.
 
 import pytest
 
-from ipalib import errors
+from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
 from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
@@ -190,3 +190,105 @@ class TestCAACLMembers(XMLRPC_test):
     def test_add_staged_user_to_acl(self, category_acl, staged_user):
         res = category_acl.add_user(user=staged_user.name, track=False)
         assert len(res['failed']) == 1
+
+
+@pytest.fixture(scope='class')
+def exclusive_acl(request, xmlrpc_setup):
+    name = 'exclusive-acl'
+    tracker = CAACLTracker(name)
+    return tracker.make_fixture(request)
+
+
+@pytest.mark.tier1
+class TestCAACLCategoryModExclusivity(XMLRPC_test):
+    """Category=all must fail when members exist, including --no-members."""
+
+    def test_mod_usercategory_all_with_members(self, exclusive_acl):
+        exclusive_acl.ensure_exists()
+        exclusive_acl.add_user(user='admin')
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, usercategory='all'
+                )
+            # Same test with --no-members
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, usercategory='all',
+                    no_members=True,
+                )
+        finally:
+            exclusive_acl.remove_user(user='admin')
+
+    def test_mod_hostcategory_all_with_members(self, exclusive_acl):
+        exclusive_acl.ensure_exists()
+        exclusive_acl.add_host(host=api.env.host)
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, hostcategory='all'
+                )
+            # Same test with --no-members
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, hostcategory='all',
+                    no_members=True,
+                )
+        finally:
+            exclusive_acl.remove_host(host=api.env.host)
+
+    def test_mod_servicecategory_all_with_members(self, exclusive_acl):
+        exclusive_acl.ensure_exists()
+        service = 'HTTP/{}'.format(api.env.host)
+        exclusive_acl.add_service(service=service)
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, servicecategory='all'
+                )
+            # Same test with --no-members
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, servicecategory='all',
+                    no_members=True,
+                )
+        finally:
+            exclusive_acl.remove_service(service=service)
+
+    def test_mod_profilecategory_all_with_members(
+            self, exclusive_acl, default_profile):
+        exclusive_acl.ensure_exists()
+        default_profile.ensure_exists()
+        exclusive_acl.add_profile(certprofile=default_profile.name)
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, ipacertprofilecategory='all'
+                )
+            # Same test with --no-members
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, ipacertprofilecategory='all',
+                    no_members=True,
+                )
+        finally:
+            exclusive_acl.remove_profile(certprofile=default_profile.name)
+
+    def test_mod_cacategory_all_with_members(
+            self, exclusive_acl, caacl_test_ca):
+        exclusive_acl.ensure_exists()
+        caacl_test_ca.ensure_exists()
+        exclusive_acl.add_ca(ca=caacl_test_ca.name)
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, ipacacategory='all'
+                )
+            # Same test with --no-members
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, ipacacategory='all',
+                    no_members=True,
+                )
+        finally:
+            exclusive_acl.remove_ca(ca=caacl_test_ca.name)
