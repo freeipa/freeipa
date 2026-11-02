@@ -312,7 +312,12 @@ class netgroup_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            entry_attrs = ldap.get_entry(dn, attrs_list)
+            # If the command was called with --no-members, attrs_list
+            # contains the default_attributes but not attribute_members
+            # attribute_members are needed for MutuallyExclusive checks
+            required = {'memberuser', 'memberhost'}
+            lookup_attrs = list(set(attrs_list or []) | required)
+            entry_attrs = ldap.get_entry(dn, lookup_attrs)
             dn = entry_attrs.dn
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
@@ -382,6 +387,21 @@ class netgroup_add_member(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
+        try:
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
+        except errors.NotFound:
+            raise self.obj.handle_not_found(*keys)
+
+        if ((options.get('user') or options.get('group'))
+                and is_all(entry_attrs, 'usercategory')):
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when user category='all'"))
+        if ((options.get('host') or options.get('hostgroup'))
+                and is_all(entry_attrs, 'hostcategory')):
+            raise errors.MutuallyExclusiveError(
+                reason=_("hosts cannot be added when host category='all'"))
+
         return add_external_pre_callback('host', ldap, dn, keys, options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,

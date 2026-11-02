@@ -1835,6 +1835,56 @@ class test_netgroup(Declarative):
 
 
         dict(
+            desc='Modify %r usercat=all while users exist' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(usercategory='all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="user category cannot be set to 'all' while there "
+                       "are allowed users"),
+        ),
+
+
+        dict(
+            desc='Modify %r usercat=all while users exist (no_members)'
+                 % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(usercategory='all', no_members=True)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="user category cannot be set to 'all' while there "
+                       "are allowed users"),
+        ),
+
+
+        dict(
+            desc='Modify %r hostcat=all while hosts exist' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(hostcategory='all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="host category cannot be set to 'all' while there "
+                       "are allowed hosts"),
+        ),
+
+
+        dict(
+            desc='Modify %r hostcat=all while hosts exist (no_members)'
+                 % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(hostcategory='all', no_members=True)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="host category cannot be set to 'all' while there "
+                       "are allowed hosts"),
+        ),
+
+
+        dict(
             desc='Modify %r with invalid addattr on nisDomainName' % netgroup1,
             command=(
                 'netgroup_mod', [netgroup1],
@@ -2296,6 +2346,28 @@ class test_netgroup(Declarative):
         ),
 
         dict(
+            desc='Try to add user %r to %r with usercat=all' % (
+                user1, netgroup_usercat_mod),
+            command=(
+                'netgroup_add_member', [netgroup_usercat_mod],
+                dict(user=user1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="users cannot be added when user category='all'"),
+        ),
+
+        dict(
+            desc='Try to add group %r to %r with usercat=all' % (
+                group1, netgroup_usercat_mod),
+            command=(
+                'netgroup_add_member', [netgroup_usercat_mod],
+                dict(group=group1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="users cannot be added when user category='all'"),
+        ),
+
+        dict(
             desc='Clear usercat via setattr for %r' % netgroup_usercat_mod,
             command=(
                 'netgroup_mod', [netgroup_usercat_mod],
@@ -2332,6 +2404,28 @@ class test_netgroup(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
+        ),
+
+        dict(
+            desc='Try to add host %r to %r with hostcat=all' % (
+                host1, netgroup_hostcat_mod),
+            command=(
+                'netgroup_add_member', [netgroup_hostcat_mod],
+                dict(host=host1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="hosts cannot be added when host category='all'"),
+        ),
+
+        dict(
+            desc='Try to add hostgroup %r to %r with hostcat=all' % (
+                hostgroup1, netgroup_hostcat_mod),
+            command=(
+                'netgroup_add_member', [netgroup_hostcat_mod],
+                dict(hostgroup=hostgroup1)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="hosts cannot be added when host category='all'"),
         ),
 
         dict(
