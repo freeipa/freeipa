@@ -1338,6 +1338,15 @@ class host_remove_managedby(LDAPRemoveMember):
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        for host in options.get('host', []):
+            if host.lower() == keys[-1].lower():
+                raise errors.ValidationError(
+                    name='host',
+                    error=_('A host must always be allowed to manage itself')
+                )
+        return dn
+
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
