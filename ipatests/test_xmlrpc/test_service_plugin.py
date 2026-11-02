@@ -480,6 +480,14 @@ class test_service(Declarative):
 
 
         dict(
+            desc='Remove its own host from %r' % service1,
+            command=('service_remove_host', [service1], dict(host=fqdn1)),
+            expected=errors.ValidationError(
+                name='host',
+                error='A host must always be allowed to manage its services',
+            ),
+        ),
+        dict(
             desc='Add host to %r' % service1,
             command=('service_add_host', [service1], dict(host=fqdn2)),
             expected=dict(
