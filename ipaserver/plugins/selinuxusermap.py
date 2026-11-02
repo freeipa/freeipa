@@ -390,7 +390,12 @@ class selinuxusermap_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         try:
-            _entry_attrs = ldap.get_entry(dn, attrs_list)
+            # If the command was called with --no-members, attrs_list
+            # contains the default_attributes but not attribute_members
+            # attribute_members are needed for MutuallyExclusive checks
+            required = {'memberuser', 'memberhost'}
+            lookup_attrs = list(set(attrs_list or []) | required)
+            _entry_attrs = ldap.get_entry(dn, lookup_attrs)
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
 
@@ -424,14 +429,18 @@ class selinuxusermap_mod(LDAPUpdate):
         if are_local_members_to_be_set and is_hbacrule_to_be_set:
             raise errors.MutuallyExclusiveError(reason=notboth_err)
 
+        # Check existing LDAP members (_entry_attrs) and members being set
+        # in the same command via --setattr (entry_attrs)
         if (is_all(entry_attrs, 'usercategory')
-                and 'memberuser' in entry_attrs):
+                and ('memberuser' in _entry_attrs
+                     or 'memberuser' in entry_attrs)):
             raise errors.MutuallyExclusiveError(
                 reason="user category cannot be set to 'all' while there "
                        "are allowed users"
             )
         if (is_all(entry_attrs, 'hostcategory')
-                and 'memberhost' in entry_attrs):
+                and ('memberhost' in _entry_attrs
+                     or 'memberhost' in entry_attrs)):
             raise errors.MutuallyExclusiveError(
                 reason="host category cannot be set to 'all' while there "
                        "are allowed hosts"

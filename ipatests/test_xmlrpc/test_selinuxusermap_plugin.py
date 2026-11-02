@@ -451,10 +451,66 @@ class test_selinuxusermap(Declarative):
             command=('selinuxusermap_enable', [rule1], {}),
             expected=errors.AlreadyActive(),
         ),
+        # Category=all must fail when local members exist
+        dict(
+            desc='Set usercategory=all on %r that has members' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(usercategory='all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="user category cannot be set to 'all' while there "
+                       "are allowed users"
+            ),
+        ),
+        dict(
+            desc='Set usercategory=all on %r that has members '
+                 '(no_members)' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1],
+                dict(usercategory='all', no_members=True)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="user category cannot be set to 'all' while there "
+                       "are allowed users"
+            ),
+        ),
+        dict(
+            desc='Set hostcategory=all on %r that has members' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1], dict(hostcategory='all')
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="host category cannot be set to 'all' while there "
+                       "are allowed hosts"
+            ),
+        ),
+        dict(
+            desc='Set hostcategory=all on %r that has members '
+                 '(no_members)' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1],
+                dict(hostcategory='all', no_members=True)
+            ),
+            expected=errors.MutuallyExclusiveError(
+                reason="host category cannot be set to 'all' while there "
+                       "are allowed hosts"
+            ),
+        ),
         # Point to an HBAC Rule
         dict(
             desc='Add an HBAC rule to %r that has other members' % rule1,
             command=('selinuxusermap_mod', [rule1], dict(seealso=hbacrule1)),
+            expected=errors.MutuallyExclusiveError(
+                reason='HBAC rule and local members cannot both be set'
+            ),
+        ),
+        dict(
+            desc='Add an HBAC rule to %r that has other members '
+                 '(no_members)' % rule1,
+            command=(
+                'selinuxusermap_mod', [rule1],
+                dict(seealso=hbacrule1, no_members=True)
+            ),
             expected=errors.MutuallyExclusiveError(
                 reason='HBAC rule and local members cannot both be set'
             ),
