@@ -501,6 +501,28 @@ class group_mod(LDAPUpdate):
 
         is_protected_group = keys[-1] in PROTECTED_GROUPS
 
+        # Same LastMember guard as group_remove_member, for --setattr/
+        # --addattr/--delattr (applied into entry_attrs before this callback).
+        if is_protected_group and 'member' in entry_attrs:
+            users_left = set(
+                api.Command.group_show(keys[-1])['result'].get(
+                    'member_user', []
+                )
+            )
+            user_container = DN(api.env.container_user, api.env.basedn)
+            members = entry_attrs.get('member') or []
+            if not isinstance(members, (list, tuple)):
+                members = [members]
+            users_after = {
+                m for m in members if DN(m).endswith(user_container)
+            }
+            if users_left and not users_after:
+                raise errors.LastMemberError(
+                    key=sorted(users_left)[0],
+                    label=_('group'),
+                    container=keys[-1],
+                )
+
         if 'rename' in options or 'cn' in entry_attrs:
             if is_protected_group:
                 raise errors.ProtectedEntryError(

@@ -24,7 +24,7 @@ Test the `ipaserver/plugins/group.py` module.
 
 import pytest
 
-from ipalib import errors
+from ipalib import api, errors
 from ipalib.constants import ERRMSG_GROUPUSER_NAME
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
@@ -34,7 +34,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 )
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
-from ipatests.util import assert_deepequal, get_group_dn
+from ipatests.util import (
+    assert_deepequal,
+    change_principal,
+    get_group_dn,
+    get_user_dn,
+    unlock_principal_password,
+)
 
 notagroup = 'notagroup'
 renamedgroup1 = 'renamedgroup'
@@ -744,10 +750,63 @@ class TestAdminGroup(XMLRPC_test):
                 key='admin', label='group', container=admins.cn)):
             command()
 
+    def test_remove_admin_from_admins_using_delattr(self, admins):
+        """Remove last admin via group-mod --delattr must raise LastMemberError
+
+        group_remove_member already blocks this; group_mod --delattr must too.
+        """
+        command = admins.make_command(
+            'group_mod',
+            *[admins.cn],
+            **dict(delattr='member=%s' % get_user_dn('admin')),
+        )
+        with raises_exact(errors.LastMemberError(
+                key='admin', label='group', container=admins.cn)):
+            command()
+
+    def test_empty_admins_users_using_setattr(self, admins):
+        """group-mod --setattr with no user members raises LastMemberError
+
+        Replacing member with a group-only DN leaves zero user members.
+        """
+        command = admins.make_command(
+            'group_mod',
+            *[admins.cn],
+            **dict(setattr='member=%s' % get_group_dn('ipausers')),
+        )
+        with raises_exact(errors.LastMemberError(
+                key='admin', label='group', container=admins.cn)):
+            command()
+
     def test_add_another_admin(self, admins, user):
         """ Add second member to the admins group """
         user.ensure_exists()
         admins.add_member(dict(user=user.uid))
+
+    def test_replace_admin_with_user_using_setattr(self, admins, user):
+        """group-mod --setattr may replace admin when another user remains
+
+        LastMember only requires at least one user member, so replacing
+        admin with another user must succeed. Restore admin afterward as
+        that surviving user so the XML-RPC suite stays privileged.
+        """
+        user.ensure_exists()
+        oldpw, newpw = 'Secret1234', 'Secret123'
+        user.make_update_command({'userpassword': oldpw})()
+        unlock_principal_password(user.uid, oldpw, newpw)
+
+        command = admins.make_command(
+            'group_mod',
+            *[admins.cn],
+            **dict(setattr='member=%s' % get_user_dn(user.uid)),
+        )
+        command()
+
+        # Session principal is no longer in admins; restore as the new admin.
+        with change_principal(user.uid, newpw):
+            api.Command.group_add_member(admins.cn, user='admin')
+
+        admins.attrs['member_user'] = [user.uid, 'admin']
 
     def test_remove_all_admins_from_admins(self, admins, user):
         """ Try to remove both original and our admin from admins group """
