@@ -26,7 +26,8 @@ Test the `ipalib.plugins.hostgroup` module.
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.hostgroup_plugin import HostGroupTracker
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
-from ipalib import errors
+from ipalib import api, errors
+from ipapython.dn import DN
 import pytest
 
 renamedhostgroup1 = u'renamedhostgroup1'
@@ -147,6 +148,21 @@ class TestHostGroup(XMLRPC_test):
         reason = u'privileged hostgroup'
         with raises_exact(errors.ProtectedEntryError(label=u'hostgroup',
                           key=ipaservers.cn, reason=reason)):
+            command()
+
+    def test_remove_last_host_from_ipaservers_using_delattr(self, ipaservers):
+        """hostgroup-mod --delattr must not drop the last ipaservers host"""
+        master_dn = DN(
+            ('fqdn', api.env.host), api.env.container_host, api.env.basedn
+        )
+        command = ipaservers.make_command(
+            'hostgroup_mod',
+            *[ipaservers.cn],
+            **dict(delattr='member=%s' % master_dn),
+        )
+        with raises_exact(errors.LastMemberError(
+                key=api.env.host, label='hostgroup',
+                container=ipaservers.cn)):
             command()
 
     def test_create_host_add_to_hostgroup(self, hostgroup, host):

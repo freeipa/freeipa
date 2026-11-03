@@ -280,6 +280,26 @@ class hostgroup_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
                      *keys, **options):
         assert isinstance(dn, DN)
+        # Same LastMember guard as hostgroup_remove_member, for attr options.
+        if keys[0] in PROTECTED_HOSTGROUPS and 'member' in entry_attrs:
+            hosts_left = set(
+                api.Command.hostgroup_show(keys[0])['result'].get(
+                    'member_host', []
+                )
+            )
+            host_container = DN(api.env.container_host, api.env.basedn)
+            members = entry_attrs.get('member') or []
+            if not isinstance(members, (list, tuple)):
+                members = [members]
+            hosts_after = {
+                m for m in members if DN(m).endswith(host_container)
+            }
+            if hosts_left and not hosts_after:
+                raise errors.LastMemberError(
+                    key=sorted(hosts_left)[0],
+                    label=_('hostgroup'),
+                    container=keys[0],
+                )
         if keys[0] in PROTECTED_HOSTGROUPS and 'rename' in options:
             raise errors.ProtectedEntryError(label=_(u'hostgroup'),
                                              key=keys[0],
