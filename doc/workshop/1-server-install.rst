@@ -87,7 +87,7 @@ forget during the workshop!
   This user is referred to as the Directory Manager and has full access
   to the Directory for system management tasks and will be added to the
   instance of directory server created for IPA.
-  The password must be at least 8 characters long.
+  The password must be at least 8 and at most 63 characters long.
 
   Directory Manager password:
   Password (confirm):

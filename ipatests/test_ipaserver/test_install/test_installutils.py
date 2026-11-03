@@ -20,6 +20,7 @@ from ipapython.admintool import ScriptError
 from ipaserver.install import installutils
 from ipaserver.install import ipa_backup
 from ipaserver.install import ipa_restore
+from ipaserver.install.server.install import validate_dm_password
 
 
 GPG_GENKEY = textwrap.dedent("""
@@ -353,3 +354,15 @@ def test_bare_ram_ok(mock_psutil, mock_in_container):
     mock_psutil.return_value = fake_memory
 
     installutils.check_available_memory(True)
+
+
+@pytest.mark.parametrize(("length", "valid"), [(7, False), (8, True),
+                                               (63, True), (64, False)])
+def test_validate_dm_password_length(length, valid):
+    """DM password length bounds: PKCS#12 files break beyond 63 chars"""
+    password = "a" * length
+    if valid:
+        validate_dm_password(password)
+    else:
+        with pytest.raises(ValueError):
+            validate_dm_password(password)
