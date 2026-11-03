@@ -975,6 +975,19 @@ class host_mod(LDAPUpdate):
         # Once a principal name is set it cannot be changed
         if 'cn' in entry_attrs:
             raise errors.ACIError(info=_('cn is immutable'))
+
+        # setattr/addattr/delattr are applied to entry_attrs before
+        # pre_callback. Keep the host in its own managedby list.
+        if 'managedby' in entry_attrs:
+            managers = entry_attrs.get('managedby') or []
+            if not isinstance(managers, (list, tuple)):
+                managers = [managers]
+            if not any(DN(m) == dn for m in managers if m is not None):
+                raise errors.ValidationError(
+                    name='managedby',
+                    error=_('A host must always be allowed to manage itself')
+                )
+
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
         if 'krbprincipalname' in entry_attrs:

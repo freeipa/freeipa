@@ -923,6 +923,21 @@ class service_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
+        # setattr/addattr/delattr are applied to entry_attrs before
+        # pre_callback. Keep the service's own host in managedby.
+        if 'managedby' in entry_attrs:
+            principal = keys[-1]
+            host_dn = self.api.Object['host'].get_dn(principal.hostname)
+            managers = entry_attrs.get('managedby') or []
+            if not isinstance(managers, (list, tuple)):
+                managers = [managers]
+            if not any(DN(m) == host_dn for m in managers if m is not None):
+                raise errors.ValidationError(
+                    name='managedby',
+                    error=_('A host must always be allowed to manage '
+                            'its services')
+                )
+
         self.obj.validate_ipakrbauthzdata(entry_attrs)
         validate_auth_indicator(entry_attrs)
 
