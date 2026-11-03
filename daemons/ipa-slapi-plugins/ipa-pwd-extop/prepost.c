@@ -527,6 +527,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     char *userpw = NULL;
     char *unhashedpw = NULL;
     char *req_exp_str = NULL;
+    char *req_lpc_str = NULL;
     bool has_exp_op = false;
     Slapi_DN *sdn = NULL;
     Slapi_DN *tmp_sdn;
@@ -664,6 +665,35 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             default:
                 break;
             }
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                               "krbLastPwdChange")) {
+            /* Remember the last requested last-change value, if any: the
+             * expiration cap must be anchored to the password's own age,
+             * and kadmind (and this plugin's post-op) write the new
+             * krbLastPwdChange together with the new expiration in the
+             * same password-less modify, so the stored value would be
+             * stale for those. */
+            switch (lmod->mod_op & 0x0f) {
+            case LDAP_MOD_ADD:
+            case LDAP_MOD_REPLACE:
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                bv = lmod->mod_bvalues[0];
+                slapi_ch_free_string(&req_lpc_str);
+                req_lpc_str = slapi_ch_malloc(bv->bv_len + 1);
+                if (!req_lpc_str) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                memcpy(req_lpc_str, bv->bv_val, bv->bv_len);
+                req_lpc_str[bv->bv_len] = '\0';
+                break;
+            default:
+                break;
+            }
         }
         lmod = slapi_mods_get_next_mod(smods);
     }
@@ -680,7 +710,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
              * check to reject. */
             struct ipapwd_policy pol = {0};
             time_t req_exp;
-            time_t timeNow = time(NULL);
+            time_t lastchange;
+            char *stored_lpc = NULL;
             time_t policy_max;
             char timestr[GENERALIZED_TIME_LENGTH + 1];
             struct tm utctime;
@@ -706,8 +737,25 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             }
 
             req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+            /* Anchor the cap at the password's own last change, not the
+             * current time, so that an expiration-only modify cannot
+             * extend an old password past its maximum age. Prefer the
+             * incoming krbLastPwdChange when the modify sets it (kadmind
+             * and this plugin's post-op write both together), else the
+             * value stored on the entry. */
+            if (req_lpc_str != NULL) {
+                lastchange = ipapwd_gentime_to_time_t(req_lpc_str);
+            } else {
+                stored_lpc = slapi_entry_attr_get_charptr(e,
+                                                          "krbLastPwdChange");
+                lastchange = ipapwd_gentime_to_time_t(stored_lpc);
+                slapi_ch_free_string(&stored_lpc);
+            }
+            if (lastchange == 0) {
+                lastchange = time(NULL);
+            }
             policy_max = (pol.max_pwd_life > 0)
-                         ? timeNow + pol.max_pwd_life : 0;
+                         ? lastchange + pol.max_pwd_life : 0;
             if (req_exp != 0 && policy_max != 0 && req_exp > policy_max) {
                 LOG_PWDPOLICY("Capping krbPasswordExpiration for '%s' at the "
                               "password policy maximum\n",
@@ -1077,6 +1125,7 @@ done:
     slapi_ch_free_string(&userpw); /* just to be sure */
     slapi_ch_free_string(&unhashedpw); /* we copied it to pwdop  */
     slapi_ch_free_string(&req_exp_str);
+    slapi_ch_free_string(&req_lpc_str);
     if (e) slapi_entry_free(e); /* this is a copy in this function */
     if (pwdop) pwdop->pwdata.target = NULL;
 
