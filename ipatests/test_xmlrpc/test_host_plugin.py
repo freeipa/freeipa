@@ -555,6 +555,10 @@ class TestManagedHosts(XMLRPC_test):
         host2.retrieve()
 
         self.remove_itself_man_hosts(host, host2)
+        self.clear_managedby_via_setattr(host2)
+        self.replace_managedby_via_setattr(host, host2)
+        self.delattr_self_managedby(host2)
+        self.delattr_other_managedby(host, host2)
 
     def add_managed_host(self, manager, underling):
         command = manager.make_command('host_add_managedby',
@@ -610,6 +614,42 @@ class TestManagedHosts(XMLRPC_test):
                 name='host',
                 error='A host must always be allowed to manage itself')):
             command()
+
+    def clear_managedby_via_setattr(self, underling):
+        command = underling.make_update_command(
+            updates=dict(setattr='managedby='))
+        with raises_exact(errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage itself')):
+            command()
+
+    def replace_managedby_via_setattr(self, manager, underling):
+        command = underling.make_update_command(
+            updates=dict(setattr='managedby=%s' % manager.dn))
+        with raises_exact(errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage itself')):
+            command()
+
+    def delattr_self_managedby(self, underling):
+        command = underling.make_update_command(
+            updates=dict(delattr='managedby=%s' % underling.dn))
+        with raises_exact(errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage itself')):
+            command()
+
+    def delattr_other_managedby(self, manager, underling):
+        self.add_managed_host(manager, underling)
+        command = underling.make_update_command(
+            updates=dict(delattr='managedby=%s' % manager.dn))
+        result = command()
+        underling.attrs['managedby_host'] = [underling.fqdn]
+        assert_deepequal(dict(
+            value=underling.fqdn,
+            summary='Modified host "%s"' % underling.fqdn,
+            result=underling.filter_attrs(underling.update_keys),
+        ), result)
 
 
 @pytest.mark.tier1

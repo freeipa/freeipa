@@ -480,7 +480,63 @@ class test_service(Declarative):
             ),
         ),
         dict(
+            desc='Clear managedby of %r via setattr' % service1,
+            command=('service_mod', [service1],
+                     dict(setattr='managedby=')),
+            expected=errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage its services',
+            ),
+        ),
+        dict(
+            desc='Replace managedby of %r via setattr dropping self' % (
+                service1),
+            command=('service_mod', [service1],
+                     dict(setattr='managedby=%s' % host2dn)),
+            expected=errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage its services',
+            ),
+        ),
+        dict(
+            desc='Delattr self managedby from %r' % service1,
+            command=('service_mod', [service1],
+                     dict(delattr='managedby=%s' % host1dn)),
+            expected=errors.ValidationError(
+                name='managedby',
+                error='A host must always be allowed to manage its services',
+            ),
+        ),
+        dict(
             desc='Add host to %r' % service1,
+            command=('service_add_host', [service1], dict(host=fqdn2)),
+            expected=dict(
+                failed=dict(managedby=dict(host=[])),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    krbcanonicalname=[service1],
+                    managedby_host=[fqdn1, fqdn2],
+                ),
+            ),
+        ),
+        dict(
+            desc='Delattr other managedby from %r via setattr' % service1,
+            command=('service_mod', [service1],
+                     dict(delattr='managedby=%s' % host2dn)),
+            expected=dict(
+                result=dict(
+                    krbprincipalname=[service1],
+                    krbcanonicalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+                summary='Modified service "%s"' % service1,
+                value=service1,
+            ),
+        ),
+        dict(
+            desc='Add host to %r again' % service1,
             command=('service_add_host', [service1], dict(host=fqdn2)),
             expected=dict(
                 failed=dict(managedby=dict(host=[])),
