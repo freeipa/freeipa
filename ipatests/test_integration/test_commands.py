@@ -630,6 +630,90 @@ class TestIPACommand(IntegrationTest):
                 assert stored[0] <= cap, (
                     'stored expiration %s exceeds policy cap %s'
                     % (stored[0], cap))
+
+            # The cap must be anchored at the password's own
+            # krbLastPwdChange, not the current time: an old password
+            # must not be extendable past lastchange + krbMaxPwdLife by
+            # an expiration-only modify. Age the password by writing a
+            # lastchange far in the past directly (no password change,
+            # so no expiration rewrite happens), then request a far
+            # future expiration and check the stored value.
+            if max_life_secs:
+                aged_user = 'pwdexpaged'
+                master.run_command(['ipa', 'user-add', aged_user,
+                                    '--first', aged_user, '--last',
+                                    aged_user])
+                try:
+                    old_lastchange = (
+                        datetime.utcnow() - timedelta(days=180)
+                    ).replace(microsecond=0)
+                    user_dn = ('uid={user},cn=users,cn=accounts,{base_dn}'
+                               .format(user=aged_user, base_dn=base_dn))
+                    ldif = textwrap.dedent("""
+                        dn: {dn}
+                        changetype: modify
+                        replace: krbLastPwdChange
+                        krbLastPwdChange: {lpc}
+                        """).format(dn=user_dn,
+                                    lpc=old_lastchange.strftime(
+                                        '%Y%m%d%H%M%SZ'))
+                    tasks.ldapmodify_dm(master, ldif)
+
+                    requested = (datetime.utcnow()
+                                 + timedelta(days=3650)).replace(
+                                     microsecond=0)
+                    master.run_command(
+                        ['ipa', 'user-mod', aged_user,
+                         '--password-expiration',
+                         requested.strftime('%Y%m%d%H%M%SZ')])
+                    stored = stored_expirations(aged_user)
+                    assert len(stored) == 1, (
+                        'krbPasswordExpiration must be single-valued, '
+                        'got %r' % stored)
+                    cap = old_lastchange + timedelta(seconds=max_life_secs)
+                    # allow only for the time the operations took
+                    assert stored[0] <= cap, (
+                        'stored expiration %s exceeds the lastchange-based '
+                        'cap %s: the cap was anchored at the current time'
+                        % (stored[0], cap))
+                finally:
+                    master.run_command(['ipa', 'user-del', aged_user],
+                                       raiseonerr=False)
+
+            # A schema-valid GeneralizedTime with a timezone offset must
+            # be compared as the correct UTC instant, not bypass the cap.
+            if max_life_secs:
+                offset_user = 'pwdexpoffset'
+                master.run_command(['ipa', 'user-add', offset_user,
+                                    '--first', offset_user, '--last',
+                                    offset_user])
+                try:
+                    user_dn = ('uid={user},cn=users,cn=accounts,{base_dn}'
+                               .format(user=offset_user, base_dn=base_dn))
+                    # 3650 days ahead, expressed with a +0100 offset
+                    requested = (datetime.utcnow()
+                                 + timedelta(days=3650)).replace(
+                                     microsecond=0)
+                    offset_time = (requested
+                                   + timedelta(hours=1)).strftime(
+                                       '%Y%m%d%H%M%S+0100')
+                    ldif = textwrap.dedent("""
+                        dn: {dn}
+                        changetype: modify
+                        replace: krbPasswordExpiration
+                        krbPasswordExpiration: {exp}
+                        """).format(dn=user_dn, exp=offset_time)
+                    tasks.ldapmodify_dm(master, ldif)
+                    stored = stored_expirations(offset_user)
+                    assert len(stored) == 1, (
+                        'krbPasswordExpiration must be single-valued, '
+                        'got %r' % stored)
+                    assert stored[0] < requested - timedelta(days=1), (
+                        'offset-form expiration %s bypassed the policy cap,'
+                        ' stored %s' % (offset_time, stored[0]))
+                finally:
+                    master.run_command(['ipa', 'user-del', offset_user],
+                                       raiseonerr=False)
         finally:
             master.run_command(['ipa', 'user-del', user], raiseonerr=False)
 
