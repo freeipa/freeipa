@@ -61,6 +61,10 @@ SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 def validate_dm_password(password):
     if len(password) < 8:
         raise ValueError("Password must be at least 8 characters long")
+    # dogtag (JSS) cannot write PKCS#12 files IPA is able to read back
+    # beyond this length. See https://codeberg.org/freeipa/freeipa/issues/9827
+    if len(password) > 63:
+        raise ValueError("Password must be at most 63 characters long")
     if any(ord(c) < 0x20 for c in password):
         raise ValueError("Password must not contain control characters")
     if any(ord(c) >= 0x7F for c in password):
@@ -239,7 +243,7 @@ def read_dm_password():
     print("to the Directory for system management tasks and will be added to "
           "the")
     print("instance of directory server created for IPA.")
-    print("The password must be at least 8 characters long.")
+    print("The password must be at least 8 and at most 63 characters long.")
     print("")
     # TODO: provide the option of generating a random password
     dm_password = read_password("Directory Manager",

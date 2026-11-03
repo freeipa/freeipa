@@ -28,6 +28,8 @@ The primary DNS domain name cannot be changed after the installation.
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
 The password to be used by the Directory Server for the Directory Manager user.
+It must be at most 63 characters long; longer passwords break the embedded
+certificate authority installation.
 .TP
 \fB\-a\fR \fIADMIN_PASSWORD\fR, \fB\-\-admin\-password\fR=\fIADMIN_PASSWORD\fR
 The password for the IPA admin user.
