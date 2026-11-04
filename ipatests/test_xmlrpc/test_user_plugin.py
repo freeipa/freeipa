@@ -1084,6 +1084,16 @@ class TestAdmins(XMLRPC_test):
                           key=admin1, reason='privileged user')):
             command()
 
+    def test_rename_admin_setattr(self):
+        """ Try to rename the admin user via --setattr uid= """
+        tracker = Tracker()
+        command = tracker.make_command(
+            'user_mod', admin1, **dict(setattr='uid=newadmin'))
+
+        with raises_exact(errors.ProtectedEntryError(label='user',
+                          key=admin1, reason='privileged user')):
+            command()
+
     def test_disable_original_admin(self):
         """ Try to disable the original admin """
         tracker = Tracker()

@@ -921,7 +921,9 @@ class user_mod(baseuser_mod):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn, oc = self.obj.get_either_dn(*keys, **options)
-        if options.get('rename') and keys[-1] in PROTECTED_USERS:
+        # --setattr uid= also renames; check entry_attrs like group_mod
+        if ((options.get('rename') or 'uid' in entry_attrs)
+                and keys[-1] in PROTECTED_USERS):
             raise errors.ProtectedEntryError(
                 label=_("user"),
                 key=keys[-1],

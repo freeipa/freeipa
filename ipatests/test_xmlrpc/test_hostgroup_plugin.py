@@ -150,6 +150,16 @@ class TestHostGroup(XMLRPC_test):
                           key=ipaservers.cn, reason=reason)):
             command()
 
+    def test_rename_ipaservers_setattr(self, ipaservers):
+        """ Try to rename ipaservers via --setattr cn= """
+        command = ipaservers.make_command(
+            'hostgroup_mod', *[ipaservers.cn],
+            **dict(setattr='cn=%s' % renamedhostgroup1))
+        reason = 'privileged hostgroup'
+        with raises_exact(errors.ProtectedEntryError(label='hostgroup',
+                          key=ipaservers.cn, reason=reason)):
+            command()
+
     def test_remove_last_host_from_ipaservers_using_delattr(self, ipaservers):
         """hostgroup-mod --delattr must not drop the last ipaservers host"""
         master_dn = DN(
