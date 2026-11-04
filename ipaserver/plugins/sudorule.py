@@ -470,7 +470,9 @@ class sudorule_mod(LDAPUpdate):
             any_member_attrs_set = any(attr in _entry_attrs
                                        for attr in member_attrs)
 
-            if is_all(options, category) and any_member_attrs_set:
+            # --setattr puts category values in entry_attrs, not options
+            if ((is_all(options, category) or is_all(entry_attrs, category))
+                    and any_member_attrs_set):
                 raise errors.MutuallyExclusiveError(reason=error)
 
         return dn

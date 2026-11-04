@@ -388,6 +388,11 @@ class test_hbac(XMLRPC_test):
                     self.rule_name, usercategory='all',
                     no_members=True,
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, setattr='usercategory=all'
+                )
         finally:
             api.Command['hbacrule_remove_user'](self.rule_name, user=u'admin')
 
@@ -419,6 +424,11 @@ class test_hbac(XMLRPC_test):
                 api.Command['hbacrule_mod'](
                     self.rule_name, hostcategory='all',
                     no_members=True,
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, setattr='hostcategory=all'
                 )
         finally:
             api.Command['hbacrule_remove_host'](
@@ -455,6 +465,11 @@ class test_hbac(XMLRPC_test):
                 api.Command['hbacrule_mod'](
                     self.rule_name, servicecategory='all',
                     no_members=True,
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, setattr='servicecategory=all'
                 )
         finally:
             api.Command['hbacrule_remove_service'](
