@@ -22,6 +22,7 @@ import dbus
 import dbus.mainloop.glib
 import logging
 
+import ipaserver
 
 from ipalib.messages import (
     add_message,
@@ -71,6 +72,7 @@ try:
 except Exception as e:
     _nss_idmap_installed = False
 
+_bindings_installed = False
 if api.env.in_server:
     try:
         import ipaserver.dcerpc
