@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 import pytest
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from ipalib.constants import IPAAPI_USER
 from ipaplatform.paths import paths
@@ -27,8 +27,19 @@ USER2 = "testuser2"
 MAXLIFE = 86400
 LANG_PKG = ["langpacks-en"]
 PAST_EXPIRATION = "20200101000000Z"
-# Must stay before 2038 until MIT krb5 moves krb5_timestamp to 64-bit.
-FUTURE_EXPIRATION = "20370101000000Z"
+
+
+def future_expiration_within_policy(days=45):
+    """Return a future krbPasswordExpiration within the policy maximum.
+
+       The ipa-pwd-extop plugin rejects an expiration-only modify beyond
+       krbLastPwdChange + krbMaxPwdLife (90 days by default), so a fixed
+       far-future date no longer works. Any date before now + maxlife is
+       also after krbLastPwdChange + maxlife's lower bound of now; 45 days
+       leaves ample margin for a long-running class.
+    """
+    dt = datetime.utcnow() + timedelta(days=days)
+    return dt.strftime('%Y%m%d%H%M%SZ')
 
 def maxlife_within_policy(input, maxlife, slush=3600):
     """Given klist output of the TGT verify that it is within policy
@@ -352,11 +363,11 @@ class TestPWPolicy(IntegrationTest):
         tasks.clear_sssd_cache(self.master)
 
     def unexpire_user_password(self, user):
-        """Set password expiration to the far future."""
+        """Set password expiration to a future date within policy."""
         tasks.kinit_admin(self.master)
         self.master.run_command([
             "ipa", "user-mod", user,
-            "--password-expiration", FUTURE_EXPIRATION,
+            "--password-expiration", future_expiration_within_policy(),
         ])
         tasks.clear_sssd_cache(self.master)
 
