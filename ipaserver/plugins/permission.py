@@ -1182,12 +1182,30 @@ class permission_mod(baseldap.LDAPUpdate):
                     raise errors.ValidationError(
                         name=option_name,
                         error=_('not modifiable on managed permissions'))
+            # --setattr/--addattr/--delattr put values in entry, not options
+            if 'cn' in entry:
+                raise errors.ValidationError(
+                    name='rename',
+                    error=_('cannot rename managed permissions'))
+            for attr_name in sorted(entry):
+                # self.options is a NameSpace (no .get())
+                if attr_name not in self.options:
+                    continue
+                option = self.options[attr_name]
+                if not option.attribute:
+                    continue
+                allow_mod = 'allow_mod_for_managed_permission' in option.flags
+                if not allow_mod:
+                    raise errors.ValidationError(
+                        name=attr_name,
+                        error=_('not modifiable on managed permissions'))
             if context.filter_ops.get('add'):
                 raise errors.ValidationError(
                     name='ipapermtargetfilter',
                     error=_('not modifiable on managed permissions'))
         else:
-            if options.get('ipapermexcludedattr'):
+            if (options.get('ipapermexcludedattr')
+                    or 'ipapermexcludedattr' in entry):
                 # prevent setting excluded attributes on normal permissions
                 # (but do allow deleting them all)
                 raise errors.ValidationError(
@@ -1207,7 +1225,10 @@ class permission_mod(baseldap.LDAPUpdate):
             entry['ipapermexcludedattr'] = list(defaults - attrs)
 
         # Check setting bindtype for an assigned permission
-        if options.get('ipapermbindruletype') and old_entry.get('member'):
+        # --setattr puts bindtype in entry, not options
+        if ((options.get('ipapermbindruletype')
+                or 'ipapermbindruletype' in entry)
+                and old_entry.get('member')):
             raise errors.ValidationError(
                 name='ipapermbindruletype',
                 error=_('cannot set bindtype for a permission that is '
