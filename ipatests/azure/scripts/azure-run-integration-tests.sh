@@ -9,6 +9,8 @@ rm -rf "$IPA_TESTS_LOGSDIR"
 mkdir "$IPA_TESTS_LOGSDIR"
 pushd "$IPA_TESTS_LOGSDIR"
 
+/root/main
+
 tests_result=1
 { IPATEST_YAML_CONFIG=~/.ipa/ipa-test-config.yaml \
     ipa-run-tests \
