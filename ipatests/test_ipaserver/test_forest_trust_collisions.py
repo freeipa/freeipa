@@ -141,6 +141,19 @@ class TestBuildForestTrustInfoBlob:
                 == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
 
 
+def test_fetch_domains_extracts_remote_exclusions(monkeypatch):
+    entry = SimpleNamespace(
+        flags=0, time=123, type=lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX,
+        forest_trust_data=SimpleNamespace(string='excluded.test'))
+    domain = SimpleNamespace(ftinfo_data=SimpleNamespace(entries=[entry]))
+    monkeypatch.setattr(dcerpc, 'discover_trust_instance',
+                        lambda *args, **kwargs: nullcontext(domain))
+    result = dcerpc.fetch_domains(None, 'ipa.test', 'ad.test')
+    assert result['exclusions'] == ['excluded.test']
+    info = ndr_unpack(drsblobs.ForestTrustInfo, result['ftinfo_data'])
+    assert info.records[0].record.data.string == 'excluded.test'
+
+
 def test_corrupt_existing_blob_is_not_replaced():
     with pytest.raises(RuntimeError):
         build_forest_trust_info_blob('a.test', [], [], b'invalid')

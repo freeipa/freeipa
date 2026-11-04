@@ -1728,7 +1728,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         if domains is None:
             return None
 
-    result = {'domains': {}, 'suffixes': {}}
+    result = {'domains': {}, 'suffixes': {}, 'exclusions': []}
     # netr_DsRGetForestTrustInformation returns two types of entries:
     # domain information  -- name, NetBIOS name, SID of the domain
     # top level name info -- a name suffix associated with the forest
@@ -1768,6 +1768,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             result['suffixes'][tname] = {'cn': tname}
         elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX:
             record.data.string = t.forest_trust_data.string
+            result['exclusions'].append(t.forest_trust_data.string)
 
         rc = drsblobs.ForestTrustInfoRecordArmor()
         rc.record = record

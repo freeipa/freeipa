@@ -1862,9 +1862,19 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry,
         tlns = entry.get('ipantadditionalsuffixes', [])
         tlns.extend(x for x in suffixes if x not in tlns)
         entry['ipantadditionalsuffixes'] = tlns
+        exclusions = list(entry.get('ipanttrusttlnexclusions', []))
+        exclusion_names = {name.lower() for name in exclusions}
+        for name in domains.get('exclusions', []):
+            if name.lower() not in exclusion_names:
+                exclusions.append(name)
+                exclusion_names.add(name.lower())
+        if exclusions:
+            entry['ipanttrusttlnexclusions'] = exclusions
         ftidata = domains.get('ftinfo_data', None)
         if ftidata is not None:
-            entry['ipanttrustforesttrustinfo'] = [ftidata]
+            entry['ipanttrustforesttrustinfo'] = [
+                ipaserver.dcerpc.build_forest_trust_info_blob(
+                    trust_name, tlns, exclusions, ftidata)]
         ldap.update_entry(entry)
     except errors.EmptyModlist:
         pass

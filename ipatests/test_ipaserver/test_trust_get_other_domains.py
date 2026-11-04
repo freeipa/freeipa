@@ -229,3 +229,32 @@ class TestTrustModCollisionValidation:
         assert (domain.flags, domain.timestamp, str(domain.data.sid),
                 domain.data.dns_name.string, domain.data.netbios_name.string
                 ) == (2, 123, 'S-1-5-21-1-2-3', 'child.a.test', 'CHILD')
+
+
+def test_refresh_preserves_local_exclusions_and_remote_records(monkeypatch):
+    monkeypatch.setattr(trust_plugin_module, 'ipaserver', ipaserver,
+                        raising=False)
+    api = mock.MagicMock()
+    api.Command.idrange_show.return_value = {
+        'result': {'iparangetype': ['ipa-ad-trust-posix']}}
+    entry = {
+        'ipantadditionalsuffixes': ['local.test'],
+        'ipanttrusttlnexclusions': ['excluded.test'],
+    }
+    api.Backend.ldap2.get_entry.return_value = entry
+    domains = {
+        'suffixes': {}, 'domains': {}, 'ftinfo_data': forest_blob(),
+        'exclusions': ['EXCLUDED.test', 'remote.test'],
+    }
+    trust_plugin_module.add_new_domains_from_trust(
+        api, None, {'cn': ['a.test'], 'ipanttrustattributes': ['1']},
+        domains)
+    result = records(entry['ipanttrustforesttrustinfo'][0])
+    assert any(r.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO
+               and r.data.netbios_name.string == 'CHILD' for r in result)
+    assert any(r.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+               and r.data.string == 'excluded.test' for r in result)
+    assert entry['ipanttrusttlnexclusions'] == [
+        'excluded.test', 'remote.test']
+    assert any(r.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+               and r.data.string == 'remote.test' for r in result)
