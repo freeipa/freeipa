@@ -1189,7 +1189,11 @@ class trust_mod(LDAPUpdate):
         new_suffixes = e_attrs.get('ipantadditionalsuffixes') or []
         new_exclusions = e_attrs.get('ipanttrusttlnexclusions') or []
 
-        if _bindings_installed and (suffixes_changed or exclusions_changed):
+        if suffixes_changed or exclusions_changed:
+            if not _bindings_installed:
+                raise errors.NotFound(
+                    reason=_('Samba support is required to modify trust '
+                             'namespace information'))
             try:
                 current = ldap.get_entry(
                     dn,

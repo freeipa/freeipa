@@ -220,6 +220,14 @@ class TestTrustModCollisionValidation:
         assert not any(r.type == kind and r.data.string == 'old.test'
                        for r in remaining)
 
+    def test_namespace_update_requires_samba(self, monkeypatch):
+        monkeypatch.setattr(trust_plugin_module, '_bindings_installed', False)
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        cmd, ldap = self._make_trust_mod([], {})
+        with pytest.raises(errors.NotFound):
+            cmd.pre_callback(
+                ldap, dn, {'ipanttrusttlnexclusions': ['excluded.test']}, [])
+
     def test_mod_preserves_domain_records_and_updates_exclusions(self):
         dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
         existing = ipaserver.dcerpc.build_forest_trust_info_blob(
