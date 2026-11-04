@@ -88,6 +88,7 @@ bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-
 #define LDAP_ATTRIBUTE_TRUST_AUTH_INCOMING "ipaNTTrustAuthIncoming"
 #define LDAP_ATTRIBUTE_SECURITY_IDENTIFIER "ipaNTSecurityIdentifier"
 #define LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO "ipaNTTrustForestTrustInfo"
+#define LDAP_ATTRIBUTE_TRUST_TLN_EXCLUSIONS "ipaNTTrustTLNExclusions"
 #define LDAP_ATTRIBUTE_FALLBACK_PRIMARY_GROUP "ipaNTFallbackPrimaryGroup"
 #define LDAP_ATTRIBUTE_OBJECTCLASS "objectClass"
 #define LDAP_ATTRIBUTE_HOME_DRIVE "ipaNTHomeDirectoryDrive"
@@ -2404,6 +2405,42 @@ static bool repack_pdb_forest_trust_info(struct pdb_trusted_domain *td)
 	return NDR_ERR_CODE_IS_SUCCESS(ndr_err);
 }
 
+static void set_tln_exclusion_mods(LDAPMod ***mods,
+				   const struct ForestTrustInfo *fti,
+				   bool is_new)
+{
+	uint32_t i, j;
+	bool found = false;
+
+	for (i = 0; i < fti->count; i++) {
+		const struct ForestTrustInfoRecord *rec = &fti->records[i].record;
+
+		if (rec->type != FOREST_TRUST_TOP_LEVEL_NAME_EX) {
+			continue;
+		}
+		found = true;
+		for (j = 0; j < i; j++) {
+			const struct ForestTrustInfoRecord *prev =
+				&fti->records[j].record;
+			if (prev->type == FOREST_TRUST_TOP_LEVEL_NAME_EX &&
+			    strcasecmp_m(prev->data.name.string,
+					 rec->data.name.string) == 0) {
+				break;
+			}
+		}
+		if (j == i) {
+			smbldap_set_mod(mods,
+					is_new ? LDAP_MOD_ADD : LDAP_MOD_REPLACE,
+					LDAP_ATTRIBUTE_TRUST_TLN_EXCLUSIONS,
+					rec->data.name.string);
+		}
+	}
+	if (!is_new && !found) {
+		smbldap_set_mod(mods, LDAP_MOD_REPLACE,
+				LDAP_ATTRIBUTE_TRUST_TLN_EXCLUSIONS, NULL);
+	}
+}
+
 static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 				    struct ipasam_private *ipasam_state,
 				    LDAPMessage *entry,
@@ -2768,12 +2805,29 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	char **in_blacklist = NULL;
 	char **out_blacklist = NULL;
 	uint32_t enctypes, trust_offset;
+	struct ForestTrustInfo *fti = NULL;
+	enum ndr_err_code ndr_err;
 
 	DEBUG(10, ("ipasam_set_trusted_domain called for domain %s\n", domain));
 
 	tmp_ctx = talloc_new(NULL);
 	if (tmp_ctx == NULL) {
 		return NT_STATUS_NO_MEMORY;
+	}
+
+	if (td->trust_forest_trust_info.data != NULL) {
+		fti = talloc(tmp_ctx, struct ForestTrustInfo);
+		if (fti == NULL) {
+			status = NT_STATUS_NO_MEMORY;
+			goto done;
+		}
+		ndr_err = ndr_pull_struct_blob_all(
+			&td->trust_forest_trust_info, fti, fti,
+			(ndr_pull_flags_fn_t)ndr_pull_ForestTrustInfo);
+		if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+			status = NT_STATUS_INVALID_PARAMETER;
+			goto done;
+		}
 	}
 
 	res = get_trusted_domain_by_name_int(ipasam_state, tmp_ctx, domain,
@@ -2911,6 +2965,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		smbldap_make_mod_blob(priv2ld(ipasam_state), entry, &mods,
 				      LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO,
 				      &td->trust_forest_trust_info);
+		set_tln_exclusion_mods(&mods, fti, entry == NULL);
 	}
 
 
