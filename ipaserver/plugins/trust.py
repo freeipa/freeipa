@@ -1193,7 +1193,8 @@ class trust_mod(LDAPUpdate):
             try:
                 current = ldap.get_entry(
                     dn,
-                    ['ipantadditionalsuffixes', 'ipanttrusttlnexclusions'])
+                    ['ipantadditionalsuffixes', 'ipanttrusttlnexclusions',
+                     'ipanttrustforesttrustinfo'])
             except errors.NotFound:
                 current = {}
 
@@ -1245,7 +1246,9 @@ class trust_mod(LDAPUpdate):
             if namespace_data_changed:
                 e_attrs['ipanttrustforesttrustinfo'] = [
                     ipaserver.dcerpc.build_forest_trust_info_blob(
-                        domain_name, suffixes, exclusions)]
+                        domain_name, suffixes, exclusions,
+                        (current.get('ipanttrustforesttrustinfo') or [None])[0],
+                        current_suffixes, current_exclusions)]
 
         return dn
 

@@ -10,6 +10,30 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.plugins.trust import trust as trust_object
 from ipaserver.plugins.trust import trust_mod as trust_mod_class
+from samba.dcerpc import drsblobs, lsa, security
+from samba.ndr import ndr_pack, ndr_unpack
+
+
+def forest_blob():
+    info = drsblobs.ForestTrustInfo()
+    info.version = 1
+    record = drsblobs.ForestTrustInfoRecord()
+    record.type = lsa.LSA_FOREST_TRUST_DOMAIN_INFO
+    record.flags = 2
+    record.timestamp = 123
+    record.data.sid = security.dom_sid('S-1-5-21-1-2-3')
+    record.data.dns_name.string = 'child.a.test'
+    record.data.netbios_name.string = 'CHILD'
+    armor = drsblobs.ForestTrustInfoRecordArmor()
+    armor.record = record
+    info.records = [armor]
+    info.count = 1
+    return ndr_pack(info)
+
+
+def records(blob):
+    return [armor.record for armor in
+            ndr_unpack(drsblobs.ForestTrustInfo, blob).records]
 
 
 class FakeEntry(dict):
@@ -174,3 +198,34 @@ class TestTrustModCollisionValidation:
 
         assert result_dn is dn
         assert 'ipanttrustforesttrustinfo' in e_attrs
+
+    def test_mod_preserves_domain_records_and_updates_exclusions(self):
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        existing = ipaserver.dcerpc.build_forest_trust_info_blob(
+            'a.test', ['old.test'], ['old-excluded.test'])
+        info = ndr_unpack(drsblobs.ForestTrustInfo, existing)
+        original_records = list(info.records) + list(
+            ndr_unpack(drsblobs.ForestTrustInfo, forest_blob()).records)
+        info.count = len(original_records)
+        info.records = original_records
+        current = {
+            'ipantadditionalsuffixes': ['old.test'],
+            'ipanttrusttlnexclusions': ['old-excluded.test'],
+            'ipanttrustforesttrustinfo': [ndr_pack(info)],
+        }
+        cmd, ldap = self._make_trust_mod([], current)
+        attrs = {'ipantadditionalsuffixes': ['new.test'],
+                 'ipanttrusttlnexclusions': ['new-excluded.test']}
+        cmd.pre_callback(ldap, dn, attrs, [])
+        result = records(attrs['ipanttrustforesttrustinfo'][0])
+        assert [(r.type, r.data.string) for r in result
+                if r.type != lsa.LSA_FOREST_TRUST_DOMAIN_INFO] == [
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'a.test'),
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'new.test'),
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX, 'new-excluded.test'),
+        ]
+        domain = next(r for r in result
+                      if r.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO)
+        assert (domain.flags, domain.timestamp, str(domain.data.sid),
+                domain.data.dns_name.string, domain.data.netbios_name.string
+                ) == (2, 123, 'S-1-5-21-1-2-3', 'child.a.test', 'CHILD')
