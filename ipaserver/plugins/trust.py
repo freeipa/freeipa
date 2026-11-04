@@ -1184,10 +1184,10 @@ class trust_mod(LDAPUpdate):
 
         self.obj.validate_sid_blocklists(e_attrs)
 
-        new_suffixes = e_attrs.get('ipantadditionalsuffixes')
-        new_exclusions = e_attrs.get('ipanttrusttlnexclusions')
-        suffixes_changed = new_suffixes is not None
-        exclusions_changed = new_exclusions is not None
+        suffixes_changed = 'ipantadditionalsuffixes' in e_attrs
+        exclusions_changed = 'ipanttrusttlnexclusions' in e_attrs
+        new_suffixes = e_attrs.get('ipantadditionalsuffixes') or []
+        new_exclusions = e_attrs.get('ipanttrusttlnexclusions') or []
 
         if _bindings_installed and (suffixes_changed or exclusions_changed):
             try:

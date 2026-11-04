@@ -199,6 +199,27 @@ class TestTrustModCollisionValidation:
         assert result_dn is dn
         assert 'ipanttrustforesttrustinfo' in e_attrs
 
+    @pytest.mark.parametrize('attribute,kind', [
+        ('ipantadditionalsuffixes', lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME),
+        ('ipanttrusttlnexclusions',
+         lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX),
+    ])
+    def test_removing_last_value_updates_blob(self, attribute, kind):
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        suffixes = (['old.test'] if
+                    kind == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME else [])
+        exclusions = (['old.test'] if
+                      kind == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX else [])
+        current = {attribute: ['old.test'], 'ipanttrustforesttrustinfo': [
+            ipaserver.dcerpc.build_forest_trust_info_blob(
+                'a.test', suffixes, exclusions)]}
+        cmd, ldap = self._make_trust_mod([], current)
+        attrs = {attribute: None}
+        cmd.pre_callback(ldap, dn, attrs, [])
+        remaining = records(attrs['ipanttrustforesttrustinfo'][0])
+        assert not any(r.type == kind and r.data.string == 'old.test'
+                       for r in remaining)
+
     def test_mod_preserves_domain_records_and_updates_exclusions(self):
         dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
         existing = ipaserver.dcerpc.build_forest_trust_info_blob(
