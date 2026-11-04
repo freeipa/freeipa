@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import time
 import pytest
 import re
+from datetime import datetime, timedelta, timezone
 
 import textwrap
 from ipaplatform.paths import paths
@@ -422,9 +423,15 @@ class TestIDPKeycloak(TestIDP):
                 "ipa", "user-mod", self.KEYCLOAK_USER,
                 "--user-auth-type=idp",
             ], raiseonerr=False)
+            # The ipa-pwd-extop plugin rejects an expiration beyond the
+            # password policy maximum life; set one within it instead of
+            # the far future.
+            unexpire = (datetime.now(tz=timezone.utc)
+                        + timedelta(days=45))
             self.master.run_command([
                 "ipa", "user-mod", self.KEYCLOAK_USER,
-                "--password-expiration", "29991231235959Z",
+                "--password-expiration",
+                unexpire.strftime("%Y%m%d%H%M%SZ"),
             ], raiseonerr=False)
             tasks.user_del(self.master, pwuser, raiseonerr=False)
             tasks.clear_sssd_cache(self.master)
