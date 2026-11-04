@@ -300,10 +300,12 @@ class hostgroup_mod(LDAPUpdate):
                     label=_('hostgroup'),
                     container=keys[0],
                 )
-        if keys[0] in PROTECTED_HOSTGROUPS and 'rename' in options:
-            raise errors.ProtectedEntryError(label=_(u'hostgroup'),
+        # --setattr cn= also renames; check entry_attrs like group_mod
+        if (keys[0] in PROTECTED_HOSTGROUPS
+                and ('rename' in options or 'cn' in entry_attrs)):
+            raise errors.ProtectedEntryError(label=_('hostgroup'),
                                              key=keys[0],
-                                             reason=_(u'privileged hostgroup'))
+                                             reason=_('privileged hostgroup'))
 
         return dn
 
