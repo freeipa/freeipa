@@ -186,6 +186,17 @@ def check_last_member(user, protected_group_name=u'admins'):
         raise errors.LastMemberError(key=user, label=_(u'group'),
             container=protected_group_name)
 
+
+def is_nsaccountlock_disabling(entry_attrs):
+    """True when entry_attrs would disable the account (nsaccountlock true).
+
+    By user_mod.pre_callback, process_attr_options / Bool param conversion have
+    already turned nsaccountlock into a bool scalar.
+    """
+    if 'nsaccountlock' not in entry_attrs:
+        return False
+    return entry_attrs['nsaccountlock']
+
 @register()
 class user(baseuser):
     """
@@ -934,6 +945,10 @@ class user_mod(baseuser_mod):
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
         validate_nsaccountlock(entry_attrs)
+        # Same LastMember guard as user_disable, for --setattr/--addattr
+        # nsaccountlock (and any other path that sets it on user-mod).
+        if is_nsaccountlock_disabling(entry_attrs):
+            check_last_member(keys[-1])
         # TODO: forward uidNumber changes and rename to subids
         return dn
 
