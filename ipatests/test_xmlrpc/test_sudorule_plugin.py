@@ -862,6 +862,12 @@ class test_sudorule(XMLRPC_test):
         except errors.ValidationError:
             pass
 
+        # Same uniqueness check must apply with --setattr
+        with pytest.raises(errors.ValidationError):
+            api.Command['sudorule_mod'](
+                self.rule_name2, setattr='sudoorder=1'
+            )
+
         # Remove the rule so we can re-add it
         api.Command['sudorule_del'](self.rule_name2)
 
@@ -873,6 +879,10 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_add'](self.rule_name2, sudoorder=2)
         with pytest.raises(errors.ValidationError):
             api.Command['sudorule_mod'](self.rule_name2, sudoorder=1)
+        with pytest.raises(errors.ValidationError):
+            api.Command['sudorule_mod'](
+                self.rule_name2, setattr='sudoorder=1'
+            )
 
         # Try setting both to 0
         api.Command['sudorule_mod'](self.rule_name2, sudoorder=0)
