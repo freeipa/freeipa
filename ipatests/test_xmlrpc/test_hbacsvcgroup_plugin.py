@@ -22,7 +22,9 @@ Test the `ipalib.plugins.hbacsvcgroup` module.
 """
 
 from ipalib import api, errors
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from ipatests.util import assert_deepequal
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, XMLRPC_test, fuzzy_uuid, raises_exact)
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
 import pytest
@@ -266,3 +268,89 @@ class test_hbacsvcgroup(Declarative):
             ),
         ),
     ]
+
+
+@pytest.fixture(scope='class')
+def hbacsvcgroup_dep(request, xmlrpc_setup):
+    name = 'testhbacsvcgroup_del_dep'
+    api.Command['hbacsvcgroup_add'](
+        name, description='Test HBAC service group')
+
+    def fin():
+        try:
+            api.Command['hbacsvcgroup_del'](name)
+        except errors.NotFound:
+            pass
+    request.addfinalizer(fin)
+    return name
+
+
+@pytest.fixture(scope='class')
+def hbacrule_svcgroup(request, xmlrpc_setup):
+    name = 'test_hbacsvcgroup_hbacrule1'
+    api.Command['hbacrule_add'](name)
+
+    def fin():
+        try:
+            api.Command['hbacrule_del'](name)
+        except errors.NotFound:
+            pass
+    request.addfinalizer(fin)
+    return name
+
+
+@pytest.mark.tier1
+class TestHBACsvcGroupInHBACRule(XMLRPC_test):
+    def test_add_hbacsvcgroup_to_hbacrule(
+            self, hbacsvcgroup_dep, hbacrule_svcgroup):
+        """ Add hbacsvcgroup to hbacrule memberservice """
+        result = api.Command['hbacrule_add_service'](
+            hbacrule_svcgroup, hbacsvcgroup=hbacsvcgroup_dep
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberservice=dict(hbacsvcgroup=(), hbacsvc=())),
+            result=lambda result: True,
+        ), result)
+
+    def test_del_dependent_hbacsvcgroup(
+            self, hbacsvcgroup_dep, hbacrule_svcgroup):
+        """ Try to delete hbacsvcgroup that is still used by an hbacrule """
+        # Self-contained: ensure the rule references the group first.
+        api.Command['hbacrule_add_service'](
+            hbacrule_svcgroup, hbacsvcgroup=hbacsvcgroup_dep)
+        with raises_exact(errors.DependentEntry(
+                key=hbacsvcgroup_dep,
+                label='hbacrule',
+                dependent=hbacrule_svcgroup)):
+            api.Command['hbacsvcgroup_del'](hbacsvcgroup_dep)
+
+    def test_remove_hbacsvcgroup_from_hbacrule(
+            self, hbacsvcgroup_dep, hbacrule_svcgroup):
+        """ Remove hbacsvcgroup from hbacrule memberservice """
+        # Self-contained: ensure membership exists before remove.
+        api.Command['hbacrule_add_service'](
+            hbacrule_svcgroup, hbacsvcgroup=hbacsvcgroup_dep)
+        result = api.Command['hbacrule_remove_service'](
+            hbacrule_svcgroup, hbacsvcgroup=hbacsvcgroup_dep
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberservice=dict(hbacsvcgroup=(), hbacsvc=())),
+            result=lambda result: True),
+            result)
+
+    def test_del_hbacsvcgroup_after_remove(
+            self, hbacsvcgroup_dep, hbacrule_svcgroup):
+        """ Delete hbacsvcgroup after removing it from hbacrule """
+        # Self-contained: drop any remaining rule reference first.
+        api.Command['hbacrule_remove_service'](
+            hbacrule_svcgroup, hbacsvcgroup=hbacsvcgroup_dep)
+        result = api.Command['hbacsvcgroup_del'](hbacsvcgroup_dep)
+        assert_deepequal(dict(
+            value=[hbacsvcgroup_dep],
+            summary='Deleted HBAC service group "%s"' % hbacsvcgroup_dep,
+            result=dict(failed=[]),
+        ), result)

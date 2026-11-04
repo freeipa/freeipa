@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, Str
+from ipalib import api, errors, Str
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject,
@@ -29,6 +29,7 @@ from .baseldap import (
     LDAPAddMember,
     LDAPRemoveMember)
 from ipalib import _, ngettext
+from ipapython.dn import DN
 
 __doc__ = _("""
 HBAC Service Groups
@@ -137,6 +138,31 @@ class hbacsvcgroup_del(LDAPDelete):
     __doc__ = _('Delete an HBAC service group.')
 
     msg_summary = _('Deleted HBAC service group "%(value)s"')
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        # Same DependentEntry guard as hbacsvc_del: refuse delete while the
+        # service group is still referenced from an HBAC rule memberservice.
+        filter = ldap.combine_filters(
+            (ldap.make_filter_from_attr('memberservice', dn),
+             ldap.make_filter_from_attr('objectClass', 'ipahbacrule')),
+            ldap.MATCH_ALL)
+        dependent_hbacrules = []
+        try:
+            entries, _truncated = ldap.find_entries(
+                filter, ['cn'],
+                base_dn=DN(api.env.container_hbac, api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            for entry_attrs in entries:
+                [cn] = entry_attrs['cn']
+                dependent_hbacrules.append(cn)
+
+        if dependent_hbacrules:
+            raise errors.DependentEntry(
+                key=keys[0], label='hbacrule',
+                dependent=', '.join(dependent_hbacrules))
+        return dn
 
 
 
