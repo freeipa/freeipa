@@ -494,11 +494,13 @@ class trust(LDAPObject):
                           'ipanttrustforesttrustinfo',
                           'ipanttrustposixoffset',
                           'ipantsupportedencryptiontypes',
-                          'ipantadditionalsuffixes']
+                          'ipantadditionalsuffixes',
+                          'ipanttrusttlnexclusions']
     search_display_attributes = ['cn', 'ipantflatname',
                                  'ipanttrusteddomainsid', 'ipanttrusttype',
                                  'ipanttrustattributes',
-                                 'ipantadditionalsuffixes']
+                                 'ipantadditionalsuffixes',
+                                 'ipanttrusttlnexclusions']
     managed_permissions = {
         'System: Read Trust Information': {
             # Allow reading of attributes needed for SSSD subdomains support
@@ -513,6 +515,7 @@ class trust(LDAPObject):
                 'ipanttrusteddomainsid', 'ipanttrustpartner',
                 'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing',
                 'ipanttrustdirection', 'ipantadditionalsuffixes',
+                'ipanttrusttlnexclusions',
             },
         },
 
