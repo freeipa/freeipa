@@ -159,7 +159,7 @@ resolves to "no trust", not to a shorter remaining match).
 
 ### `ipaserver` (collision validation, LDAP writes, CLI)
 
-Two independent write paths matter here:
+Three independent write paths matter here:
 
 `trust-add` already flows through Samba's own `check_ft_info()` (via
 `update_ftinfo()`/`lsaRSetForestTrustInformation` against IPA's own local
@@ -192,32 +192,29 @@ On a detected, unexcluded collision, it raises
 `clear_ftinfo_conflict()` already raises — rejecting the write, naming the
 colliding domain/trust in the error message.
 
-When the write is accepted, `trust_mod` also regenerates that trust's
-`ipaNTTrustForestTrustInfo` blob and writes it as part of the same LDAP
-update. This does **not** require a live RPC round-trip: the blob is just
-an NDR-serialized `drsblobs.ForestTrustInfo` structure, and `dcerpc.py`
-already builds one of these purely in Python (see `fetch_domains()`'s use
-of `drsblobs.ForestTrustInfo`/`ForestTrustInfoRecord`/
-`ForestTrustInfoRecordArmor` plus `ndr_pack()`). A new helper reuses that
-same pattern to construct a `TopLevelName` record for the trust's domain
-name and each UPN suffix, plus a `TopLevelNameEx` record for each
-exclusion, and packs it directly — no credentials or SMB connection
-needed, since this only updates our own LDAP-stored copy, which Samba's
-`ipa_sam.c` already round-trips opaquely.
+When namespace values change, `trust_mod` merges them into the existing
+`ipaNTTrustForestTrustInfo` blob in the same LDAP update. Unchanged records
+retain their flags and timestamps; domain, SID, NetBIOS and other records
+are preserved. Names removed from IPA's attributes are removed from the
+corresponding TLN or TLN-EX records. An invalid existing blob fails the
+update rather than being replaced.
+
+Forest topology refresh merges discovered exclusions into
+`ipaNTTrustTLNExclusions`, case-insensitively, and adds the resulting
+exclusions and IPA suffixes to the refreshed blob. Previously recorded
+exclusions are retained: LDAP does not track whether a value was discovered
+remotely or set by an administrator, so refresh cannot safely remove one
+just because the remote forest no longer advertises it.
 
 ### `ipa-sam`
 
-No code changes. `daemons/ipa-sam/ipa_sam.c` already round-trips
-`ipaNTTrustForestTrustInfo` opaquely via `repack_pdb_forest_trust_info()`
-and already declares `PDB_CAP_TRUSTED_DOMAINS_EX`
-(`pdb_ipasam_capabilities()`). That capability flag only gates Samba's
-`_lsa_EnumTrustedDomainsEx` RPC (extended trusted-domain enumeration with
-trust type/direction/attributes) and has no bearing on `check_ft_info()` or
-the `lsaR{Query,Set}ForestTrustInformation` path, which operate generically
-on whatever blob `pdb_enum_trusted_domains()` returns. Since `ipaserver` is
-responsible for keeping that blob's TLN/TLN-EX records correct, Samba's own
-collision detection gets correct exclusion data with zero new `ipa-sam`
-code.
+`ipa-sam` exposes the stored forest trust blob through its existing
+trusted-domain passdb methods. When Samba writes a non-null blob, `ipa-sam`
+decodes its TLN-EX records and replaces `ipaNTTrustTLNExclusions` in the
+same LDAP operation, including clearing the attribute when there are no
+exclusions. Duplicate names are collapsed case-insensitively. Invalid NDR
+is rejected before the LDAP write. Writes without a forest blob leave the
+attribute unchanged.
 
 ## Implementation
 
