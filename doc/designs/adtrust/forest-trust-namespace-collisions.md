@@ -236,7 +236,13 @@ attribute unchanged.
 | --- | ----- |
 | `trust-mod` | `--tln-exclusions=STR` (multi-valued) |
 | `trust-mod` | `--upn-suffixes=STR` now validated for namespace collisions before being written |
+| `trust-mod` | `--add-upn-suffix=STR` / `--del-upn-suffix=STR` (repeatable) |
+| `trust-mod` | `--add-tln-exclusion=STR` / `--del-tln-exclusion=STR` (repeatable) |
 | `trust-show`/`trust-find` | display `ipaNTTrustTLNExclusions` alongside existing attributes |
+
+The `--upn-suffixes` and `--tln-exclusions` options replace their complete
+lists; the add/delete options change individual values. A replacement and
+add/delete options for the same attribute cannot be combined in one command.
 
 ### Configuration
 

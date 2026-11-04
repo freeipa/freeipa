@@ -1173,14 +1173,37 @@ class trust_del(LDAPDelete):
 @register()
 class trust_mod(LDAPUpdate):
     __doc__ = _("""
-    Modify a trust (for future use).
+    Modify a trust.
 
-    Currently only the default option to modify the LDAP attributes is
-    available. More specific options will be added in coming releases.
+    Use the UPN suffix and TLN exclusion options to replace the complete
+    lists, or the add and delete options to modify individual values.
     """)
 
     msg_summary = _('Modified trust "%(value)s" '
                     '(change will be effective in 60 seconds)')
+
+    takes_options = LDAPUpdate.takes_options + (
+        Str('add_upn_suffix*', label=_('Add UPN suffix')),
+        Str('del_upn_suffix*', label=_('Delete UPN suffix')),
+        Str('add_tln_exclusion*', label=_('Add TLN exclusion')),
+        Str('del_tln_exclusion*', label=_('Delete TLN exclusion')),
+    )
+
+    def execute(self, *keys, **options):
+        for name, attribute in (
+                ('upn_suffix', 'ipantadditionalsuffixes'),
+                ('tln_exclusion', 'ipanttrusttlnexclusions')):
+            adds = options.pop('add_' + name, None) or ()
+            deletes = options.pop('del_' + name, None) or ()
+            if (adds or deletes) and attribute in options:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('A replacement list cannot be combined with '
+                             'add or delete options for the same attribute'))
+            for option, values in (('addattr', adds), ('delattr', deletes)):
+                if values:
+                    options[option] = tuple(options.get(option) or ()) + tuple(
+                        '%s=%s' % (attribute, value) for value in values)
+        return super(trust_mod, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, dn, e_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)

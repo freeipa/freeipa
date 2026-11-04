@@ -228,6 +228,16 @@ class TestTrustModCollisionValidation:
             cmd.pre_callback(
                 ldap, dn, {'ipanttrusttlnexclusions': ['excluded.test']}, [])
 
+    @pytest.mark.parametrize('options', [
+        {'ipantadditionalsuffixes': ['a.test'],
+         'add_upn_suffix': ('b.test',)},
+        {'ipanttrusttlnexclusions': [], 'del_tln_exclusion': ('a.test',)},
+    ])
+    def test_replace_and_incremental_options_conflict(self, options):
+        cmd, _ldap = self._make_trust_mod([], {})
+        with pytest.raises(errors.MutuallyExclusiveError):
+            cmd.execute('a.test', **options)
+
     def test_mod_preserves_domain_records_and_updates_exclusions(self):
         dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
         existing = ipaserver.dcerpc.build_forest_trust_info_blob(
