@@ -311,6 +311,16 @@ class netgroup_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+        # --setattr puts values in entry_attrs, not options; capture before
+        # overwriting entry_attrs with the LDAP entry below.
+        setting_usercat_all = (
+            is_all(options, 'usercategory')
+            or is_all(entry_attrs, 'usercategory')
+        )
+        setting_hostcat_all = (
+            is_all(options, 'hostcategory')
+            or is_all(entry_attrs, 'hostcategory')
+        )
         try:
             # If the command was called with --no-members, attrs_list
             # contains the default_attributes but not attribute_members
@@ -321,12 +331,12 @@ class netgroup_mod(LDAPUpdate):
             dn = entry_attrs.dn
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
-        if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
+        if setting_usercat_all and 'memberuser' in entry_attrs:
             raise errors.MutuallyExclusiveError(
                 reason=_("user category cannot be set to 'all' while there "
                          "are allowed users")
             )
-        if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
+        if setting_hostcat_all and 'memberhost' in entry_attrs:
             raise errors.MutuallyExclusiveError(
                 reason=_("host category cannot be set to 'all' while there "
                          "are allowed hosts")

@@ -706,6 +706,11 @@ class test_sudorule(XMLRPC_test):
                 api.Command['sudorule_mod'](
                     self.rule_name, usercategory=u'all'
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name, setattr='usercategory=all'
+                )
         finally:
             api.Command['sudorule_remove_user'](self.rule_name, user=u'admin')
 
@@ -731,6 +736,11 @@ class test_sudorule(XMLRPC_test):
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['sudorule_mod'](
                     self.rule_name, hostcategory=u'all'
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name, setattr='hostcategory=all'
                 )
         finally:
             api.Command['sudorule_remove_host'](self.rule_name, host=self.test_host)
@@ -758,6 +768,11 @@ class test_sudorule(XMLRPC_test):
                 api.Command['sudorule_mod'](
                     self.rule_name, cmdcategory=u'all'
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name, setattr='cmdcategory=all'
+                )
         finally:
             api.Command['sudorule_remove_allow_command'](self.rule_name, sudocmd=self.test_command)
 
@@ -784,9 +799,57 @@ class test_sudorule(XMLRPC_test):
                 api.Command['sudorule_mod'](
                     self.rule_name, ipasudorunasusercategory=u'all'
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name,
+                    setattr='ipasudorunasusercategory=all',
+                )
         finally:
             api.Command['sudorule_remove_runasuser'](self.rule_name,
                                                      user=self.test_user)
+
+    def test_j_1a_sudorule_exclusiverunasgroup(self):
+        """
+        Test adding a runasgroup to an Sudo rule when
+        ipasudorunasgroupcategory='all'
+        """
+        api.Command['sudorule_mod'](
+            self.rule_name, ipasudorunasgroupcategory='all'
+        )
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_add_runasgroup'](
+                    self.rule_name, group=self.test_group
+                )
+        finally:
+            api.Command['sudorule_mod'](
+                self.rule_name, ipasudorunasgroupcategory=''
+            )
+
+    def test_j_1b_sudorule_exclusiverunasgroup(self):
+        """
+        Test setting ipasudorunasgroupcategory='all' in an Sudo rule when
+        there are runas groups
+        """
+        api.Command['sudorule_add_runasgroup'](
+            self.rule_name, group=self.test_group
+        )
+        try:
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name, ipasudorunasgroupcategory='all'
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['sudorule_mod'](
+                    self.rule_name,
+                    setattr='ipasudorunasgroupcategory=all',
+                )
+        finally:
+            api.Command['sudorule_remove_runasgroup'](
+                self.rule_name, group=self.test_group
+            )
 
     def test_j_2_sudorule_referential_integrity(self):
         """
