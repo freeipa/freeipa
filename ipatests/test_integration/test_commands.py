@@ -562,6 +562,36 @@ class TestIPACommand(IntegrationTest):
                 master.run_command(['ipa', 'user-del', over_user],
                                    raiseonerr=False)
 
+        # The same rejection must apply to a user created without a
+        # password: ipapwd_pre_add() used to return before the policy
+        # check when the entry carried no userPassword, storing the
+        # beyond-policy expiration verbatim while an expiration-only
+        # modify of the same entry would be rejected.
+        if max_life_secs:
+            nopw_user = 'pwdexpnopw'
+            requested = (datetime.utcnow()
+                         + timedelta(seconds=max_life_secs)
+                         + timedelta(days=3650)).replace(microsecond=0)
+            try:
+                cmd = master.run_command(
+                    ['ipa', 'user-add', nopw_user,
+                     '--first', nopw_user, '--last', nopw_user,
+                     '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')], raiseonerr=False)
+                assert cmd.returncode != 0, (
+                    'beyond-policy request without a password was accepted,'
+                    ' exit code 0')
+                assert 'Constraint violation' in cmd.stderr_text, (
+                    'beyond-policy request without a password did not fail '
+                    'with a constraint violation: %s' % cmd.stderr_text)
+                result = master.run_command(['ipa', 'user-show', nopw_user],
+                                            raiseonerr=False)
+                assert result.returncode != 0, (
+                    'user was created despite the rejected expiration')
+            finally:
+                master.run_command(['ipa', 'user-del', nopw_user],
+                                   raiseonerr=False)
+
     def test_user_mod_password_expiration_bounded_by_policy(self):
         """user-mod setting --password-expiration without a password change.
 

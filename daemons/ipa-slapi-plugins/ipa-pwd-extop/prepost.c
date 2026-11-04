@@ -244,8 +244,52 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     /* check this is something interesting for us first */
     userpw = slapi_entry_attr_get_charptr(e, SLAPI_USERPWD_ATTR);
     if (!userpw) {
-        /* nothing interesting here */
-        return 0;
+        /* No password, but an explicit krbPasswordExpiration is still an
+         * explicit request and must obey the effective password policy,
+         * mirroring the expiration-only modify in ipapwd_pre_mod() and the
+         * password-carrying add below: a request beyond the policy maximum
+         * is rejected rather than silently stored. There is no password yet,
+         * so the limit is anchored at the current time; a password set later
+         * recomputes the expiration subject to the policy of that moment.
+         * A max_pwd_life of 0 means "never expire"; an unparseable value is
+         * left to the schema check. */
+        char *req_exp_str = slapi_entry_attr_get_charptr(
+            e, "krbPasswordExpiration");
+
+        if (req_exp_str != NULL) {
+            time_t req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+
+            slapi_ch_free_string(&req_exp_str);
+            if (req_exp != 0) {
+                struct ipapwd_policy pol = {0};
+
+                ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+                if (ret) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                ret = ipapwd_getPolicy(slapi_sdn_get_dn(sdn), e, &pol);
+                if (ret) {
+                    LOG_TRACE("No password policy, use defaults\n");
+                    pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
+                }
+                if (pol.max_pwd_life > 0 &&
+                    req_exp > time(NULL) + pol.max_pwd_life) {
+                    errMesg = "krbPasswordExpiration is beyond the password "
+                              "policy maximum life";
+                    LOG_PWDPOLICY("Failed to set krbPasswordExpiration for "
+                                  "'%s': %s\n",
+                                  slapi_sdn_get_dn(sdn), errMesg);
+                    rc = LDAP_CONSTRAINT_VIOLATION;
+                    goto done;
+                }
+            }
+        }
+        if (rc == LDAP_SUCCESS) {
+            /* nothing else interesting here */
+            return 0;
+        }
+        goto done;
     }
 
     /* Get target DN */
