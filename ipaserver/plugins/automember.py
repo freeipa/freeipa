@@ -391,10 +391,13 @@ class automember_add_condition(LDAPUpdate):
                         if not isinstance(entry_attrs[regex], (list, tuple)):
                             entry_attrs[regex] = [entry_attrs[regex]]
                         duplicate = set(old_entry[regex]) & set(entry_attrs[regex])
-                        if len(duplicate) > 0:
-                            completed -= 1
-                        else:
-                            entry_attrs[regex] = list(entry_attrs[regex]) + old_entry[regex]
+                        # Always keep existing conditions. Previously any
+                        # overlap skipped the merge and dropped siblings.
+                        completed -= len(duplicate)
+                        entry_attrs[regex] = list(old_entry[regex]) + [
+                            r for r in entry_attrs[regex]
+                            if r not in old_entry[regex]
+                        ]
                 except errors.NotFound:
                     failed['failed'][attr].append(regex)
 
