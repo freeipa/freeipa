@@ -397,6 +397,22 @@ class test_permission_negative(Declarative):
                 error='only available on managed permissions',
             ),
         ),
+
+        dict(
+            desc='Try setting ipapermexcludedattr on %r via setattr'
+                 % permission1,
+            command=(
+                'permission_mod',
+                [permission1],
+                dict(
+                    setattr='ipapermexcludedattr=cn',
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='ipapermexcludedattr',
+                error='only available on managed permissions',
+            ),
+        ),
         dict(
             desc='Try to setting both full and extra target filter on %s'
             % permission1,
@@ -3569,6 +3585,20 @@ class test_permission_bindtype(Declarative):
                 error='cannot set bindtype for a permission that is '
                     'assigned to a privilege')
         ),
+
+        dict(
+            desc='Try to change binddn of %r to anonymous via setattr'
+                 % permission1,
+            command=(
+                'permission_mod', [permission1], dict(
+                    setattr='ipapermbindruletype=anonymous',
+                )
+            ),
+            expected=errors.ValidationError(
+                name='ipapermbindruletype',
+                error='cannot set bindtype for a permission that is '
+                      'assigned to a privilege')
+        ),
     ]
 
 
@@ -3661,6 +3691,22 @@ class test_managed_permissions(Declarative):
             ('targetgroup', 'ipapermtarget', 'admins'),
             ('type', 'ipapermlocation', 'group'),
             ('extratargetfilter', 'extratargetfilter', '(cn=*)'),
+        )
+    ] + [
+        # Same restrictions must apply when values arrive via --setattr
+        dict(
+            desc='Try to modify %s/%r via setattr' % (attr_name, permission1),
+            command=('permission_mod', [permission1],
+                     {'setattr': '%s=%s' % (attr_name, value)}),
+            expected=errors.ValidationError(
+                name=attr_name,
+                error='not modifiable on managed permissions'),
+        )
+        for attr_name, value in (
+            ('ipapermlocation', users_dn),
+            ('ipapermright', 'compare'),
+            ('ipapermtarget', users_dn),
+            ('ipapermtargetfilter', '(ou=engineering)'),
         )
     ] + [
 
