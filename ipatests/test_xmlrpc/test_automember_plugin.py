@@ -1516,3 +1516,61 @@ class TestAutomemberFindOrphans(XMLRPC_test):
         with raises_exact(errors.NotFound(
                 reason='%s: Automember rule not found' % hostgroup1.cn)):
             api.Command['automember_del'](hostgroup1.cn, type='hostgroup')
+
+
+class TestAutomemberAddConditionMerge(XMLRPC_test):
+    """automember-add-condition must not drop existing sibling regexes."""
+
+    def test_mixed_duplicate_keeps_existing_conditions(
+            self, hostgroup1, automember_hostgroup):
+        """Adding a duplicate plus a new condition keeps prior siblings.
+
+        A request that overlaps an existing inclusive regex used to replace
+        the attribute with only the request values, dropping siblings that
+        were not mentioned.
+        """
+        hostgroup1.ensure_exists()
+        automember_hostgroup.ensure_exists()
+
+        first = automember_hostgroup.make_add_condition_command(
+            key='fqdn', type='hostgroup',
+            automemberinclusiveregex=[
+                hostgroup_include_regex,
+                hostgroup_include_regex2,
+            ],
+        )
+        result = first()
+        assert result['completed'] == 2
+        assert_deepequal(
+            [
+                'fqdn=%s' % hostgroup_include_regex,
+                'fqdn=%s' % hostgroup_include_regex2,
+            ],
+            result['result']['automemberinclusiveregex'],
+        )
+
+        second = automember_hostgroup.make_add_condition_command(
+            key='fqdn', type='hostgroup',
+            automemberinclusiveregex=[
+                hostgroup_include_regex,
+                hostgroup_include_regex3,
+            ],
+        )
+        result = second()
+        assert result['completed'] == 1
+        assert_deepequal(
+            [
+                'fqdn=%s' % hostgroup_include_regex,
+                'fqdn=%s' % hostgroup_include_regex2,
+                'fqdn=%s' % hostgroup_include_regex3,
+            ],
+            result['result']['automemberinclusiveregex'],
+        )
+
+        automember_hostgroup.attrs.update(
+            automemberinclusiveregex=[
+                'fqdn=%s' % hostgroup_include_regex,
+                'fqdn=%s' % hostgroup_include_regex2,
+                'fqdn=%s' % hostgroup_include_regex3,
+            ]
+        )
