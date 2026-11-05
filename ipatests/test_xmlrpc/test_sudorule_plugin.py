@@ -832,6 +832,11 @@ class test_sudorule(XMLRPC_test):
                                                      sudocmd=self.test_command)
         api.Command['sudocmd_del'](self.test_command)
         api.Command['sudocmdgroup_del'](self.test_sudoallowcmdgroup)
+        # Deny cmdgroup is still linked from test_j_2; same DependentEntry
+        # guard as sudocmd_del, so detach before delete (referint no longer
+        # gets a chance to clear memberdenycmd).
+        api.Command['sudorule_remove_deny_command'](
+            self.rule_name, sudocmdgroup=self.test_sudodenycmdgroup)
         api.Command['sudocmdgroup_del'](self.test_sudodenycmdgroup)
 
     def test_k_2_sudorule_referential_integrity(self):
