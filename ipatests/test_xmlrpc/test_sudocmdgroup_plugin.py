@@ -20,7 +20,8 @@
 Test the `ipaserver/plugins/sudocmdgroup.py` module.
 """
 
-from ipalib import errors
+from ipalib import api, errors
+from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.sudocmd_plugin import SudoCmdTracker
 from ipatests.test_xmlrpc.tracker.sudocmdgroup_plugin import (
@@ -60,6 +61,16 @@ def sudocmdgroup1(request, xmlrpc_setup):
 def sudocmdgroup2(request, xmlrpc_setup):
     tracker = SudoCmdGroupTracker('testsudocmdgroup2', 'Test desc2')
     return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudorule1(request, xmlrpc_setup):
+    name = 'test_sudocmdgroup_sudorule1'
+
+    def fin():
+        api.Command['sudorule_del'](name)
+    request.addfinalizer(fin)
+    return name
 
 
 @pytest.mark.tier1
@@ -221,3 +232,84 @@ class TestSudoCmdGroupMembers(XMLRPC_test):
         sudocmd_plus.ensure_exists()
         sudocmdgroup1.add_member(dict(sudocmd=sudocmd_plus.cmd))
         sudocmdgroup1.remove_member(dict(sudocmd=sudocmd_plus.cmd))
+
+
+class TestSudoCmdGroupInSudoRuleLists(XMLRPC_test):
+    def test_add_sudocmdgroup_to_sudorule_allow_list(
+            self, sudocmdgroup1, sudorule1):
+        """ Add sudocmdgroup to sudorule allow list """
+        sudocmdgroup1.ensure_exists()
+        api.Command['sudorule_add'](sudorule1)
+        result = api.Command['sudorule_add_allow_command'](
+            sudorule1, sudocmdgroup=sudocmdgroup1.cn
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True,
+        ), result)
+
+    def test_del_dependent_sudocmdgroup_sudorule_allow(
+            self, sudocmdgroup1, sudorule1):
+        """ Try to delete sudocmdgroup that is in sudorule allow list """
+        sudocmdgroup1.ensure_exists()
+        command = sudocmdgroup1.make_delete_command()
+        with raises_exact(errors.DependentEntry(
+                key=sudocmdgroup1.cn,
+                label='sudorule',
+                dependent=sudorule1)):
+            command()
+
+    def test_remove_sudocmdgroup_from_sudorule_allow(
+            self, sudocmdgroup1, sudorule1):
+        """ Remove sudocmdgroup from sudorule allow list """
+        sudocmdgroup1.ensure_exists()
+        result = api.Command['sudorule_remove_allow_command'](
+            sudorule1, sudocmdgroup=sudocmdgroup1.cn
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
+
+    def test_add_sudocmdgroup_to_sudorule_deny_list(
+            self, sudocmdgroup1, sudorule1):
+        """ Add sudocmdgroup to sudorule deny list """
+        sudocmdgroup1.ensure_exists()
+        result = api.Command['sudorule_add_deny_command'](
+            sudorule1, sudocmdgroup=sudocmdgroup1.cn
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
+
+    def test_del_dependent_sudocmdgroup_sudorule_deny(
+            self, sudocmdgroup1, sudorule1):
+        """ Try to delete sudocmdgroup that is in sudorule deny list """
+        sudocmdgroup1.ensure_exists()
+        command = sudocmdgroup1.make_delete_command()
+        with raises_exact(errors.DependentEntry(
+                key=sudocmdgroup1.cn,
+                label='sudorule',
+                dependent=sudorule1)):
+            command()
+
+    def test_remove_sudocmdgroup_from_sudorule_deny(
+            self, sudocmdgroup1, sudorule1):
+        """ Remove sudocmdgroup from sudorule deny list """
+        sudocmdgroup1.ensure_exists()
+        result = api.Command['sudorule_remove_deny_command'](
+            sudorule1, sudocmdgroup=sudocmdgroup1.cn
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)

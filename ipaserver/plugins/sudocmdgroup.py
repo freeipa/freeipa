@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api
+from ipalib import api, errors
 from ipalib import Str
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -30,6 +30,7 @@ from .baseldap import (
     LDAPAddMember,
     LDAPRemoveMember)
 from ipalib import _, ngettext
+from ipapython.dn import DN
 
 __doc__ = _("""
 Groups of Sudo Commands
@@ -156,6 +157,33 @@ class sudocmdgroup_del(LDAPDelete):
 
     msg_summary = _('Deleted Sudo Command Group "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        # Same DependentEntry guard as sudocmd_del: refuse delete while the
+        # command group is still referenced from a sudorule allow/deny list.
+        filters = [
+            ldap.make_filter_from_attr(attr, dn)
+            for attr in ('memberallowcmd', 'memberdenycmd')]
+        filter = ldap.combine_filters(filters, ldap.MATCH_ANY)
+        filter = ldap.combine_filters(
+            (filter, ldap.make_filter_from_attr('objectClass', 'ipasudorule')),
+            ldap.MATCH_ALL)
+        dependent_sudorules = []
+        try:
+            entries, _truncated = ldap.find_entries(
+                filter, ['cn'],
+                base_dn=DN(api.env.container_sudorule, api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            for entry_attrs in entries:
+                [cn] = entry_attrs['cn']
+                dependent_sudorules.append(cn)
+
+        if dependent_sudorules:
+            raise errors.DependentEntry(
+                key=keys[0], label='sudorule',
+                dependent=', '.join(dependent_sudorules))
+        return dn
 
 
 @register()
