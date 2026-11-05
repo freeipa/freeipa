@@ -1,0 +1,20 @@
+<div id="postContent">
+    $body$
+</div>
+<div id="nav" class="footer">
+    $if(back-href)$
+    <div class="back">
+        <a href="$back-href$">$back-text$</a>
+    </div>
+    $endif$
+    $if(up-href)$
+    <div class="up">
+        <a href="$up-href$">$up-text$</a>
+    </div>
+    $endif$
+    $if(next-href)$
+    <div class="next">
+        <a href="$next-href$">$next-text$</a>
+    </div>
+    $endif$
+</div>
