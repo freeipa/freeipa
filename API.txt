@@ -6387,10 +6387,14 @@ output: ListOfEntries('result')
 output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: trust_mod/1
-args: 1,11,3
+args: 1,15,3
 arg: Str('cn', cli_name='realm')
+option: Str('add_tln_exclusion*')
+option: Str('add_upn_suffix*')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('del_tln_exclusion*')
+option: Str('del_upn_suffix*')
 option: Str('delattr*', cli_name='delattr')
 option: Str('ipantadditionalsuffixes*', autofill=False, cli_name='upn_suffixes')
 option: Str('ipantsidblacklistincoming*', autofill=False, cli_name='sid_blacklist_incoming')
