@@ -217,6 +217,11 @@ class TestCAACLCategoryModExclusivity(XMLRPC_test):
                     exclusive_acl.name, usercategory='all',
                     no_members=True,
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, setattr='usercategory=all'
+                )
         finally:
             exclusive_acl.remove_user(user='admin')
 
@@ -233,6 +238,11 @@ class TestCAACLCategoryModExclusivity(XMLRPC_test):
                 api.Command['caacl_mod'](
                     exclusive_acl.name, hostcategory='all',
                     no_members=True,
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, setattr='hostcategory=all'
                 )
         finally:
             exclusive_acl.remove_host(host=api.env.host)
@@ -251,6 +261,11 @@ class TestCAACLCategoryModExclusivity(XMLRPC_test):
                 api.Command['caacl_mod'](
                     exclusive_acl.name, servicecategory='all',
                     no_members=True,
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, setattr='servicecategory=all'
                 )
         finally:
             exclusive_acl.remove_service(service=service)
@@ -271,6 +286,12 @@ class TestCAACLCategoryModExclusivity(XMLRPC_test):
                     exclusive_acl.name, ipacertprofilecategory='all',
                     no_members=True,
                 )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name,
+                    setattr='ipacertprofilecategory=all',
+                )
         finally:
             exclusive_acl.remove_profile(certprofile=default_profile.name)
 
@@ -289,6 +310,11 @@ class TestCAACLCategoryModExclusivity(XMLRPC_test):
                 api.Command['caacl_mod'](
                     exclusive_acl.name, ipacacategory='all',
                     no_members=True,
+                )
+            # Same test with --setattr
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['caacl_mod'](
+                    exclusive_acl.name, setattr='ipacacategory=all'
                 )
         finally:
             exclusive_acl.remove_ca(ca=caacl_test_ca.name)

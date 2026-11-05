@@ -286,6 +286,28 @@ class caacl_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+        # --setattr puts values in entry_attrs, not options; capture before
+        # overwriting entry_attrs with the LDAP entry below.
+        setting_cacat_all = (
+            is_all(options, 'ipacacategory')
+            or is_all(entry_attrs, 'ipacacategory')
+        )
+        setting_profilecat_all = (
+            is_all(options, 'ipacertprofilecategory')
+            or is_all(entry_attrs, 'ipacertprofilecategory')
+        )
+        setting_usercat_all = (
+            is_all(options, 'usercategory')
+            or is_all(entry_attrs, 'usercategory')
+        )
+        setting_hostcat_all = (
+            is_all(options, 'hostcategory')
+            or is_all(entry_attrs, 'hostcategory')
+        )
+        setting_servicecat_all = (
+            is_all(options, 'servicecategory')
+            or is_all(entry_attrs, 'servicecategory')
+        )
         try:
             # If the command was called with --no-members, attrs_list
             # contains the default_attributes but not attribute_members
@@ -300,24 +322,23 @@ class caacl_mod(LDAPUpdate):
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
 
-        if is_all(options, 'ipacacategory') and 'ipamemberca' in entry_attrs:
+        if setting_cacat_all and 'ipamemberca' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
                 "CA category cannot be set to 'all' "
                 "while there are allowed CAs"))
-        if (is_all(options, 'ipacertprofilecategory')
-                and 'ipamembercertprofile' in entry_attrs):
+        if setting_profilecat_all and 'ipamembercertprofile' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
                 "profile category cannot be set to 'all' "
                 "while there are allowed profiles"))
-        if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
+        if setting_usercat_all and 'memberuser' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
                 "user category cannot be set to 'all' "
                 "while there are allowed users"))
-        if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
+        if setting_hostcat_all and 'memberhost' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
                 "host category cannot be set to 'all' "
                 "while there are allowed hosts"))
-        if is_all(options, 'servicecategory') and 'memberservice' in entry_attrs:
+        if setting_servicecat_all and 'memberservice' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
                 "service category cannot be set to 'all' "
                 "while there are allowed services"))
