@@ -9,6 +9,8 @@ Test the otptoken plugin.
 
 from __future__ import print_function
 
+from datetime import datetime
+
 import pytest
 
 from ipalib import api, errors
@@ -172,4 +174,33 @@ class TestDeleteLastOtpToken(XMLRPC_test):
             try:
                 api.Command.config_mod(ipauserauthtype=current_globalCfg)
             except errors.EmptyModlist:
+                pass
+
+
+class TestOtpTokenInterval(XMLRPC_test):
+    def test_invalid_interval_option_and_setattr(self):
+        """not_after before not_before must fail via options and setattr."""
+        token = 'intervalotp'
+        not_before = datetime(2020, 1, 2, 0, 0, 0)
+        not_after = datetime(2020, 1, 1, 0, 0, 0)
+        try:
+            api.Command.otptoken_add(token, description='interval test')
+            with pytest.raises(errors.ValidationError):
+                api.Command.otptoken_mod(
+                    token,
+                    ipatokennotbefore=not_before,
+                    ipatokennotafter=not_after,
+                )
+            with pytest.raises(errors.ValidationError):
+                api.Command.otptoken_mod(
+                    token,
+                    setattr=[
+                        'ipatokennotbefore=20200102000000Z',
+                        'ipatokennotafter=20200101000000Z',
+                    ],
+                )
+        finally:
+            try:
+                api.Command.otptoken_del(token)
+            except errors.NotFound:
                 pass

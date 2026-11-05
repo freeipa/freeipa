@@ -957,8 +957,12 @@ class service_mod(LDAPUpdate):
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
         # revoke removed certificates
+        # --setattr/--delattr put usercertificate in entry_attrs, not options.
+        # Note: xmlrpc cannot assert Dogtag revoke without a CA harness;
+        # coverage is the shared condition with the dedicated option path.
         ca_is_enabled = self.api.Command.ca_is_enabled()['result']
-        if 'usercertificate' in options and ca_is_enabled:
+        if (('usercertificate' in options or 'usercertificate' in entry_attrs)
+                and ca_is_enabled):
             try:
                 entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:

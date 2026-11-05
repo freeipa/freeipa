@@ -317,8 +317,14 @@ class otptoken_add(LDAPCreate):
             entry_attrs['ipatokenuniqueid'] = str(uuid.uuid4())
             dn = DN("ipatokenuniqueid=%s" % entry_attrs['ipatokenuniqueid'], dn)
 
-        if not _check_interval(options.get('ipatokennotbefore', None),
-                               options.get('ipatokennotafter', None)):
+        # --setattr puts values in entry_attrs, not options
+        notbefore = options.get('ipatokennotbefore', None)
+        if notbefore is None and 'ipatokennotbefore' in entry_attrs:
+            notbefore = entry_attrs.single_value.get('ipatokennotbefore')
+        notafter = options.get('ipatokennotafter', None)
+        if notafter is None and 'ipatokennotafter' in entry_attrs:
+            notafter = entry_attrs.single_value.get('ipatokennotafter')
+        if not _check_interval(notbefore, notafter):
             raise ValidationError(name='not_after',
                                   error='is before the validity start')
 
@@ -402,8 +408,13 @@ class otptoken_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         notafter_set = True
+        # --setattr puts values in entry_attrs, not options
         notbefore = options.get('ipatokennotbefore', None)
+        if notbefore is None and 'ipatokennotbefore' in entry_attrs:
+            notbefore = entry_attrs.single_value.get('ipatokennotbefore')
         notafter = options.get('ipatokennotafter', None)
+        if notafter is None and 'ipatokennotafter' in entry_attrs:
+            notafter = entry_attrs.single_value.get('ipatokennotafter')
         # notbefore xor notafter, exactly one of them is not None
         if bool(notbefore) ^ bool(notafter):
             result = self.api.Command.otptoken_show(keys[-1])['result']
