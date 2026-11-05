@@ -457,6 +457,11 @@ BuildRequires:  krb5-server >= %{krb5_version}
 BuildRequires:  selinux-policy-devel >= %{selinux_policy_version}
 %endif
 
+# For source verification
+%if 0%{?fedora} || 0%{?rhel} > 10
+BuildRequires:	openpgpverify
+%endif
+
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -1190,7 +1195,10 @@ Custom SELinux policy module for Thales Luna HSMs
 %prep
 # Verify release signature
 %if %{NON_DEVELOPER_BUILD}
-%{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%if ! %{defined openpgpverify}
+%global openpgpverify %{gpgverify}
+%endif
+%{openpgpverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %endif
 
 %autosetup -n freeipa-%{version}%{?rc_version} -N -p1
