@@ -479,7 +479,10 @@ class TestIPACommand(IntegrationTest):
             attribute (it used to append a second, policy-derived value on add,
             failing the operation with a schema violation), and
           * honor an explicitly requested expiration but bound it by the
-            effective password policy, so a password never outlives policy.
+            effective password policy: within policy it is stored verbatim,
+            beyond it the operation is rejected with a constraint violation
+            instead of being silently capped, so a password never outlives
+            policy.
         """
         master = self.master
         tasks.kinit_admin(master)
@@ -531,7 +534,7 @@ class TestIPACommand(IntegrationTest):
             master.run_command(['ipa', 'user-del', within_user],
                                raiseonerr=False)
 
-        # A request far beyond policy must be capped at the policy maximum
+        # A request far beyond policy must be rejected, not silently capped
         # (only meaningful when the policy actually sets a maximum lifetime).
         if max_life_secs:
             over_user = 'pwdexpover'
@@ -540,22 +543,267 @@ class TestIPACommand(IntegrationTest):
                          + timedelta(days=3650))
             requested = requested.replace(microsecond=0)
             try:
-                add_user(over_user, requested)
-                stored = stored_expirations(over_user)
-                assert len(stored) == 1, (
-                    'krbPasswordExpiration must be single-valued, got %r'
-                    % stored)
-                assert stored[0] < requested - timedelta(days=1), (
-                    'beyond-policy request was not capped, stored %s'
-                    % stored[0])
-                cap = (datetime.utcnow() + timedelta(seconds=max_life_secs)
-                       + timedelta(days=1))
-                assert stored[0] <= cap, (
-                    'stored expiration %s exceeds policy cap %s'
-                    % (stored[0], cap))
+                cmd = master.run_command(
+                    ['ipa', 'user-add', over_user,
+                     '--first', over_user, '--last', over_user,
+                     '--password', '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')],
+                    stdin_text='Secret123\nSecret123\n', raiseonerr=False)
+                assert cmd.returncode != 0, (
+                    'beyond-policy request was accepted, exit code 0')
+                assert 'Constraint violation' in cmd.stderr_text, (
+                    'beyond-policy request did not fail with a constraint '
+                    'violation: %s' % cmd.stderr_text)
+                result = master.run_command(['ipa', 'user-show', over_user],
+                                            raiseonerr=False)
+                assert result.returncode != 0, (
+                    'user was created despite the rejected expiration')
             finally:
                 master.run_command(['ipa', 'user-del', over_user],
                                    raiseonerr=False)
+
+        # The same rejection must apply to a user created without a
+        # password: ipapwd_pre_add() used to return before the policy
+        # check when the entry carried no userPassword, storing the
+        # beyond-policy expiration verbatim while an expiration-only
+        # modify of the same entry would be rejected.
+        if max_life_secs:
+            nopw_user = 'pwdexpnopw'
+            requested = (datetime.utcnow()
+                         + timedelta(seconds=max_life_secs)
+                         + timedelta(days=3650)).replace(microsecond=0)
+            try:
+                cmd = master.run_command(
+                    ['ipa', 'user-add', nopw_user,
+                     '--first', nopw_user, '--last', nopw_user,
+                     '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')], raiseonerr=False)
+                assert cmd.returncode != 0, (
+                    'beyond-policy request without a password was accepted,'
+                    ' exit code 0')
+                assert 'Constraint violation' in cmd.stderr_text, (
+                    'beyond-policy request without a password did not fail '
+                    'with a constraint violation: %s' % cmd.stderr_text)
+                result = master.run_command(['ipa', 'user-show', nopw_user],
+                                            raiseonerr=False)
+                assert result.returncode != 0, (
+                    'user was created despite the rejected expiration')
+            finally:
+                master.run_command(['ipa', 'user-del', nopw_user],
+                                   raiseonerr=False)
+
+    def test_user_mod_password_expiration_bounded_by_policy(self):
+        """user-mod setting --password-expiration without a password change.
+
+        A krbPasswordExpiration set on an existing entry is an explicit
+        request and must be handled consistently whether or not the
+        password changes: honored verbatim within the effective password
+        policy, rejected with a constraint violation beyond it. The
+        ipa-pwd-extop DS plugin previously enforced policy on the
+        expiration only when a password change occurred, and silently
+        rewrote or capped it instead of reporting an error.
+        """
+        master = self.master
+        tasks.kinit_admin(master)
+        base_dn = str(master.domain.basedn)
+
+        result = master.run_command(['ipa', 'pwpolicy-show', '--raw'])
+        match = re.search(r'krbmaxpwdlife:\s*(\d+)', result.stdout_text)
+        max_life_secs = int(match.group(1)) if match else 0
+
+        def stored_expirations(user):
+            result = tasks.ldapsearch_dm(
+                master,
+                'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                    user=user, base_dn=base_dn),
+                ['krbpasswordexpiration'],
+                scope='base')
+            values = re.findall(r'krbpasswordexpiration: (\S+)',
+                                result.stdout_text.lower())
+            return [datetime.strptime(v.strip().upper(), '%Y%m%d%H%M%SZ')
+                    for v in values]
+
+        user = 'pwdexpmod'
+        master.run_command(['ipa', 'user-add', user,
+                            '--first', user, '--last', user])
+        try:
+            # An expiration within policy must be honored verbatim.
+            if max_life_secs:
+                within_delta = timedelta(seconds=min(max_life_secs // 2,
+                                                     86400))
+            else:
+                within_delta = timedelta(days=1)
+            requested = (datetime.utcnow() + within_delta).replace(
+                microsecond=0)
+            within_requested = requested
+            master.run_command(['ipa', 'user-mod', user,
+                                '--password-expiration',
+                                requested.strftime('%Y%m%d%H%M%SZ')])
+            stored = stored_expirations(user)
+            assert len(stored) == 1, (
+                'krbPasswordExpiration must be single-valued, got %r' % stored)
+            assert abs((stored[0] - requested).total_seconds()) < 120, (
+                'within-policy request %s not honored, stored %s'
+                % (requested, stored[0]))
+
+            # An expiration far beyond policy must be rejected, not
+            # silently capped (only meaningful when the policy sets a
+            # maximum lifetime).
+            if max_life_secs:
+                requested = (datetime.utcnow()
+                             + timedelta(seconds=max_life_secs)
+                             + timedelta(days=3650)).replace(microsecond=0)
+                cmd = master.run_command(
+                    ['ipa', 'user-mod', user,
+                     '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')], raiseonerr=False)
+                assert cmd.returncode != 0, (
+                    'beyond-policy request was accepted, exit code 0')
+                assert 'Constraint violation' in cmd.stderr_text, (
+                    'beyond-policy request did not fail with a constraint '
+                    'violation: %s' % cmd.stderr_text)
+                stored = stored_expirations(user)
+                assert len(stored) == 1, (
+                    'krbPasswordExpiration must be single-valued, got %r'
+                    % stored)
+                assert abs((stored[0] - within_requested).total_seconds()) \
+                    < 120, (
+                        'rejected request overwrote the stored expiration')
+
+            # The same request with a simultaneous password change must
+            # behave identically: honored within policy, rejected beyond.
+            if max_life_secs:
+                requested = (datetime.utcnow()
+                             + timedelta(seconds=min(max_life_secs // 2,
+                                                     86400))).replace(
+                                                         microsecond=0)
+                master.run_command(
+                    ['ipa', 'user-mod', user, '--password',
+                     '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')],
+                    stdin_text='Secret123\nSecret123\n')
+                stored = stored_expirations(user)
+                assert len(stored) == 1, (
+                    'krbPasswordExpiration must be single-valued, got %r'
+                    % stored)
+                assert abs((stored[0] - requested).total_seconds()) < 120, (
+                    'within-policy request %s not honored together with a '
+                    'password change, stored %s' % (requested, stored[0]))
+
+                requested = (datetime.utcnow()
+                             + timedelta(seconds=max_life_secs)
+                             + timedelta(days=3650)).replace(microsecond=0)
+                cmd = master.run_command(
+                    ['ipa', 'user-mod', user, '--password',
+                     '--password-expiration',
+                     requested.strftime('%Y%m%d%H%M%SZ')],
+                    stdin_text='Secret123\nSecret123\n', raiseonerr=False)
+                assert cmd.returncode != 0, (
+                    'beyond-policy request with password change was '
+                    'accepted, exit code 0')
+                assert 'Constraint violation' in cmd.stderr_text, (
+                    'beyond-policy request with password change did not '
+                    'fail with a constraint violation: %s' % cmd.stderr_text)
+
+            # The policy limit must be anchored at the password's own
+            # krbLastPwdChange, not the current time: an old password
+            # must not be extendable past lastchange + krbMaxPwdLife by
+            # an expiration-only modify. Age the password by writing a
+            # lastchange far in the past directly (no password change,
+            # so no expiration rewrite happens), then request a far
+            # future expiration and check it is rejected.
+            if max_life_secs:
+                aged_user = 'pwdexpaged'
+                master.run_command(['ipa', 'user-add', aged_user,
+                                    '--first', aged_user, '--last',
+                                    aged_user])
+                try:
+                    old_lastchange = (
+                        datetime.utcnow() - timedelta(days=180)
+                    ).replace(microsecond=0)
+                    user_dn = ('uid={user},cn=users,cn=accounts,{base_dn}'
+                               .format(user=aged_user, base_dn=base_dn))
+                    ldif = textwrap.dedent("""
+                        dn: {dn}
+                        changetype: modify
+                        replace: krbLastPwdChange
+                        krbLastPwdChange: {lpc}
+                        """).format(dn=user_dn,
+                                    lpc=old_lastchange.strftime(
+                                        '%Y%m%d%H%M%SZ'))
+                    tasks.ldapmodify_dm(master, ldif)
+
+                    requested = (datetime.utcnow()
+                                 + timedelta(days=3650)).replace(
+                                     microsecond=0)
+                    cmd = master.run_command(
+                        ['ipa', 'user-mod', aged_user,
+                         '--password-expiration',
+                         requested.strftime('%Y%m%d%H%M%SZ')],
+                        raiseonerr=False)
+                    assert cmd.returncode != 0, (
+                        'beyond-policy request for an aged password was '
+                        'accepted, exit code 0')
+                    assert 'Constraint violation' in cmd.stderr_text, (
+                        'beyond-policy request for an aged password did not '
+                        'fail with a constraint violation: %s'
+                        % cmd.stderr_text)
+                    # the request was lastchange-anchored: an expiration
+                    # within lastchange + max_pwd_life would still be
+                    # accepted even though it is beyond timeNow-based cap
+                    within = old_lastchange + timedelta(
+                        seconds=max_life_secs) - timedelta(days=1)
+                    master.run_command(
+                        ['ipa', 'user-mod', aged_user,
+                         '--password-expiration',
+                         within.strftime('%Y%m%d%H%M%SZ')])
+                    stored = stored_expirations(aged_user)
+                    assert len(stored) == 1, (
+                        'krbPasswordExpiration must be single-valued, '
+                        'got %r' % stored)
+                    assert abs((stored[0] - within).total_seconds()) < 120, (
+                        'lastchange-anchored within-policy request %s not '
+                        'honored, stored %s' % (within, stored[0]))
+                finally:
+                    master.run_command(['ipa', 'user-del', aged_user],
+                                       raiseonerr=False)
+
+            # A schema-valid GeneralizedTime with a timezone offset must
+            # be compared as the correct UTC instant, not bypass the limit.
+            if max_life_secs:
+                offset_user = 'pwdexpoffset'
+                master.run_command(['ipa', 'user-add', offset_user,
+                                    '--first', offset_user, '--last',
+                                    offset_user])
+                try:
+                    user_dn = ('uid={user},cn=users,cn=accounts,{base_dn}'
+                               .format(user=offset_user, base_dn=base_dn))
+                    # 3650 days ahead, expressed with a +0100 offset
+                    requested = (datetime.utcnow()
+                                 + timedelta(days=3650)).replace(
+                                     microsecond=0)
+                    offset_time = (requested
+                                   + timedelta(hours=1)).strftime(
+                                       '%Y%m%d%H%M%S+0100')
+                    ldif = textwrap.dedent("""
+                        dn: {dn}
+                        changetype: modify
+                        replace: krbPasswordExpiration
+                        krbPasswordExpiration: {exp}
+                        """).format(dn=user_dn, exp=offset_time)
+                    tasks.ldapmodify_dm(master, ldif)
+                    cmd = master.run_command(
+                        ['ipa', 'user-mod', offset_user,
+                         '--password-expiration', offset_time],
+                        raiseonerr=False)
+                    assert cmd.returncode != 0, (
+                        'offset-form expiration %s bypassed the policy '
+                        'limit' % offset_time)
+                finally:
+                    master.run_command(['ipa', 'user-del', offset_user],
+                                       raiseonerr=False)
+        finally:
+            master.run_command(['ipa', 'user-del', user], raiseonerr=False)
 
     def get_krbinfo(self, user):
         base_dn = str(self.master.domain.basedn)

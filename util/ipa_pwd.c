@@ -129,24 +129,106 @@ static bool utf8_isalpha(char *p)
 *
 * @return the time represented by the string or 0 on error
 */
+static int gentime_2digits(char **p, int *out)
+{
+    if (!isdigit((unsigned char)(*p)[0]) ||
+        !isdigit((unsigned char)(*p)[1])) {
+        return -1;
+    }
+    *out = ((*p)[0] - '0') * 10 + ((*p)[1] - '0');
+    *p += 2;
+    return 0;
+}
+
 time_t ipapwd_gentime_to_time_t(char *timestr)
 {
     struct tm tm;
+    char *p;
     time_t rtime = 0;
-    int ret;
+    int century, year;
+    long tzoff = 0;
 
     if (timestr != NULL) {
+        memset(&tm, 0, sizeof (tm));
+        p = timestr;
 
-        memset(&tm, 0, sizeof(struct tm));
-        ret = sscanf(timestr, "%04u%02u%02u%02u%02u%02u",
-                     &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-                     &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+        /* RFC 4517 GeneralizedTime: century year month day hour
+         * [minute [second]] [fraction] zone. Parse strictly so that
+         * timezone differentials and reduced precision (omitted minutes
+         * or seconds) resolve to the correct UTC instant instead of being
+         * misread as UTC or rejected. */
+        if (gentime_2digits(&p, &century) ||
+            gentime_2digits(&p, &year) ||
+            gentime_2digits(&p, &tm.tm_mon) ||
+            gentime_2digits(&p, &tm.tm_mday) ||
+            gentime_2digits(&p, &tm.tm_hour)) {
+            return 0;
+        }
+        tm.tm_year = century * 100 + year - 1900;
+        tm.tm_mon -= 1;
 
-        if (ret == 6) {
-            tm.tm_year -= 1900;
-            tm.tm_mon -= 1;
+        if (isdigit((unsigned char)*p)) {
+            if (gentime_2digits(&p, &tm.tm_min)) {
+                return 0;
+            }
+            if (isdigit((unsigned char)*p)) {
+                if (gentime_2digits(&p, &tm.tm_sec)) {
+                    return 0;
+                }
+            }
+        }
 
-            rtime = timegm(&tm);
+        /* optional fraction of a second: '.' or ',' and at least one
+         * digit; truncated (we only keep second precision) */
+        if (*p == '.' || *p == ',') {
+            p++;
+            if (!isdigit((unsigned char)*p)) {
+                return 0;
+            }
+            while (isdigit((unsigned char)*p)) {
+                p++;
+            }
+        }
+
+        /* zone: 'Z' or a +/- differential of hours [minutes] */
+        if (*p == 'Z') {
+            p++;
+        } else if (*p == '+' || *p == '-') {
+            int sign = (*p == '-') ? -1 : 1;
+            int tzhh, tzmm = 0;
+
+            p++;
+            if (gentime_2digits(&p, &tzhh)) {
+                return 0;
+            }
+            if (isdigit((unsigned char)*p)) {
+                if (gentime_2digits(&p, &tzmm)) {
+                    return 0;
+                }
+            }
+            if (tzhh > 23 || tzmm > 59) {
+                return 0;
+            }
+            tzoff = sign * (tzhh * 3600 + tzmm * 60);
+        } else {
+            /* a zone indicator is mandatory in GeneralizedTime; treat a
+             * missing one as UTC to stay lenient with sloppy writers */
+            ;
+        }
+
+        if (*p != '\0') {
+            return 0;
+        }
+
+        if (tm.tm_mon < 0 || tm.tm_mon > 11 ||
+            tm.tm_mday < 1 || tm.tm_mday > 31 ||
+            tm.tm_hour > 23 || tm.tm_min > 59 || tm.tm_sec > 60) {
+            return 0;
+        }
+
+        rtime = timegm(&tm);
+        if (rtime != (time_t)-1) {
+            rtime -= tzoff;
         }
     }
 

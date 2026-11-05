@@ -244,8 +244,52 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     /* check this is something interesting for us first */
     userpw = slapi_entry_attr_get_charptr(e, SLAPI_USERPWD_ATTR);
     if (!userpw) {
-        /* nothing interesting here */
-        return 0;
+        /* No password, but an explicit krbPasswordExpiration is still an
+         * explicit request and must obey the effective password policy,
+         * mirroring the expiration-only modify in ipapwd_pre_mod() and the
+         * password-carrying add below: a request beyond the policy maximum
+         * is rejected rather than silently stored. There is no password yet,
+         * so the limit is anchored at the current time; a password set later
+         * recomputes the expiration subject to the policy of that moment.
+         * A max_pwd_life of 0 means "never expire"; an unparseable value is
+         * left to the schema check. */
+        char *req_exp_str = slapi_entry_attr_get_charptr(
+            e, "krbPasswordExpiration");
+
+        if (req_exp_str != NULL) {
+            time_t req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+
+            slapi_ch_free_string(&req_exp_str);
+            if (req_exp != 0) {
+                struct ipapwd_policy pol = {0};
+
+                ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+                if (ret) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                ret = ipapwd_getPolicy(slapi_sdn_get_dn(sdn), e, &pol);
+                if (ret) {
+                    LOG_TRACE("No password policy, use defaults\n");
+                    pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
+                }
+                if (pol.max_pwd_life > 0 &&
+                    req_exp > time(NULL) + pol.max_pwd_life) {
+                    errMesg = "krbPasswordExpiration is beyond the password "
+                              "policy maximum life";
+                    LOG_PWDPOLICY("Failed to set krbPasswordExpiration for "
+                                  "'%s': %s\n",
+                                  slapi_sdn_get_dn(sdn), errMesg);
+                    rc = LDAP_CONSTRAINT_VIOLATION;
+                    goto done;
+                }
+            }
+        }
+        if (rc == LDAP_SUCCESS) {
+            /* nothing else interesting here */
+            return 0;
+        }
+        goto done;
     }
 
     /* Get target DN */
@@ -403,9 +447,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     /* If the entry being added already carries a krbPasswordExpiration, treat
      * it as an explicit request. An explicit request overrides the default
      * expiration derived by ipapwd_CheckPolicy (which, for an admin-set
-     * password, force-expires the account), but is still capped at the policy
-     * maximum lifetime -- a password must never outlive policy. A
-     * max_pwd_life of 0 means "never expire".
+     * password, force-expires the account), but must fall within the policy
+     * maximum lifetime -- a password must never outlive policy, so a request
+     * beyond it is rejected rather than silently capped. A max_pwd_life of 0
+     * means "never expire" and imposes no limit.
      *
      * This is only meaningful on LDAP ADD, where the attribute value is the
      * request; on a password change it holds the previous expiration and must
@@ -427,7 +472,12 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             }
 
             if (policy_max != 0 && req_exp > policy_max) {
-                pwdop->pwdata.expireTime = policy_max;
+                errMesg = "krbPasswordExpiration is beyond the password "
+                          "policy maximum life";
+                LOG_PWDPOLICY("Failed to set password credentials for '%s': "
+                              "%s\n", slapi_sdn_get_dn(sdn), errMesg);
+                rc = LDAP_CONSTRAINT_VIOLATION;
+                goto done;
             } else {
                 pwdop->pwdata.expireTime = req_exp;
             }
@@ -526,6 +576,9 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     Slapi_Mods *smods = NULL;
     char *userpw = NULL;
     char *unhashedpw = NULL;
+    char *req_exp_str = NULL;
+    char *req_lpc_str = NULL;
+    bool has_exp_op = false;
     Slapi_DN *sdn = NULL;
     Slapi_DN *tmp_sdn;
     struct slapi_entry *e = NULL;
@@ -633,6 +686,64 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             }
             memcpy(unhashedpw, bv->bv_val, bv->bv_len);
             unhashedpw[bv->bv_len] = '\0';
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                                "krbPasswordExpiration")) {
+            /* Remember the last requested expiration value. If this modify
+             * does not also change the password, this pre-op is the only
+             * place that can subject it to the password policy: the policy
+             * checks and the expiration write in ipapwd_post_modadd() only
+             * run when the password actually changes. */
+            switch (lmod->mod_op & 0x0f) {
+            case LDAP_MOD_ADD:
+            case LDAP_MOD_REPLACE:
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                bv = lmod->mod_bvalues[0];
+                slapi_ch_free_string(&req_exp_str);
+                req_exp_str = slapi_ch_malloc(bv->bv_len + 1);
+                if (!req_exp_str) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                memcpy(req_exp_str, bv->bv_val, bv->bv_len);
+                req_exp_str[bv->bv_len] = '\0';
+                has_exp_op = true;
+                break;
+            default:
+                break;
+            }
+        } else if (slapi_attr_types_equivalent(lmod->mod_type,
+                                               "krbLastPwdChange")) {
+            /* Remember the last requested last-change value, if any: the
+             * expiration cap must be anchored to the password's own age,
+             * and kadmind (and this plugin's post-op) write the new
+             * krbLastPwdChange together with the new expiration in the
+             * same password-less modify, so the stored value would be
+             * stale for those. */
+            switch (lmod->mod_op & 0x0f) {
+            case LDAP_MOD_ADD:
+            case LDAP_MOD_REPLACE:
+                if (!lmod->mod_bvalues ||
+                    !lmod->mod_bvalues[0]) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                bv = lmod->mod_bvalues[0];
+                slapi_ch_free_string(&req_lpc_str);
+                req_lpc_str = slapi_ch_malloc(bv->bv_len + 1);
+                if (!req_lpc_str) {
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                memcpy(req_lpc_str, bv->bv_val, bv->bv_len);
+                req_lpc_str[bv->bv_len] = '\0';
+                break;
+            default:
+                break;
+            }
         }
         lmod = slapi_mods_get_next_mod(smods);
     }
@@ -640,6 +751,70 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     /* If userPassword is not modified check if this is a request to generate
      * NT hashes otherwise we are done here */
     if (!is_pwd_op && !is_magic_regen) {
+        if (has_exp_op) {
+            /* A krbPasswordExpiration is requested without a password
+             * change. It is an explicit request and must fall within the
+             * effective password policy maximum, mirroring ipapwd_pre_add():
+             * a password must never outlive policy, so a request beyond it
+             * is rejected rather than silently capped. A krbMaxPwdLife of 0
+             * means "never expire" and imposes no limit. An unparseable
+             * value is left alone for the schema check to reject. */
+            struct ipapwd_policy pol = {0};
+            time_t req_exp;
+            time_t lastchange;
+            char *stored_lpc = NULL;
+            time_t policy_max;
+
+            tmp_sdn = slapi_sdn_dup(sdn);
+            if (!tmp_sdn) {
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            ret = slapi_search_internal_get_entry(tmp_sdn, 0, &e,
+                                                   ipapwd_plugin_id);
+            slapi_sdn_free(&tmp_sdn);
+            if (ret != LDAP_SUCCESS) {
+                LOG("Failed to retrieve entry?!\n");
+                rc = LDAP_NO_SUCH_OBJECT;
+                goto done;
+            }
+
+            ret = ipapwd_getPolicy(slapi_sdn_get_dn(sdn), e, &pol);
+            if (ret) {
+                LOG_TRACE("No password policy, use defaults\n");
+                pol.max_pwd_life = IPAPWD_DEFAULT_PWDLIFE;
+            }
+
+            req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+            /* Anchor the cap at the password's own last change, not the
+             * current time, so that an expiration-only modify cannot
+             * extend an old password past its maximum age. Prefer the
+             * incoming krbLastPwdChange when the modify sets it (kadmind
+             * and this plugin's post-op write both together), else the
+             * value stored on the entry. */
+            if (req_lpc_str != NULL) {
+                lastchange = ipapwd_gentime_to_time_t(req_lpc_str);
+            } else {
+                stored_lpc = slapi_entry_attr_get_charptr(e,
+                                                          "krbLastPwdChange");
+                lastchange = ipapwd_gentime_to_time_t(stored_lpc);
+                slapi_ch_free_string(&stored_lpc);
+            }
+            if (lastchange == 0) {
+                lastchange = time(NULL);
+            }
+            policy_max = (pol.max_pwd_life > 0)
+                         ? lastchange + pol.max_pwd_life : 0;
+            if (req_exp != 0 && policy_max != 0 && req_exp > policy_max) {
+                errMesg = "krbPasswordExpiration is beyond the password "
+                          "policy maximum life";
+                LOG_PWDPOLICY("Failed to set krbPasswordExpiration for "
+                              "'%s': %s\n",
+                              slapi_sdn_get_dn(sdn), errMesg);
+                rc = LDAP_CONSTRAINT_VIOLATION;
+                goto done;
+            }
+        }
         rc = LDAP_SUCCESS;
         goto done;
     }
@@ -939,6 +1114,35 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         }
     }
 
+    /* A krbPasswordExpiration supplied together with a password change is
+     * an explicit request, exactly like on ADD: honor it verbatim when it
+     * is within the policy maximum, otherwise reject instead of silently
+     * recomputing the default (which, for an admin-set password, would
+     * force-expire the account and discard the request without an error).
+     * A max_pwd_life of 0 means "never expire" and imposes no limit. */
+    if (req_exp_str != NULL) {
+        time_t req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+
+        if (req_exp != 0) {
+            time_t policy_max = 0;
+
+            if (pwdop->pwdata.policy.max_pwd_life > 0) {
+                policy_max = pwdop->pwdata.timeNow +
+                             pwdop->pwdata.policy.max_pwd_life;
+            }
+
+            if (policy_max != 0 && req_exp > policy_max) {
+                errMesg = "krbPasswordExpiration is beyond the password "
+                          "policy maximum life";
+                LOG_PWDPOLICY("Failed to set password credentials for '%s': "
+                              "%s\n", pwdop->pwdata.dn, errMesg);
+                rc = LDAP_CONSTRAINT_VIOLATION;
+                goto done;
+            }
+            pwdop->pwdata.expireTime = req_exp;
+        }
+    }
+
     if (gen_krb_keys || is_smb || is_ipant) {
 
         Slapi_Value **svals = NULL;
@@ -992,6 +1196,8 @@ done:
     free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&userpw); /* just to be sure */
     slapi_ch_free_string(&unhashedpw); /* we copied it to pwdop  */
+    slapi_ch_free_string(&req_exp_str);
+    slapi_ch_free_string(&req_lpc_str);
     if (e) slapi_entry_free(e); /* this is a copy in this function */
     if (pwdop) pwdop->pwdata.target = NULL;
 
