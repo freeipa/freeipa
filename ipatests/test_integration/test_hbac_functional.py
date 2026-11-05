@@ -526,6 +526,9 @@ class TestHBACFunctional(IntegrationTest):
         ))
         tasks.kinit_admin(self.master)
         tasks.hbacrule_disable(self.master, "allow_all")
+        # Remove from rule first; hbacsvc-del raises DependentEntry otherwise.
+        tasks.hbacrule_remove_service(self.master, self.HBAC_RULE,
+                                      services="vsftpd")
         tasks.hbacsvc_del(self.master, "vsftpd")
         tasks.hbacrule_show(self.master, self.HBAC_RULE, extra_args=["--all"])
 
