@@ -11670,8 +11670,8 @@ msgstr ""
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
 msgstr ""
-"Verze %(cver)s klienta není kompatibilní s verzí %(sver)s serveru '%(server)"
-"s'"
+"Verze %(cver)s klienta není kompatibilní s verzí %(sver)s serveru "
+"'%(server)s'"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
