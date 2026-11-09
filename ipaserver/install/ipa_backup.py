@@ -347,6 +347,19 @@ class Backup(admintool.AdminTool):
                 # create backup of auth configuration
                 auth_backup_path = os.path.join(paths.VAR_LIB_IPA, 'auth_backup')
                 tasks.backup_auth_configuration(auth_backup_path)
+
+                # Add samba registry files
+                for smbpath in (paths.SAMBA_DIR,
+                                os.path.join(paths.SAMBA_DIR, "private")):
+                    if os.path.isdir(smbpath):
+                        tdb_files = [
+                            os.path.join(smbpath, tdb_file)
+                            for tdb_file in os.listdir(smbpath)
+                            if tdb_file.endswith(".tdb")
+                        ]
+                        for tdb_file in tdb_files:
+                            self.files.append(tdb_file)
+
                 self.file_backup(options)
 
             if options.data_only:
