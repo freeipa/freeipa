@@ -1,7 +1,8 @@
 # IPA platform abstraction
 
 The ``ipaplatform`` package provides an abstraction layer for
-supported Linux distributions and flavors. The package contains
+supported Linux distributions and flavors, and an experimental macOS
+administration provider. The package contains
 constants, paths to commands and config files, services, and tasks.
 
 * **base** abstract base platform
@@ -9,6 +10,7 @@ constants, paths to commands and config files, services, and tasks.
 * **redhat** abstract base for Red Hat platforms
 * **fedora** Fedora
 * **fedora_container** freeipa-container on Fedora
+* **macos** experimental remote administration only; no host installation
 * **rhel** RHEL and CentOS
 * **rhel_container** freeipa-container on RHEL and CentOS
 * **suse** OpenSUSE and SLES
@@ -16,6 +18,7 @@ constants, paths to commands and config files, services, and tasks.
 ```
 [base]
   ├─ debian
+  ├─ macos (administration only)
   ├─[redhat]
   │   ├─ fedora
   │   │   └─ fedora_container
@@ -24,6 +27,11 @@ constants, paths to commands and config files, services, and tasks.
   └─ suse
 ```
 (Note: Debian and SUSE use some definitions from Red Hat namespace.)
+
+The macOS provider supports explicit client configuration and does not
+implement enrolment, local authentication, service management or server
+operation. See the [administration-client proposal](../doc/designs/macos-administration-client.md)
+for the dependency requirements and validation boundary.
 
 
 ## freeipa-container platform
