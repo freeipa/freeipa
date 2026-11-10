@@ -26,6 +26,12 @@ vms:
     tests:
     - test_integration/test_kerberos_flags.py
 
+  - container_job: client_upgrade_service
+    containers:
+      clients: 1
+    tests:
+    - test_integration/test_client_upgrade_service.py
+
   - container_job: forced_client_reenrollment
     containers:
       replicas: 1
