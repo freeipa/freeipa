@@ -1,6 +1,7 @@
 # Copyright (C) 2026 FreeIPA Contributors see COPYING for license
 """Administration-only Darwin platform behavior."""
 
+import importlib.util
 import os
 import subprocess
 import sys
@@ -88,9 +89,9 @@ def test_macos_knownservices_rejects_management(lookup):
 
     with pytest.raises(NotImplementedError, match='macOS'):
         if lookup == 'attribute':
-            knownservices.sssd
+            assert knownservices.sssd
         else:
-            knownservices['sssd']
+            assert knownservices['sssd']
 
 
 def test_macos_private_configuration_paths(tmp_path):
@@ -105,9 +106,17 @@ assert paths.IPA_DEFAULT_CONF == os.path.join(
 """], env=env, check=True)
 
 
+@pytest.fixture
+def host_installer_available():
+    # Client-only wheels deliberately omit ipaclient.install. Do not confuse
+    # that packaging policy with the Darwin runtime rejection under test.
+    if importlib.util.find_spec('ipaclient.install') is None:
+        pytest.skip('host installers are omitted from client-only wheels')
+
+
 @pytest.mark.parametrize('module', ['ipaclient.install.client',
                                     'ipaclient.install.automount'])
-def test_macos_rejects_installer_import(module):
+def test_macos_rejects_installer_import(module, host_installer_available):
     # Reject before importing installer dependencies or executing any host
     # configuration, including keytab purging. This needs no root access.
     subprocess.run([sys.executable, '-c', """
@@ -124,7 +133,9 @@ assert sys.argv[1] not in sys.modules
 """, module], check=True)
 
 
-@pytest.mark.parametrize('confdir', ['', 'relative', '/nonexistent/ipa-config'])
+@pytest.mark.parametrize('confdir', [
+    '', 'relative', '/nonexistent/ipa-config',
+])
 def test_macos_rejects_invalid_configuration_paths(confdir, monkeypatch):
     from ipaplatform.macos.paths import MacOSPathNamespace
 
@@ -133,7 +144,7 @@ def test_macos_rejects_invalid_configuration_paths(confdir, monkeypatch):
         MacOSPathNamespace()
 
 
-def test_linux_installer_package_import():
+def test_linux_installer_package_import(host_installer_available):
     subprocess.run([sys.executable, '-c', """
 import sys
 sys.platform = 'linux'
