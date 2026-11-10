@@ -10,7 +10,10 @@ server operation. Adding a provider does not establish general macOS support.
 Darwin already maps to `macos` in `ipaplatform.osinfo`. The provider supplies the
 existing paths/constants/tasks/services interfaces and is included in the
 explicit setuptools package list. It reuses base IPA configuration paths;
-`IPA_CONFDIR` selects an application-specific directory. Unsupported service
+`IPA_CONFDIR` selects an application-specific directory, including the platform
+CA and default configuration paths. Set it before importing IPA modules.
+The host-installation package rejects import on Darwin before installation
+code can modify local credentials or files. Unsupported service
 management raises `NotImplementedError`. Host configuration tasks retain the
 base unsupported behavior, with explicit errors for base installation hooks
 that otherwise do nothing, and for resolver/NSS/automount mutations.

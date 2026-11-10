@@ -13,6 +13,7 @@ def test_darwin_platform_selection():
     # changing the provider selected by the surrounding Linux test suite.
     env = os.environ.copy()
     env.pop('IPAPLATFORM_OVERRIDE', None)
+    env.pop('IPA_CONFDIR', None)
     subprocess.run(
         [sys.executable, '-c', '''
 import ctypes.util
@@ -79,3 +80,62 @@ assert api.env.context == 'client'
 assert api.env.realm == 'IPA.TEST'
 assert not api.env.in_server
 ''', str(tmp_path)], env=env, check=True)
+
+
+@pytest.mark.parametrize('lookup', ['attribute', 'mapping'])
+def test_macos_knownservices_rejects_management(lookup):
+    from ipaplatform.macos.services import knownservices
+
+    with pytest.raises(NotImplementedError, match='macOS'):
+        if lookup == 'attribute':
+            knownservices.sssd
+        else:
+            knownservices['sssd']
+
+
+def test_macos_private_configuration_paths(tmp_path):
+    env = os.environ.copy()
+    env['IPA_CONFDIR'] = str(tmp_path)
+    subprocess.run([sys.executable, '-c', """
+import os
+from ipaplatform.macos.paths import paths
+assert paths.IPA_CA_CRT == os.path.join(os.environ['IPA_CONFDIR'], 'ca.crt')
+assert paths.IPA_DEFAULT_CONF == os.path.join(
+    os.environ['IPA_CONFDIR'], 'default.conf')
+"""], env=env, check=True)
+
+
+@pytest.mark.parametrize('module', ['ipaclient.install.client',
+                                    'ipaclient.install.automount'])
+def test_macos_rejects_installer_import(module):
+    # Reject before importing installer dependencies or executing any host
+    # configuration, including keytab purging. This needs no root access.
+    subprocess.run([sys.executable, '-c', """
+import importlib
+import sys
+sys.platform = 'darwin'
+try:
+    importlib.import_module(sys.argv[1])
+except ImportError as e:
+    assert 'Host installation is unsupported on macOS' in str(e)
+else:
+    raise AssertionError('macOS host installer was imported')
+assert sys.argv[1] not in sys.modules
+""", module], check=True)
+
+
+@pytest.mark.parametrize('confdir', ['', 'relative', '/nonexistent/ipa-config'])
+def test_macos_rejects_invalid_configuration_paths(confdir, monkeypatch):
+    from ipaplatform.macos.paths import MacOSPathNamespace
+
+    monkeypatch.setenv('IPA_CONFDIR', confdir)
+    with pytest.raises(ValueError, match='IPA_CONFDIR'):
+        MacOSPathNamespace()
+
+
+def test_linux_installer_package_import():
+    subprocess.run([sys.executable, '-c', """
+import sys
+sys.platform = 'linux'
+import ipaclient.install
+"""], check=True)

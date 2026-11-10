@@ -8,5 +8,13 @@ def service(name, api=None):
     raise NotImplementedError('Service management is unsupported on macOS')
 
 
-knownservices = KnownServices({})
+class MacOSKnownServices(KnownServices):
+    def __getitem__(self, key):
+        return service(key)
+
+    def __getattr__(self, name):
+        return service(name)
+
+
+knownservices = MacOSKnownServices({})
 timedate_services = []
