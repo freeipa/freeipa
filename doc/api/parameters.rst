@@ -56,6 +56,7 @@ IPA API Parameter types
    OTPTokenKey.md
    PTRRecord.md
    Password.md
+   Pkcs12Bytes.md
    Principal.md
    RPRecord.md
    RRSIGRecord.md
