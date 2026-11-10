@@ -528,9 +528,15 @@ class test_hbac(XMLRPC_test):
     def test_y_hbacrule_zap_testing_data(self):
         """
         Clear data for HBAC plugin testing.
+
+        hbacsvc must be removed from the rule before delete; hbacsvc-del
+        refuses DependentEntry while still listed on memberservice.
         """
         api.Command['hbacrule_remove_host'](self.rule_name, host=self.test_host)
         api.Command['hbacrule_remove_host'](self.rule_name, hostgroup=self.test_hostgroup)
+        api.Command['hbacrule_remove_service'](
+            self.rule_name, hbacsvc=self.test_service
+        )
         api.Command['user_del'](self.test_user)
         api.Command['group_del'](self.test_group)
         api.Command['host_del'](self.test_host)
@@ -539,7 +545,7 @@ class test_hbac(XMLRPC_test):
 
     def test_k_2_sudorule_referential_integrity(self):
         """
-        Test that links in HBAC rule were removed by referential integrity plugin
+        Test that HBAC rule membership links were cleared during cleanup.
         """
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
