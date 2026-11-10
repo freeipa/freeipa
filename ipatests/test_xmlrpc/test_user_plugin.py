@@ -1103,6 +1103,22 @@ class TestAdmins(XMLRPC_test):
                           key=admin1, container=admin_group)):
             command()
 
+    def test_disable_original_admin_using_setattr(self):
+        """user-mod --setattr nsaccountlock must not disable last enabled admin
+
+        Must raise LastMemberError (same as user-disable). Do not succeed and
+        leave admin locked — that bricks the rest of the XML-RPC suite.
+        """
+        tracker = Tracker()
+        command = tracker.make_command(
+            'user_mod', admin1,
+            **dict(setattr='nsaccountlock=TRUE'),
+        )
+
+        with raises_exact(errors.LastMemberError(label='group',
+                          key=admin1, container=admin_group)):
+            command()
+
     def test_create_admin2(self, admin2):
         """ Test whether second admin gets created """
         admin2.ensure_exists()
@@ -1122,6 +1138,30 @@ class TestAdmins(XMLRPC_test):
                           key=admin1, container=admin_group)):
             tracker.run_command('user_disable', admin1)
         admin2.delete()
+
+    def test_disable_non_last_admin_using_setattr(self, admin2):
+        """user-mod --setattr may disable an admin when another remains enabled
+
+        Disable admin2 (not the session principal admin) so the suite can
+        still recover and clean up.
+        """
+        admin2.ensure_exists()
+        admin2.make_admin()
+        tracker = Tracker()
+        try:
+            result = tracker.run_command(
+                'user_mod', admin2.name,
+                **dict(setattr='nsaccountlock=TRUE'),
+            )
+            # Must verify the lock was applied; do not only update tracker
+            # state (a silent no-op user_mod would otherwise pass).
+            assert result['result']['nsaccountlock'] is True
+            admin2.attrs['nsaccountlock'] = True
+        finally:
+            # Always restore via admin (still enabled) before deleting admin2.
+            tracker.run_command('user_enable', admin2.name)
+            admin2.attrs['nsaccountlock'] = False
+            admin2.delete()
 
 
 @pytest.mark.tier1
