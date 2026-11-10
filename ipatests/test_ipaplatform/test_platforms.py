@@ -16,6 +16,7 @@ PLATFORMS = [
     "debian",
     "fedora",
     "fedora_container",
+    "macos",
     "rhel",
     "rhel_container",
     "suse",

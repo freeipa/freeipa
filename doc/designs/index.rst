@@ -39,3 +39,4 @@ FreeIPA design documentation
    sysaccounts.md
    namespace.md
    pw-expiration.md
+   macos-administration-client.md
