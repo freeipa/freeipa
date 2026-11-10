@@ -453,14 +453,22 @@ class sudorule_mod(LDAPUpdate):
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
 
-        if 'sudoorder' in options:
-            new_order = options.get('sudoorder')
+        # --setattr puts sudoorder in entry_attrs, not options
+        new_order = options.get('sudoorder')
+        if new_order is None and 'sudoorder' in entry_attrs:
+            new_order = entry_attrs.single_value.get('sudoorder')
+            if new_order is not None:
+                new_order = int(new_order)
+        if new_order is not None or 'sudoorder' in options:
+            check_options = dict(options)
+            check_options['sudoorder'] = new_order
             if 'sudoorder' in _entry_attrs:
                 old_order = int(_entry_attrs['sudoorder'][0])
                 if old_order != new_order:
-                    self.obj.check_order_uniqueness(*keys, **options)
+                    self.obj.check_order_uniqueness(
+                        *keys, **check_options)
             else:
-                self.obj.check_order_uniqueness(*keys, **options)
+                self.obj.check_order_uniqueness(*keys, **check_options)
 
         error = _("%(type)s category cannot be set to 'all' "
                   "while there are allowed %(objects)s")

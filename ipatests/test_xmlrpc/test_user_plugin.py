@@ -416,6 +416,52 @@ class TestUpdate(XMLRPC_test):
                 info='attribute "%s" not allowed' % attr)):
             command()
 
+    def test_smb_attrs_option_and_setattr(self):
+        """SMB attrs: dedicated option and setattr must behave the same.
+
+        Use a dedicated user so updates cannot pollute the shared TestUpdate
+        fixture. Sidgen (common on Azure XMLRPC images) adds ipaNTUserAttrs
+        on user-add. Stripping that objectClass is fragile: ``user-show
+        --raw`` keeps LDAP casing (``objectClass``), MUST SID attrs can
+        block delattr, and prior strip attempts failed CI for those reasons.
+
+        Branch on the post-add objectclasses instead:
+        - OC absent → both option and setattr must raise ValidationError
+        - OC present → both must succeed (parity); user is deleted in finally
+        """
+        uid = 'smbguarduser'
+        err = (
+            'Object class ipaNTUserAttrs is missing, '
+            'user entry cannot have SMB attributes.'
+        )
+        script = r'\\server\script.bat'
+        try:
+            api.Command.user_add(uid, givenname='Smb', sn='Guard')
+            # Non-raw show lowercases attribute names (unlike --raw).
+            entry = api.Command.user_show(uid, all=True)['result']
+            has_nt_oc = any(
+                o.lower() == 'ipantuserattrs'
+                for o in entry.get('objectclass', [])
+            )
+            if has_nt_oc:
+                # Missing-OC guard cannot fire; assert option/setattr parity.
+                api.Command.user_mod(uid, ipantlogonscript=script)
+                api.Command.user_mod(
+                    uid, setattr=r'ipantlogonscript=\\server\other.bat')
+            else:
+                with raises_exact(errors.ValidationError(
+                        name='ipantlogonscript', error=err)):
+                    api.Command.user_mod(uid, ipantlogonscript=script)
+                with raises_exact(errors.ValidationError(
+                        name='ipantlogonscript', error=err)):
+                    api.Command.user_mod(
+                        uid, setattr=r'ipantlogonscript=%s' % script)
+        finally:
+            try:
+                api.Command.user_del(uid)
+            except errors.NotFound:
+                pass
+
     def test_update(self, user):
         """ Update a user attribute """
         user.update(dict(givenname='Franta'))
