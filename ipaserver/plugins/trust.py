@@ -22,6 +22,7 @@ import dbus
 import dbus.mainloop.glib
 import logging
 
+import ipaserver
 
 from ipalib.messages import (
     add_message,
@@ -71,6 +72,7 @@ try:
 except Exception as e:
     _nss_idmap_installed = False
 
+_bindings_installed = False
 if api.env.in_server:
     try:
         import ipaserver.dcerpc
@@ -494,11 +496,13 @@ class trust(LDAPObject):
                           'ipanttrustforesttrustinfo',
                           'ipanttrustposixoffset',
                           'ipantsupportedencryptiontypes',
-                          'ipantadditionalsuffixes']
+                          'ipantadditionalsuffixes',
+                          'ipanttrusttlnexclusions']
     search_display_attributes = ['cn', 'ipantflatname',
                                  'ipanttrusteddomainsid', 'ipanttrusttype',
                                  'ipanttrustattributes',
-                                 'ipantadditionalsuffixes']
+                                 'ipantadditionalsuffixes',
+                                 'ipanttrusttlnexclusions']
     managed_permissions = {
         'System: Read Trust Information': {
             # Allow reading of attributes needed for SSSD subdomains support
@@ -513,6 +517,7 @@ class trust(LDAPObject):
                 'ipanttrusteddomainsid', 'ipanttrustpartner',
                 'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing',
                 'ipanttrustdirection', 'ipantadditionalsuffixes',
+                'ipanttrusttlnexclusions',
             },
         },
 
@@ -1170,30 +1175,58 @@ class trust_del(LDAPDelete):
 @register()
 class trust_mod(LDAPUpdate):
     __doc__ = _("""
-    Modify a trust (for future use).
+    Modify a trust.
 
-    Currently only the default option to modify the LDAP attributes is
-    available. More specific options will be added in coming releases.
+    Use the UPN suffix and TLN exclusion options to replace the complete
+    lists, or the add and delete options to modify individual values.
     """)
 
     msg_summary = _('Modified trust "%(value)s" '
                     '(change will be effective in 60 seconds)')
+
+    takes_options = LDAPUpdate.takes_options + (
+        Str('add_upn_suffix*', label=_('Add UPN suffix')),
+        Str('del_upn_suffix*', label=_('Delete UPN suffix')),
+        Str('add_tln_exclusion*', label=_('Add TLN exclusion')),
+        Str('del_tln_exclusion*', label=_('Delete TLN exclusion')),
+    )
+
+    def execute(self, *keys, **options):
+        for name, attribute in (
+                ('upn_suffix', 'ipantadditionalsuffixes'),
+                ('tln_exclusion', 'ipanttrusttlnexclusions')):
+            adds = options.pop('add_' + name, None) or ()
+            deletes = options.pop('del_' + name, None) or ()
+            if (adds or deletes) and attribute in options:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('A replacement list cannot be combined with '
+                             'add or delete options for the same attribute'))
+            for option, values in (('addattr', adds), ('delattr', deletes)):
+                if values:
+                    options[option] = tuple(options.get(option) or ()) + tuple(
+                        '%s=%s' % (attribute, value) for value in values)
+        return super(trust_mod, self).execute(*keys, **options)
 
     def pre_callback(self, ldap, dn, e_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
         self.obj.validate_sid_blocklists(e_attrs)
 
-        new_suffixes = e_attrs.get('ipantadditionalsuffixes')
-        new_exclusions = e_attrs.get('ipanttrusttlnexclusions')
-        suffixes_changed = new_suffixes is not None
-        exclusions_changed = new_exclusions is not None
+        suffixes_changed = 'ipantadditionalsuffixes' in e_attrs
+        exclusions_changed = 'ipanttrusttlnexclusions' in e_attrs
+        new_suffixes = e_attrs.get('ipantadditionalsuffixes') or []
+        new_exclusions = e_attrs.get('ipanttrusttlnexclusions') or []
 
-        if _bindings_installed and (suffixes_changed or exclusions_changed):
+        if suffixes_changed or exclusions_changed:
+            if not _bindings_installed:
+                raise errors.NotFound(
+                    reason=_('Samba support is required to modify trust '
+                             'namespace information'))
             try:
                 current = ldap.get_entry(
                     dn,
-                    ['ipantadditionalsuffixes', 'ipanttrusttlnexclusions'])
+                    ['ipantadditionalsuffixes', 'ipanttrusttlnexclusions',
+                     'ipanttrustforesttrustinfo'])
             except errors.NotFound:
                 current = {}
 
@@ -1245,7 +1278,9 @@ class trust_mod(LDAPUpdate):
             if namespace_data_changed:
                 e_attrs['ipanttrustforesttrustinfo'] = [
                     ipaserver.dcerpc.build_forest_trust_info_blob(
-                        domain_name, suffixes, exclusions)]
+                        domain_name, suffixes, exclusions,
+                        (current.get('ipanttrustforesttrustinfo') or [None])[0],
+                        current_suffixes, current_exclusions)]
 
         return dn
 
@@ -1859,9 +1894,19 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry,
         tlns = entry.get('ipantadditionalsuffixes', [])
         tlns.extend(x for x in suffixes if x not in tlns)
         entry['ipantadditionalsuffixes'] = tlns
+        exclusions = list(entry.get('ipanttrusttlnexclusions', []))
+        exclusion_names = {name.lower() for name in exclusions}
+        for name in domains.get('exclusions', []):
+            if name.lower() not in exclusion_names:
+                exclusions.append(name)
+                exclusion_names.add(name.lower())
+        if exclusions:
+            entry['ipanttrusttlnexclusions'] = exclusions
         ftidata = domains.get('ftinfo_data', None)
         if ftidata is not None:
-            entry['ipanttrustforesttrustinfo'] = [ftidata]
+            entry['ipanttrustforesttrustinfo'] = [
+                ipaserver.dcerpc.build_forest_trust_info_blob(
+                    trust_name, tlns, exclusions, ftidata)]
         ldap.update_entry(entry)
     except errors.EmptyModlist:
         pass

@@ -248,3 +248,51 @@ class TestTrustFetchDomainsPermissions(XMLRPC_test):
                               FETCH_DOMAINS_NORMAL_USER_PASSWORD):
             with pytest.raises(errors.ACIError):
                 api.Command.trust_fetch_domains(fetch_domains_test_trust_cn)
+
+
+@pytest.mark.tier1
+class TestTrustNamespaceModification(XMLRPC_test):
+    @pytest.fixture(autouse=True)
+    def trust_setup(self, xmlrpc_setup):
+        try:
+            api.Command.trustconfig_show(trust_type='ad')
+        except errors.NotFound:
+            pytest.skip('Trusts are not configured')
+        name = 'namespace-api-test.example'
+        dn = get_trust_dn(name)
+        with MockLDAP() as ldap:
+            ldap.add_entry(dn, get_trusted_dom_dict(
+                name, 'S-1-5-21-2111111111-2222222222-2333333333'))
+            yield name, dn, ldap
+            ldap.del_entry(dn)
+
+    def test_add_and_remove_namespace_values(self, trust_setup):
+        pytest.importorskip('samba')
+        from samba.dcerpc import drsblobs, lsa
+        from samba.ndr import ndr_unpack
+
+        name, dn, ldap = trust_setup
+        api.Command.trust_mod(
+            name, add_upn_suffix=('suffix.example',),
+            add_tln_exclusion=('excluded.example',))
+        shown = api.Command.trust_show(name)['result']
+        assert shown['ipantadditionalsuffixes'] == ['suffix.example']
+        assert shown['ipanttrusttlnexclusions'] == ['excluded.example']
+
+        api.Command.trust_mod(
+            name, del_upn_suffix=('suffix.example',),
+            del_tln_exclusion=('excluded.example',))
+        shown = api.Command.trust_show(name)['result']
+        assert 'ipantadditionalsuffixes' not in shown
+        assert 'ipanttrusttlnexclusions' not in shown
+
+        result = ldap.connection.search_s(
+            str(dn), 0, '(objectclass=*)', ['ipaNTTrustForestTrustInfo'])
+        blob = result[0][1]['ipaNTTrustForestTrustInfo'][0]
+        info = ndr_unpack(drsblobs.ForestTrustInfo, blob)
+        assert not any(
+            record.record.type in (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME,
+                                   lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX)
+            and record.record.data.string in ('suffix.example',
+                                              'excluded.example')
+            for record in info.records)
