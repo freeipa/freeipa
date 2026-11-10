@@ -71,7 +71,7 @@ from ipapython.errors import SetseboolError
 
 from . import automount, timeconf, sssd
 from ipaclient import discovery
-from ipapython.ipachangeconf import IPAChangeConf
+from ipapython.ipachangeconf import IPAChangeConf, krb5_conf_set_realm_option
 
 NoneType = type(None)
 
@@ -3319,6 +3319,13 @@ def _install(options, tdict):
         paths.CA_BUNDLE_PEM,
         mode=0o644
     )
+
+    # Now that the KDC CA bundle is available, enable auto_fast_armor
+    # so that subsequent kinit calls use FAST via anonymous PKINIT.
+    # This cannot be done earlier (e.g. in configure_krb5_realm)
+    # because the pkinit_anchors file does not exist yet at that point.
+    krb5_conf_set_realm_option(
+        paths.KRB5_FREEIPA, cli_realm, 'auto_fast_armor', 'true')
 
     # Add the CA certificates to the IPA NSS database
     logger.debug("Adding CA certificates to the IPA NSS database.")
