@@ -72,7 +72,8 @@ class BasePathNamespace:
     IPA_SERVER_CONF = "/etc/ipa/server.conf"
     DNSSEC_OPENSSL_CONF = "/etc/ipa/dnssec/openssl.cnf"
     DNSSEC_SOFTHSM2_CONF = "/etc/ipa/dnssec/softhsm2.conf"
-    DNSSEC_SOFTHSM_PIN_SO = "/etc/ipa/dnssec/softhsm_pin_so"
+    DNSSEC_HSM_PIN_SO = "/etc/ipa/dnssec/softhsm_pin_so"
+    DNSSEC_SOFTHSM_PIN_SO = DNSSEC_HSM_PIN_SO
     IPA_NSSDB_DIR = "/etc/ipa/nssdb"
     IPA_NSSDB_PWDFILE_TXT = "/etc/ipa/nssdb/pwdfile.txt"
     COMMON_KRB5_CONF_DIR = "/etc/krb5.conf.d/"
@@ -225,6 +226,7 @@ class BasePathNamespace:
     BIN_NISDOMAINNAME = "/usr/bin/nisdomainname"
     NSUPDATE = "/usr/bin/nsupdate"
     ODS_KSMUTIL = "/usr/bin/ods-ksmutil"
+    PKCS11_TOOL = "/usr/bin/pkcs11-tool"
     ODS_SIGNER = "/usr/sbin/ods-signer"
     ODS_ENFORCER = "/usr/sbin/ods-enforcer"
     ODS_ENFORCER_DB_SETUP = "/usr/sbin/ods-enforcer-db-setup"
@@ -330,7 +332,8 @@ class BasePathNamespace:
     IPA_DNSSEC_DIR = "/var/lib/ipa/dnssec"
     IPA_KASP_DB_BACKUP = "/var/lib/ipa/ipa-kasp.db.backup"
     DNSSEC_TOKENS_DIR = "/var/lib/ipa/dnssec/tokens"
-    DNSSEC_SOFTHSM_PIN = "/var/lib/ipa/dnssec/softhsm_pin"
+    DNSSEC_HSM_PIN = "/var/lib/ipa/dnssec/softhsm_pin"
+    DNSSEC_SOFTHSM_PIN = DNSSEC_HSM_PIN
     DNSSEC_ENGINE_SOCK = "/run/opendnssec/engine.sock"
     IPA_CA_CSR = "/var/lib/ipa/ca.csr"
     IPA_CACERT_MANAGE = "/usr/sbin/ipa-cacert-manage"
