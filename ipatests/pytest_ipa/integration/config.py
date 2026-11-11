@@ -183,11 +183,16 @@ class Domain(pytest_multihost.config.Domain):
             raise LookupError(self.type)
 
     def get_host_class(self, host_dict):
-        from .host import Host, WinHost  # pylint: disable=cyclic-import
+        from .host import (  # pylint: disable=cyclic-import
+            Host, SambaADHost, WinHost)
 
         if self.is_ipa_type:
             return Host
         elif self.is_ad_type:
+            # host_type: samba in the test configuration marks a Samba AD
+            # DC; anything else is Windows
+            if host_dict.get('host_type') == 'samba':
+                return SambaADHost
             return WinHost
         elif self.is_trusted_ipa_type:
             return Host

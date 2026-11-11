@@ -212,6 +212,9 @@ class TestHttpKdcProxy(IntegrationTest):
 
     @pytest.fixture()
     def windows_small_mtu_size(self, mh):
+        if self.ad.ad_flavor != 'windows':
+            pytest.skip('the MTU is changed with PowerShell and netsh, '
+                        'which a Samba AD host does not have')
         new_mtu = 70
 
         def get_iface_name():
