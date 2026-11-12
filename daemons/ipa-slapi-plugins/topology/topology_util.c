@@ -1594,8 +1594,8 @@ ipa_topo_util_start(int delay)
      * the managed data under cn=config
      */
     if (delay) {
-        time(&now);
-        if (!slapi_eq_once(ipa_topo_queue_apply_shared_config,NULL,now +
+        now = slapi_current_rel_time_t();
+        if (!slapi_eq_once_rel(ipa_topo_queue_apply_shared_config,NULL,now +
             ipa_topo_get_plugin_startup_delay())) {
             slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                         "unable to queue configuration update\n");
