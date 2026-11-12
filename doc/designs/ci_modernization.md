@@ -826,7 +826,11 @@ its own build that SRPM, and runs the presets one after the other. The
 workflow runs it on the GitHub runners of a contributor's fork: the job
 `if` is `github.event.repository.fork`, there is no `pull_request` trigger,
 and a push without `.ci-freeipa.yaml` costs the few seconds of the detection
-job. The version of ci-freeipa is the `ref` of the pin plan.
+job. The version of ci-freeipa is the `ref` of the pin plan. When the fork
+has a `TESTING_FARM_API_TOKEN` secret, the workflow submits the request to
+Testing Farm (`freeipa-env request --runner testing-farm`) and does not use
+the runner's KVM: the guest clones the pushed commit of the fork and runs the
+pin plan, so only container presets of ci-freeipa run that way.
 
 In `ipatests/`: small additive changes only. The integration framework's
 AD hosts are objects with methods (`ipatests/pytest_ipa/integration/host.py`:

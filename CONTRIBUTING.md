@@ -65,6 +65,8 @@ git add .ci-freeipa.yaml && git commit -m "TEMP: ci-freeipa" && git push <your f
 
 The workflow `.github/workflows/ci-freeipa.yml` runs only in forks, and only for a pushed commit that has `.ci-freeipa.yaml`; it builds FreeIPA from the commit and reports in the summary of the run. It does not run for pull requests and it does not use the runners of the organization. Remove the temp commit before the pull request is merged. The same request runs on your machine with `freeipa-env request .ci-freeipa.yaml --freeipa-src .` from a ci-freeipa checkout.
 
+If your fork has a secret `TESTING_FARM_API_TOKEN`, the workflow submits the request to Testing Farm instead of using the GitHub runner. The guest clones the pushed commit, so the fork must be public. This route runs only ci-freeipa presets that use containers.
+
 You can also run some of the tests locally. Usually at least `fastlint` should be successful.
 - `make fastlint (pycodestyle and pylint)`
 - `make fasttest (tests which don’t require access to IPA API)`

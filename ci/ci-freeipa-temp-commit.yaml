@@ -13,6 +13,12 @@
 # nothing in a fork whose commits have no .ci-freeipa.yaml. Drop the commit
 # before you open the pull request.
 #
+# To use Testing Farm instead of a GitHub runner, add your Testing Farm API
+# token to your fork as the secret TESTING_FARM_API_TOKEN. The workflow then
+# submits the request: the guest clones the pushed commit (the fork must be
+# public), builds it, and runs the presets. Only presets of ci-freeipa that
+# run in containers do: no qemu presets, no `tests` list, no `build: false`.
+#
 # A path is a file of your commit if there is one (add your own preset next
 # to this file if you need a different topology), else a file of the
 # ci-freeipa version that ci/tmt/plans/freeipa-env.fmf pins: a preset is

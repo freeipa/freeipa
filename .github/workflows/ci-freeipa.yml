@@ -26,12 +26,21 @@ jobs:
     timeout-minutes: 5
     outputs:
       request: ${{ steps.find.outputs.request }}
+      testing_farm: ${{ steps.find.outputs.testing_farm }}
     steps:
       - uses: actions/checkout@v4
       - id: find
+        env:
+          # a secret is not available to `if`: test it here
+          TF_TOKEN: ${{ secrets.TESTING_FARM_API_TOKEN }}
         run: |
           if [ -e .ci-freeipa.yaml ]; then
               echo "request=true" >> "$GITHUB_OUTPUT"
+              if [ -n "$TF_TOKEN" ]; then
+                  echo "testing_farm=true" >> "$GITHUB_OUTPUT"
+                  echo "TESTING_FARM_API_TOKEN is set: submitting to Testing Farm" \
+                      >> "$GITHUB_STEP_SUMMARY"
+              fi
           else
               echo "no .ci-freeipa.yaml in this commit: nothing to run" \
                   >> "$GITHUB_STEP_SUMMARY"
@@ -39,7 +48,9 @@ jobs:
 
   run:
     needs: detect
-    if: needs.detect.outputs.request == 'true'
+    if: >-
+      needs.detect.outputs.request == 'true' &&
+      needs.detect.outputs.testing_farm != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 350
     steps:
@@ -101,5 +112,47 @@ jobs:
         with:
           name: ci-freeipa-logs
           path: ${{ env.WORK }}/**/logs
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # With a TESTING_FARM_API_TOKEN secret in the fork, the request goes to
+  # Testing Farm instead: the guest clones this commit from the fork (which
+  # must be public), builds it, and runs the presets of ci-freeipa. It does
+  # not use the runner's own KVM. See `freeipa-env request --help`.
+  testing-farm:
+    needs: detect
+    if: >-
+      needs.detect.outputs.request == 'true' &&
+      needs.detect.outputs.testing_farm == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PyYAML for freeipa-env
+        run: python3 -c 'import yaml' 2>/dev/null || pip install --break-system-packages pyyaml
+
+      - name: Check out ci-freeipa at the pinned ref
+        run: |
+          eval "$(python3 -c "import yaml; d = yaml.safe_load(open('ci/tmt/plans/freeipa-env.fmf'))['discover']; print('url=%s ref=%s' % (d['url'], d['ref']))")"
+          git clone --quiet "$url" "$RUNNER_TEMP/ci-freeipa"
+          git -C "$RUNNER_TEMP/ci-freeipa" checkout --quiet "$ref"
+          echo "ci-freeipa $url at $ref" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Submit to Testing Farm and wait
+        env:
+          TESTING_FARM_API_TOKEN: ${{ secrets.TESTING_FARM_API_TOKEN }}
+        run: |
+          "$RUNNER_TEMP/ci-freeipa/env/freeipa-env" request .ci-freeipa.yaml \
+              --runner testing-farm --freeipa-src "$PWD" \
+              --tf-repo-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              --tf-ref "$GITHUB_SHA" --workdir "$RUNNER_TEMP/request"
+
+      - name: Keep the Testing Farm results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-freeipa-testing-farm
+          path: ${{ runner.temp }}/request/queue
           retention-days: 14
           if-no-files-found: ignore
