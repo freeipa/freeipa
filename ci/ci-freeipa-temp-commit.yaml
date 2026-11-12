@@ -16,8 +16,10 @@
 # To use Testing Farm instead of a GitHub runner, add your Testing Farm API
 # token to your fork as the secret TESTING_FARM_API_TOKEN. The workflow then
 # submits the request: the guest clones the pushed commit (the fork must be
-# public), builds it, and runs the presets. Only presets of ci-freeipa that
-# run in containers do: no qemu presets, no `tests` list, no `build: false`.
+# public), builds it, and runs the presets. Only presets of ci-freeipa run
+# there: no preset of your own, no `tests` list, no `build: false`. A qemu
+# preset runs too: the RPMs are built once in podman on the guest and the
+# VMs install them.
 #
 # A path is a file of your commit if there is one (add your own preset next
 # to this file if you need a different topology), else a file of the

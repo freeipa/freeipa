@@ -87,5 +87,13 @@ prepare:
       - python3-psutil
       - libcmocka-devel
       - selinux-policy-devel
+      # nested-qemu presets: qemu VMs on the guest (it needs KVM, which a
+      # request that has a qemu preset asks for), installing the RPMs built here
+      - qemu-system-x86-core
+      - qemu-img
+      - xorriso
+      - rsync
+      - openssh-clients
+      - python3-pyyaml
 execute:
     how: tmt

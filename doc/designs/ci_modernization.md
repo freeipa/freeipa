@@ -830,7 +830,10 @@ job. The version of ci-freeipa is the `ref` of the pin plan. When the fork
 has a `TESTING_FARM_API_TOKEN` secret, the workflow submits the request to
 Testing Farm (`freeipa-env request --runner testing-farm`) and does not use
 the runner's KVM: the guest clones the pushed commit of the fork and runs the
-pin plan, so only container presets of ci-freeipa run that way.
+pin plan. The pin plan also installs qemu, and a request that has a qemu
+preset asks for virtualization; `tf-runner.sh` builds the RPMs once in podman
+(`images/build.sh --build-only --rpms-out`) and gives each qemu preset a copy
+with `vm.rpms`. Only presets of ci-freeipa run that way.
 
 In `ipatests/`: small additive changes only. The integration framework's
 AD hosts are objects with methods (`ipatests/pytest_ipa/integration/host.py`:
