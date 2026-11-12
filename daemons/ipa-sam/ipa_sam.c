@@ -2087,6 +2087,71 @@ enum princ_mod {
 	DEL_PRINC
 };
 
+
+static NTSTATUS get_trust_pwd(TALLOC_CTX *mem_ctx, const DATA_BLOB *auth_blob,
+			       char **pwd, NTTIME *last_update);
+static bool get_trusted_domain_by_name_int(struct ipasam_private *ipasam_state,
+					   TALLOC_CTX *mem_ctx,
+					   const char *filter,
+					   LDAPMessage **entry);
+
+/* Fetch the current clear-text trust secrets stored for 'domain'.
+ * Returns false if the entry or the secrets cannot be read; the caller
+ * then keeps the passwords it was originally given. Used to close the
+ * race between two concurrent trust refreshes: the keys are always
+ * derived from the secrets currently stored in LDAP, so an older
+ * request that writes last cannot leave keys derived from a stale
+ * password. */
+static bool get_current_trust_secrets(struct ipasam_private *ipasam_state,
+				       TALLOC_CTX *mem_ctx,
+				       const char *domain,
+				       const char **pwd_incoming,
+				       const char **pwd_outgoing)
+{
+	LDAPMessage *entry = NULL;
+	DATA_BLOB auth_blob = { 0 };
+	NTSTATUS status;
+	bool res;
+
+	res = get_trusted_domain_by_name_int(ipasam_state, mem_ctx, domain,
+					     &entry);
+	if (!res || entry == NULL) {
+		return false;
+	}
+
+	if (pwd_incoming != NULL) {
+		if (!smbldap_talloc_single_blob(mem_ctx,
+						priv2ld(ipasam_state), entry,
+						LDAP_ATTRIBUTE_TRUST_AUTH_INCOMING,
+						&auth_blob)) {
+			return false;
+		}
+		status = get_trust_pwd(mem_ctx, &auth_blob,
+				       discard_const_p(char *, pwd_incoming),
+				       NULL);
+		if (!NT_STATUS_IS_OK(status)) {
+			return false;
+		}
+	}
+
+	if (pwd_outgoing != NULL) {
+		if (!smbldap_talloc_single_blob(mem_ctx,
+						priv2ld(ipasam_state), entry,
+						LDAP_ATTRIBUTE_TRUST_AUTH_OUTGOING,
+						&auth_blob)) {
+			return false;
+		}
+		status = get_trust_pwd(mem_ctx, &auth_blob,
+				       discard_const_p(char *, pwd_outgoing),
+				       NULL);
+		if (!NT_STATUS_IS_OK(status)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				      const char *domain, const char *flat_name,
 				      const char *pwd_incoming,
@@ -2152,6 +2217,29 @@ static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 
 	switch (mod) {
 		case SET_PRINC:
+			/* Two concurrent trust refreshes may race on the
+			 * same principals with different passwords. Re-read
+			 * the trust secrets from LDAP now, so the keys are
+			 * derived from the secrets current at write time and
+			 * an older request that writes last cannot leave
+			 * keys for a stale password. */
+			{
+				const char *cur_incoming = NULL;
+				const char *cur_outgoing = NULL;
+
+				if (get_current_trust_secrets(ipasam_state,
+							      tmp_ctx, domain,
+							      &cur_incoming,
+							      &cur_outgoing)) {
+					pwd_incoming = cur_incoming;
+					pwd_outgoing = cur_outgoing;
+				} else {
+					DEBUG(5, ("ipasam: could not re-read "
+						  "current trust secrets for "
+						  "%s, using the ones "
+						  "given\n", domain));
+				}
+			}
 			/* We must use two sets by two principals here because
 			 * they are used for different needs and must have
 			 * different salts */
