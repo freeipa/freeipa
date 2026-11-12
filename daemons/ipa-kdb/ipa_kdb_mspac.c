@@ -2155,6 +2155,7 @@ done:
     return kerr;
 }
 
+#if !defined(KRB5_KDB_FLAG_CLIENT)
 static krb5_error_code get_delegation_info(krb5_context context,
                                 TALLOC_CTX *memctx, krb5_data *pac_blob,
                                 struct PAC_CONSTRAINED_DELEGATION_CTR *info)
@@ -2303,6 +2304,8 @@ done:
     talloc_free(tmpctx);
     return kerr;
 }
+
+#endif
 
 krb5_error_code ipadb_common_verify_pac(krb5_context context,
                                         unsigned int flags,
