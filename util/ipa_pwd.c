@@ -657,7 +657,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
 
     if (policy->min_complexity) {
         int num_digits = 0;
-        int num_alphas = 0;
         int num_uppers = 0;
         int num_lowers = 0;
         int num_specials = 0;
@@ -677,7 +676,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
                 num_digits++;
             /* alpha/lower/upper, is checked only for pure ASCII chars */
             } else if (utf8_isalpha(p)) {
-                num_alphas++;
                 if (islower(*p)) {
                     num_lowers++;
                 } else {
