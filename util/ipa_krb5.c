@@ -142,9 +142,11 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
 /*
  * Generate a krb5_key_data set by encrypting keys according to
  * enctype/salttype preferences. When salt_override is not NULL its
- * contents are used as the string-to-key salt for every generated key
- * instead of the salt derived from the principal name; the salt types in
- * encsalts must then be KRB5_KDB_SALTTYPE_NORMAL.
+ * contents are used as the string-to-key salt of every generated key
+ * whose tuple requests KRB5_KDB_SALTTYPE_NORMAL, instead of the salt
+ * derived from the principal name; tuples requesting other salt types
+ * keep deriving (and recording) their own salt so that the stored salt
+ * type always matches the salt actually used to derive the key.
  */
 krb5_error_code ipa_krb5_generate_key_data_with_salt(krb5_context krbctx,
                                                      krb5_principal principal,
@@ -188,7 +190,8 @@ krb5_error_code ipa_krb5_generate_key_data_with_salt(krb5_context krbctx,
         keys[i].key_data_ver = 2; /* we always have a salt */
         keys[i].key_data_kvno = kvno;
 
-        if (salt_override != NULL) {
+        if (salt_override != NULL
+            && encsalts[i].ks_salttype == KRB5_KDB_SALTTYPE_NORMAL) {
             salt.data = strndup(salt_override->data, salt_override->length);
             if (salt.data == NULL) {
                 kerr = ENOMEM;
