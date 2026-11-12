@@ -136,6 +136,7 @@ typedef struct topo_plugin_config {
 #define CONFIG_ATTR_PLUGIN_VERSION "nsslapd-pluginVersion"
 
 /* functions to manage config and global variables */
+int ipa_topo_init(Slapi_PBlock *pb);
 int ipa_topo_init_plugin_config(Slapi_PBlock *pb);
 void ipa_topo_init_shared_config(void);
 int ipa_topo_init_config(Slapi_PBlock *pb);
@@ -215,6 +216,8 @@ int ipa_topo_pre_modrdn(Slapi_PBlock *pb);
 int ipa_topo_pre_del(Slapi_PBlock *pb);
 
 /* functions to modify agreements */
+int ipa_topo_agmt_initialize_replication(char *hostname, TopoReplica *conf,
+                                       TopoReplicaAgmt *agmt);
 int ipa_topo_agmt_new(char *hostname, TopoReplica *repl_conf,
                       TopoReplicaAgmt *agmt);
 int ipa_topo_agmt_del_dn(char *dn);

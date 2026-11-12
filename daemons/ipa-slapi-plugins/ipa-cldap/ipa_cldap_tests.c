@@ -27,7 +27,7 @@
 
 #include "ipa_cldap.h"
 
-void test_make_netbios_name(void **state)
+static void test_make_netbios_name(void **state)
 {
     char *r;
     size_t c;
@@ -65,4 +65,3 @@ int main(int argc, const char *argv[])
 
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
-

@@ -96,6 +96,7 @@ struct ipa_cldap_req {
 };
 
 /*void *ipa_cldap_worker(struct ipa_cldap_ctx *ctx);*/
+int ipa_cldap_init(Slapi_PBlock *pb);
 void *ipa_cldap_worker(void *arg);
 
 int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,

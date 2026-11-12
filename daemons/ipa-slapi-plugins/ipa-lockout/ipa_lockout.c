@@ -92,6 +92,9 @@ static char *ipa_global_policy = NULL;
  *
  */
 int ipalockout_init(Slapi_PBlock * pb);
+int ipalockout_version(void);
+void setPluginDN(char *pluginDN);
+char *getPluginDN(void);
 static int ipalockout_start(Slapi_PBlock * pb);
 static int ipalockout_close(Slapi_PBlock * pb);
 static int ipalockout_postop_init(Slapi_PBlock * pb);
@@ -118,12 +121,12 @@ int ipalockout_version(void)
 /**
  * Plugin identity mgmt
  */
-void setPluginID(void *pluginID)
+static void setPluginID(void *pluginID)
 {
     _PluginID = pluginID;
 }
 
-void *getPluginID(void)
+static void *getPluginID(void)
 {
     return _PluginID;
 }
@@ -256,7 +259,7 @@ done:
     return ret;
 }
 
-int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
+static int ipalockout_getpolicy(Slapi_Entry *target_entry, Slapi_Entry **policy_entry,
                          Slapi_ValueSet** values, char **actual_type_name,
                          const char **policy_dn, int *attr_free_flags,
                          char **errstr)

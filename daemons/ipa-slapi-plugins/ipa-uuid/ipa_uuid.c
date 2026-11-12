@@ -111,6 +111,7 @@ static int g_plugin_started = 0;
  *
  */
 int ipauuid_init(Slapi_PBlock * pb);
+int ipauuid_version(void);
 static int ipauuid_start(Slapi_PBlock * pb);
 static int ipauuid_close(Slapi_PBlock * pb);
 static int ipauuid_internal_preop_init(Slapi_PBlock *pb);
@@ -156,17 +157,17 @@ void ipauuid_dump_config_entry(struct configEntry *);
  * Deal with cache locking
  *
  */
-void ipauuid_read_lock(void)
+static void ipauuid_read_lock(void)
 {
     pthread_rwlock_rdlock(&g_ipauuid_cache_lock);
 }
 
-void ipauuid_write_lock(void)
+static void ipauuid_write_lock(void)
 {
     pthread_rwlock_wrlock(&g_ipauuid_cache_lock);
 }
 
-void ipauuid_unlock(void)
+static void ipauuid_unlock(void)
 {
     pthread_rwlock_unlock(&g_ipauuid_cache_lock);
 }
@@ -184,22 +185,22 @@ int ipauuid_version(void)
 /**
  * Plugin identity mgmt
  */
-void setPluginID(void *pluginID)
+static void setPluginID(void *pluginID)
 {
     _PluginID = pluginID;
 }
 
-void *getPluginID(void)
+static void *getPluginID(void)
 {
     return _PluginID;
 }
 
-void setPluginDN(char *pluginDN)
+static void setPluginDN(char *pluginDN)
 {
     _PluginDN = pluginDN;
 }
 
-char *getPluginDN(void)
+static char *getPluginDN(void)
 {
     return _PluginDN;
 }
@@ -1257,4 +1258,3 @@ static int ipauuid_config_check_post_op(Slapi_PBlock * pb)
 
     return 0;
 }
-

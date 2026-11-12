@@ -23,11 +23,14 @@
 #define _(STRING) gettext(STRING)
 
 #include <stdint.h>
+#include <stddef.h>
 #ifndef discard_const
 #define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
 #endif
 
 int init_gettext(void);
+char *read_config_file(const char *filename);
+char *get_config_entry(char *data, const char *section, const char *key);
 
 typedef struct {
     char *payload;

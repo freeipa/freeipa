@@ -50,6 +50,8 @@
 #define IPA_PLUGIN_NAME "ipa-krbprinc-mr"
 #include "util.h"
 
+int ipa_krbprinc_mr_init(Slapi_PBlock *pb);
+
 #define KRBPRINC_MATCH_OID "2.16.840.1.113730.3.8.29.1"
 #define KRBPRINC_MATCH_NAME "krbPrincipalMatch"
 #define IA5STRING_SYNTAX_OID "1.3.6.1.4.1.1466.115.121.1.26"

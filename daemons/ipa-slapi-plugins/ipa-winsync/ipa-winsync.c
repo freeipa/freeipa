@@ -64,6 +64,8 @@
 #include <ctype.h>
 #include "plstr.h"
 
+int ipa_winsync_plugin_init(Slapi_PBlock *pb);
+
 static int ipa_winsync_precedence = 0;
 
 static void

@@ -50,6 +50,8 @@
 
 #include "util.h"
 
+int ipaenrollment_init(Slapi_PBlock *pb);
+
 #define IPA_PLUGIN_NAME "ipa-enrollment"
 
 /* OID of the extended operation handled by this plug-in */

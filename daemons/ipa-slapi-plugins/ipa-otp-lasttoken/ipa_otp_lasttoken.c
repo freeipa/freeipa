@@ -46,6 +46,8 @@
 
 #include "util.h"
 
+int ipa_otp_lasttoken_init(Slapi_PBlock *pb);
+
 #define IPA_PLUGIN_NAME "ipa-otp-lasttoken"
 #define OTP_CONTAINER "cn=otp,%s"
 
