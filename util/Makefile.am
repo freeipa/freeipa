@@ -21,8 +21,9 @@ libutil_la_SOURCES = \
 
 libutil_la_LIBADD = $(CRYPTO_LIBS) $(KRB5_LIBS) $(LDAP_LIBS) $(PWQUALITY_LIBS)
 
-check_PROGRAMS = t_pwd
+check_PROGRAMS = t_pwd t_ntlm
 t_pwd_LDADD = libutil.la
+t_ntlm_LDADD = libutil.la
 if ENABLE_SERVER
 check_PROGRAMS += t_policy
 t_policy_LDADD = libutil.la

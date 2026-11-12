@@ -28,7 +28,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <iconv.h>
-#include <openssl/md4.h>
+#include <openssl/evp.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/provider.h>
+#endif
 
 #include "ipa_pwd.h"
 
@@ -42,17 +45,22 @@
 */
 int encode_nt_key(char *newPasswd, uint8_t *nt_key)
 {
-    int ret = 0;
+    int ret = -1;
     iconv_t cd;
     size_t cs, il, ol, sl;
     char *inc, *outc;
-    char *ucs2Passwd;
-    MD4_CTX md4ctx;
+    char *ucs2Passwd = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    OSSL_LIB_CTX *libctx = NULL;
+    OSSL_PROVIDER *legacy = NULL;
+    EVP_MD *md4 = NULL;
+#else
+    const EVP_MD *md4 = EVP_md4();
+#endif
 
     /* TODO: must store the dos charset somewhere in the directory */
     cd = iconv_open(KTF_UCS2, KTF_UTF8);
     if (cd == (iconv_t)(-1)) {
-        ret = -1;
         goto done;
     }
 
@@ -62,7 +70,6 @@ int encode_nt_key(char *newPasswd, uint8_t *nt_key)
     sl = ol = (il+1)*2;
     ucs2Passwd = calloc(ol, 1);
     if (!ucs2Passwd) {
-        ret = -1;
         iconv_close(cd);
         goto done;
     }
@@ -71,8 +78,6 @@ int encode_nt_key(char *newPasswd, uint8_t *nt_key)
     outc = ucs2Passwd;
     cs = iconv(cd, &inc, &il, &outc, &ol);
     if (cs == -1) {
-        ret = -1;
-        free(ucs2Passwd);
         iconv_close(cd);
         goto done;
     }
@@ -83,28 +88,34 @@ int encode_nt_key(char *newPasswd, uint8_t *nt_key)
     /* get the final ucs2 string length */
     sl -= ol;
 
-    ret = MD4_Init(&md4ctx);
-    if (ret == 0) {
-        ret = -1;
-        free(ucs2Passwd);
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    /* NT hashes require legacy MD4. Keep its provider and algorithm policy
+     * separate from the application's default OpenSSL context. */
+    libctx = OSSL_LIB_CTX_new();
+    if (libctx == NULL) {
         goto done;
     }
-    ret = MD4_Update(&md4ctx, ucs2Passwd, sl);
-    if (ret == 0) {
-        ret = -1;
-        free(ucs2Passwd);
+    legacy = OSSL_PROVIDER_load(libctx, "legacy");
+    if (legacy == NULL) {
         goto done;
     }
-    ret = MD4_Final(nt_key, &md4ctx);
-    if (ret == 0) {
-        ret = -1;
-        free(ucs2Passwd);
+    md4 = EVP_MD_fetch(libctx, "MD4", NULL);
+    if (md4 == NULL) {
+        goto done;
+    }
+#endif
+
+    if (EVP_Digest(ucs2Passwd, sl, nt_key, NULL, md4, NULL) != 1) {
         goto done;
     }
 
     ret = 0;
-    free(ucs2Passwd);
-
 done:
+    free(ucs2Passwd);
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    EVP_MD_free(md4);
+    OSSL_PROVIDER_unload(legacy);
+    OSSL_LIB_CTX_free(libctx);
+#endif
     return ret;
 }
