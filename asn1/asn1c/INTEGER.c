@@ -924,8 +924,11 @@ asn_long2INTEGER(INTEGER_t *st, long value) {
 		break;
 	}
 	/* Copy the integer body */
-	for(pstart = p, bp = buf, pend1 += add; p != pend1; p += add)
+	for(bp = buf; ; p += add) {
 		*bp++ = *p;
+		if(p == pend1)
+			break;
+	}
 
 	if(st->buf) FREEMEM(st->buf);
 	st->buf = buf;
