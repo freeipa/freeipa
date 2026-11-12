@@ -1718,12 +1718,8 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
     bool result;
     bool is_from_trusted_domain = false;
     struct ipadb_e_data *ied = NULL;
-    int flags = 0;
     struct dom_sid client_sid;
     const char *stmsg = NULL;
-#ifdef KRB5_KDB_FLAG_ALIAS_OK
-    flags = KRB5_KDB_FLAG_ALIAS_OK;
-#endif
 
     ipactx = ipadb_get_context(context);
     if (!ipactx) {
