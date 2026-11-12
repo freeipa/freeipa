@@ -416,13 +416,13 @@ static int  extdom_req_setup(void **state)
 {
     struct test_data *test_data;
 
-    test_data = calloc(sizeof(struct test_data), 1);
+    test_data = calloc(1, sizeof(struct test_data));
     assert_non_null(test_data);
 
-    test_data->req = calloc(sizeof(struct extdom_req), 1);
+    test_data->req = calloc(1, sizeof(struct extdom_req));
     assert_non_null(test_data->req);
 
-    test_data->ctx = calloc(sizeof(struct ipa_extdom_ctx), 1);
+    test_data->ctx = calloc(1, sizeof(struct ipa_extdom_ctx));
     assert_non_null(test_data->ctx);
 
     test_data->ctx->max_nss_buf_size = MAX_BUF;
