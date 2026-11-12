@@ -19,7 +19,7 @@ description: |
 discover:
     how: fmf
     url: https://github.com/freeipa/ci-freeipa
-    ref: main
+    ref: effdc9a4ec2bb5a96bad5cbe94f6376dafd16295
     test: "^/tmt/tests/"
 prepare:
     how: install
