@@ -799,19 +799,34 @@ Beaker, no Azure, no VMs.
 The CI code does not live in the FreeIPA tree. It is the separate
 **ci-freeipa** repository (`env/` the `freeipa-env` provisioner, `images/`,
 `queues/`, `scripts/`, `tmt/`), so that CI tools and the branch under test
-have separate versions. The FreeIPA tree keeps only the pin:
+have separate versions. The FreeIPA tree keeps the pin and what it takes to
+use it:
 
 ```
 .fmf/version                  # makes the tree a tmt (fmf) root
 ci/tmt/plans/freeipa-env.fmf  # discovers the test in ci-freeipa at a fixed ref
                               # and installs the BuildRequires of this branch's
                               # freeipa.spec.in on the Testing Farm guest
+ci/ci-freeipa-temp-commit.yaml  # template of a temp commit (below)
+.github/workflows/ci-freeipa.yml  # runs a temp commit, in forks only
 ```
 
-Run it with `tmt run plan --name /ci/tmt/plans/freeipa-env -e
+Run the pin with `tmt run plan --name /ci/tmt/plans/freeipa-env -e
 FREEIPA_SRC=$PWD`, or submit it to Testing Farm with
 `freeipa-env queue run QUEUE --runner testing-farm --freeipa-src .` from
 ci-freeipa (§3.11). To use newer CI tools, change the `ref` of the plan.
+
+**Temp commits.** PRCI runs what a temporary commit lists: the contributor
+makes `.freeipa-pr-ci.yaml` a link to a job file. ci-freeipa has the same
+mechanism: a `.ci-freeipa.yaml` at the root of the tree lists ci-freeipa
+presets, or a queue, and the tests to run in them. `freeipa-env request`
+reads it, builds an SRPM of the checkout in a Fedora container (with the
+packages that the pin plan installs), gives each preset that does not name
+its own build that SRPM, and runs the presets one after the other. The
+workflow runs it on the GitHub runners of a contributor's fork: the job
+`if` is `github.event.repository.fork`, there is no `pull_request` trigger,
+and a push without `.ci-freeipa.yaml` costs the few seconds of the detection
+job. The version of ci-freeipa is the `ref` of the pin plan.
 
 In `ipatests/`: small additive changes only. The integration framework's
 AD hosts are objects with methods (`ipatests/pytest_ipa/integration/host.py`:

@@ -55,6 +55,16 @@ See: `ipatests/prci_definitions/temp_commit.yaml` for an example.
 
 See other files in the same directory to get the job definitions.
 
+You can also run tests with [ci-freeipa](https://github.com/freeipa/ci-freeipa) on the GitHub runners of **your fork**, without PRCI. Add a temp commit with `.ci-freeipa.yaml` at the root of the tree, which lists the presets or the queue to run:
+
+```
+ln -sf ci/ci-freeipa-temp-commit.yaml .ci-freeipa.yaml
+# edit ci/ci-freeipa-temp-commit.yaml, or write your own file instead of the link
+git add .ci-freeipa.yaml && git commit -m "TEMP: ci-freeipa" && git push <your fork> <branch>
+```
+
+The workflow `.github/workflows/ci-freeipa.yml` runs only in forks, and only for a pushed commit that has `.ci-freeipa.yaml`; it builds FreeIPA from the commit and reports in the summary of the run. It does not run for pull requests and it does not use the runners of the organization. Remove the temp commit before the pull request is merged. The same request runs on your machine with `freeipa-env request .ci-freeipa.yaml --freeipa-src .` from a ci-freeipa checkout.
+
 You can also run some of the tests locally. Usually at least `fastlint` should be successful.
 - `make fastlint (pycodestyle and pylint)`
 - `make fasttest (tests which don’t require access to IPA API)`
