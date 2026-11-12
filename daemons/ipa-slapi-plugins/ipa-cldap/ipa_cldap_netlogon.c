@@ -245,7 +245,7 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
     char *name = NULL;
     uint32_t ntver = 0;
     uint32_t t;
-    char *dot;
+    const char *dot;
     int ret;
     int len;
     int i;

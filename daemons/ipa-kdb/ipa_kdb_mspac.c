@@ -717,7 +717,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
      * but we still need to set the account flags correctly */
     if ((is_host || is_service)) {
         /* it is either host or service, so get the hostname first */
-        char *sep = strchr(info3->base.account_name.string, '/');
+        const char *sep = strchr(info3->base.account_name.string, '/');
         bool is_master;
 
         ret = is_master_host(ipactx,
