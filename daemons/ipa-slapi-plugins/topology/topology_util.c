@@ -489,7 +489,7 @@ ipa_topo_util_conf_from_entry(Slapi_Entry *entry)
         return conf;
     }
 }
-void
+static void
 ipa_topo_util_segm_modify (TopoReplica *tconf,
                                TopoReplicaSegment *tsegm,
                                Slapi_Mods *smods)
@@ -509,7 +509,7 @@ ipa_topo_util_segm_modify (TopoReplica *tconf,
     slapi_ch_free_string(&dn);
 }
 
-void
+static void
 ipa_topo_util_remove_init_attr(TopoReplica *repl_conf, TopoReplicaAgmt *topo_agmt)
 {
     TopoReplicaSegmentList *seglist = repl_conf->repl_segments;
@@ -538,7 +538,7 @@ ipa_topo_util_remove_init_attr(TopoReplica *repl_conf, TopoReplicaAgmt *topo_agm
     }
 }
 
-void
+static void
 ipa_topo_util_set_agmt_rdn(TopoReplicaAgmt *topo_agmt, Slapi_Entry *repl_agmt)
 {
     const Slapi_DN *agmt_dn = slapi_entry_get_sdn_const(repl_agmt);
@@ -552,7 +552,7 @@ ipa_topo_util_set_agmt_rdn(TopoReplicaAgmt *topo_agmt, Slapi_Entry *repl_agmt)
     slapi_rdn_free(&agmt_rdn);
 }
 
-int
+static int
 ipa_topo_util_update_agmt_rdn(TopoReplica *conf, TopoReplicaAgmt *agmt,
                               char *toHost)
 {
@@ -1153,7 +1153,7 @@ ipa_topo_util_segm_order(TopoReplicaSegment *l, TopoReplicaSegment *r)
     return strcasecmp(l->from, r->from);
 }
 
-void
+static void
 ipa_topo_util_segment_do_merge(TopoReplica *tconf,
                                TopoReplicaSegment *ex_segm, TopoReplicaSegment *tsegm)
 {
@@ -1473,7 +1473,7 @@ ipa_topo_util_init_hosts(Slapi_Entry *hostentry)
     return;
 }
 
-void
+static void
 ipa_topo_util_add_managed_host(char *suffix, char *addhost)
 {
     TopoReplica *conf = ipa_topo_cfg_replica_find(suffix,1);
@@ -1808,7 +1808,7 @@ ipa_topo_util_is_tombstone_op(Slapi_PBlock *pb)
     slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     return slapi_operation_is_flag_set(op, SLAPI_OP_FLAG_TOMBSTONE_ENTRY);
 }
-int
+static int
 ipa_topo_util_cleanruv_task(char *repl_root, int replicaID)
 {
     Slapi_Entry *e = NULL;
@@ -1846,7 +1846,7 @@ ipa_topo_util_cleanruv_task(char *repl_root, int replicaID)
 
 }
 
-void
+static void
 ipa_topo_util_cleanruv_element(char *repl_root, char *hostname)
 {
     Slapi_PBlock *pb = NULL;
