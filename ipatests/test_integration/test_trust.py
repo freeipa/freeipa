@@ -1,6 +1,7 @@
 # Copyright (C) 2019 FreeIPA Contributors see COPYING for license
 
 from __future__ import absolute_import
+import os
 import re
 import textwrap
 import time
@@ -1671,6 +1672,25 @@ class TestTrustNetbiosRealmCollision(BaseTestTrust):
             assert all(s == self.expected_salt for s in salts), \
                 'unexpected salts stored for {}'.format(principal)
 
+    def test_tdo_principal_keys_usable(self):
+        """
+        Keys of the TDO account are usable: retrieve them into a keytab
+        through the getkeytab extended operation and kinit with that
+        keytab. This exercises the actual key material, so a key
+        generated with a wrong salt (while recording the expected salt
+        beside it) fails to produce a usable credential.
+        """
+        keytab = os.path.join(self.master.config.test_dir, 'tdo.keytab')
+        try:
+            self.master.run_command(
+                ['ipa-getkeytab', '-k', keytab, '-p', self.tdo_principal,
+                 '-r'])
+            self.master.run_command(
+                ['kinit', '-kt', keytab, self.tdo_principal])
+            tasks.kdestroy_all(self.master)
+        finally:
+            self.master.run_command(['rm', '-f', keytab])
+
     def test_ad_user_authentication(self):
         """
         AD user authenticates against the IPA KDC through the trust. This
@@ -1685,6 +1705,13 @@ class TestTrustNetbiosRealmCollision(BaseTestTrust):
                                         realm=True)
             tasks.kinit_as_user(self.clients[0], ad_upn,
                                 self.ad_test_user_password)
+            # The AD TGT alone does not exercise the trust: request a
+            # service ticket from the IPA KDC through the cross-realm
+            # TGT principal, which fails if the trust principals are
+            # broken.
+            self.clients[0].run_command(
+                ['kvno', 'HTTP/{}@{}'.format(self.master.hostname,
+                                             self.ipa_realm)])
         finally:
             tasks.kdestroy_all(self.clients[0])
             self._ad_user_del(self.ad_test_user)
@@ -1696,11 +1723,18 @@ class TestTrustNetbiosRealmCollision(BaseTestTrust):
         its keys from the salt stored in the existing key data.
         """
         new_password = 'Rotated123456'
+        old_keys = tasks.get_principal_key_data(
+            self.master, self.tdo_principal, self._trusts_base())
+        assert old_keys, 'no keys found for {}'.format(self.tdo_principal)
+        old_kvno = max(k for k, _, _ in old_keys)
         self.master.run_command(
             ['kadmin.local', '-q',
              'change_password -pw {} {}'.format(new_password,
                                                 self.tdo_principal)])
-        salts = self._get_key_salts(self.tdo_principal)
-        assert salts, 'no keys found for {}'.format(self.tdo_principal)
-        assert all(s == self.expected_salt for s in salts), \
+        new_keys = tasks.get_principal_key_data(
+            self.master, self.tdo_principal, self._trusts_base())
+        assert new_keys, 'no keys found for {}'.format(self.tdo_principal)
+        assert max(k for k, _, _ in new_keys) > old_kvno, \
+            'the key rotation did not change the key data'
+        assert all(s == self.expected_salt for _, s, _ in new_keys), \
             'stored salt did not survive the key rotation'

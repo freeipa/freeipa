@@ -706,6 +706,14 @@ class TestUpgradeTdoNetbiosRealmCollision(IntegrationTest):
         assert tdo_keys, 'no keys stored for {}'.format(self.tdo_principal)
         assert all(salt == self.expected_salt for _, salt, _ in tdo_keys), \
             'TDO keys were not derived from the explicit salt'
+        # The recorded salt alone does not prove the key material: the
+        # TDO account must authenticate with the incoming trust secret,
+        # which is only possible when its keys were derived from that
+        # secret with the explicit salt.
+        self.master.run_command(
+            ['kinit', self.tdo_principal],
+            stdin_text=self.trust_secret_incoming + '\n')
+        tasks.kdestroy_all(self.master)
 
         tgt_keys = tasks.get_principal_key_data(
             self.master, self.tgt_principal, base)
@@ -714,6 +722,15 @@ class TestUpgradeTdoNetbiosRealmCollision(IntegrationTest):
         kvno = max(k for k, _, _ in tgt_keys)
         assert kvno > 1, \
             'the cross-realm TGT was not re-keyed from trustAuthOutgoing'
+
+        # The kvno bump alone does not prove the right password was used:
+        # authenticate as the TGT principal with the outgoing trust
+        # secret. A TGT re-keyed from the incoming password (or any other
+        # secret) fails here even though its kvno and salt look right.
+        self.master.run_command(
+            ['kinit', self.tgt_principal],
+            stdin_text=self.trust_secret_outgoing + '\n')
+        tasks.kdestroy_all(self.master)
 
         # a second upgrade must not touch the converted layout again
         self.master.run_command(['ipa-server-upgrade'])
