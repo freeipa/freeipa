@@ -640,8 +640,8 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
 
             /* let set the entry password property according to its
              * entry password policy (done with ipapwd_getPolicy)
-             * For this intentional fallthrough here
              */
+            /* Fall through */
         case IPA_CHANGETYPE_DSMGR:
             /* PassSync agents and Directory Manager can administratively
              * change the password without expiring it.

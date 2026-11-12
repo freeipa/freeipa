@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "config.h"
+#include "ipa-client-common.h"
 
 int init_gettext(void)
 {

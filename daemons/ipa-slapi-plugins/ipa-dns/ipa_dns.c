@@ -72,6 +72,8 @@
 #include "slapi-plugin.h"
 #include "util.h"
 
+int ipadns_init(Slapi_PBlock *pb);
+
 #define IPA_PLUGIN_NAME "ipa_dns"
 #define IPADNS_CLASS_ZONE "idnsZone"
 #define IPADNS_ATTR_SERIAL "idnsSOASerial"
@@ -93,7 +95,7 @@ Slapi_Value *value_zone = NULL;
  * \return \c 1 when objectClass idnsZone is present in the entry.
  * \return \c -1 when some error occurred.
  */
-int
+static int
 ipadns_entry_iszone( Slapi_Entry *entry ) {
 	Slapi_Attr *obj_class = NULL;
 	Slapi_Value *value = NULL;
@@ -134,7 +136,7 @@ ipadns_entry_iszone( Slapi_Entry *entry ) {
  * Default value is added only to objects coming from other servers
  * via replication.
  */
-int
+static int
 ipadns_add( Slapi_PBlock *pb )
 {
 	Slapi_Entry	*e = NULL;

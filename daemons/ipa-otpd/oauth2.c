@@ -408,7 +408,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
             return EINVAL;
         }
 
-        saved_item = calloc(sizeof(struct otpd_queue_item), 1);
+        saved_item = calloc(1, sizeof(struct otpd_queue_item));
         if (saved_item == NULL) {
             otpd_log_req((*item)->req,
                          "Failed to allocate saved state item");
@@ -426,7 +426,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
         }
     }
 
-    child_ctx = calloc(sizeof(struct child_ctx), 1);
+    child_ctx = calloc(1, sizeof(struct child_ctx));
     if (child_ctx == NULL) {
         ret = ENOMEM;
         goto done;

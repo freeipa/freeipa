@@ -21,7 +21,7 @@ static int ipa_topo_pre_entry_in_scope(Slapi_PBlock *pb)
     return slapi_sdn_issuffix(dn,config_dn);
 
 }
-int ipa_topo_is_entry_managed(Slapi_PBlock *pb)
+static int ipa_topo_is_entry_managed(Slapi_PBlock *pb)
 {
     Slapi_Entry *e;
     char *pi;
@@ -59,7 +59,7 @@ int ipa_topo_is_entry_managed(Slapi_PBlock *pb)
     }
 
 }
-int
+static int
 ipa_topo_is_agmt_attr_restricted(Slapi_PBlock *pb)
 {
     LDAPMod **mods;
@@ -75,7 +75,7 @@ ipa_topo_is_agmt_attr_restricted(Slapi_PBlock *pb)
     }
     return rc;
 }
-int
+static int
 ipa_topo_is_invalid_managed_suffix(Slapi_PBlock *pb)
 {
     LDAPMod **mods;
@@ -103,7 +103,7 @@ ipa_topo_is_invalid_managed_suffix(Slapi_PBlock *pb)
     return rc;
 }
 
-int
+static int
 ipa_topo_is_segm_attr_restricted(Slapi_PBlock *pb)
 {
     LDAPMod **mods;
@@ -138,7 +138,7 @@ struct node_fanout {
     struct node_list *targets;
     int visited;
 };
-struct node_list *
+static struct node_list *
 node_list_dup (struct node_list *orig)
 {
     struct node_list *dup = NULL;
@@ -159,7 +159,7 @@ node_list_dup (struct node_list *orig)
     return start_dup;
 }
 
-void
+static void
 node_list_free(struct node_list *orig)
 {
     struct node_list *cursor = orig;
@@ -172,7 +172,7 @@ node_list_free(struct node_list *orig)
     }
 }
 
-struct node_fanout *
+static struct node_fanout *
 ipa_topo_connection_fanout_new (char *from, char *to)
 {
    struct node_fanout *new_fanout = (struct node_fanout *)
@@ -188,7 +188,7 @@ ipa_topo_connection_fanout_new (char *from, char *to)
    return new_fanout;
 }
 
-void
+static void
 ipa_topo_connection_fanout_free (struct node_fanout *fanout)
 {
     struct node_fanout *cursor = fanout;
@@ -202,7 +202,7 @@ ipa_topo_connection_fanout_free (struct node_fanout *fanout)
     }
 }
 
-struct node_fanout *
+static struct node_fanout *
 ipa_topo_connection_fanout_extend (struct node_fanout *fanout_in, char *from, char *to)
 {
     struct node_fanout *cursor;
@@ -229,7 +229,7 @@ ipa_topo_connection_fanout_extend (struct node_fanout *fanout_in, char *from, ch
         return cursor;
     }
 }
-struct node_fanout *
+static struct node_fanout *
 ipa_topo_connection_fanout(TopoReplica *tconf, TopoReplicaSegment *tseg)
 {
     struct node_fanout *fout = NULL;
@@ -256,7 +256,7 @@ ipa_topo_connection_fanout(TopoReplica *tconf, TopoReplicaSegment *tseg)
     return fout;
 }
 
-void
+static void
 ipa_topo_connection_append(struct node_fanout *fanout, struct node_list *reachable)
 {
     struct node_fanout *cursor = fanout;
@@ -279,7 +279,7 @@ ipa_topo_connection_append(struct node_fanout *fanout, struct node_list *reachab
     }
 }
 
-int
+static int
 ipa_topo_connection_exists(struct node_fanout *fanout, char* from, char *to)
 {
     struct node_list *reachable = NULL;
@@ -311,7 +311,7 @@ ipa_topo_connection_exists(struct node_fanout *fanout, char* from, char *to)
     return connected;
 }
 
-int
+static int
 ipa_topo_check_segment_is_valid(Slapi_PBlock *pb, char **errtxt)
 {
     int rc = 0;
@@ -380,7 +380,7 @@ ipa_topo_check_segment_is_valid(Slapi_PBlock *pb, char **errtxt)
     return rc;
 }
 
-int
+static int
 ipa_topo_check_segment_updates(Slapi_PBlock *pb)
 {
     int rc = 0;
@@ -402,7 +402,7 @@ ipa_topo_check_segment_updates(Slapi_PBlock *pb)
     return rc;
 }
 
-int
+static int
 ipa_topo_check_entry_move(Slapi_PBlock *pb)
 {
     int rc = 0;
@@ -425,7 +425,7 @@ ipa_topo_check_entry_move(Slapi_PBlock *pb)
     return rc;
 }
 
-int
+static int
 ipa_topo_check_host_updates(Slapi_PBlock *pb)
 {
     int rc = 0;
@@ -447,7 +447,7 @@ ipa_topo_check_host_updates(Slapi_PBlock *pb)
     return rc;
 }
 
-int
+static int
 ipa_topo_check_topology_disconnect(Slapi_PBlock *pb)
 {
     int rc = 1;

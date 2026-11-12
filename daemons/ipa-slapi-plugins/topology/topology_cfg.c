@@ -202,7 +202,7 @@ ipa_topo_set_plugin_shared_config(char *cfg)
 
 }
 
-void
+static void
 ipa_topo_set_plugin_shared_bindgroup(char *bindgroup)
 {
     topo_plugin_conf.shared_bindgroup = bindgroup;
@@ -499,7 +499,7 @@ ipa_topo_cfg_host_add(TopoReplica *replica, char *newhost)
     return;
 }
 
-void
+static void
 ipa_topo_cfg_host_free(TopoReplicaHost **node)
 {
     slapi_ch_free((void **)&((*node)->hostname));

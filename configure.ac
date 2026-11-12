@@ -118,7 +118,7 @@ dnl ---------------------------------------------------------------------------
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$NSPR_CFLAGS $NSS_CFLAGS"
-AC_CHECK_LIB(resolv,main,RESOLV_LIBS=-lresolv)
+AC_CHECK_LIB(resolv,res_query,RESOLV_LIBS=-lresolv)
 AC_CHECK_HEADERS(resolv.h)
 AC_SUBST(RESOLV_LIBS)
 

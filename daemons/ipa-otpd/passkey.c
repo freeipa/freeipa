@@ -686,7 +686,7 @@ static int do_passkey_response(struct otpd_queue_item *item)
     struct child_ctx *child_ctx;
     char *pk = NULL;
 
-    child_ctx = calloc(sizeof(struct child_ctx), 1);
+    child_ctx = calloc(1, sizeof(struct child_ctx));
     if (child_ctx == NULL) {
         ret = ENOMEM;
         goto done;

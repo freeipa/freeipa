@@ -61,7 +61,7 @@ xer__token_cb(pxml_chunk_type_e type, const void *_chunk_data, size_t _chunk_siz
  */
 ssize_t
 xer_next_token(int *stateContext, const void *buffer, size_t size, pxer_chunk_type_e *ch_type) {
-	struct xer__cb_arg arg;
+	struct xer__cb_arg arg = { 0 };
 	int new_stateContext = *stateContext;
 	ssize_t ret;
 
@@ -94,6 +94,8 @@ xer_next_token(int *stateContext, const void *buffer, size_t size, pxer_chunk_ty
 	case PXML_COMMENT_END:
 		*ch_type = PXER_COMMENT;
 		break;
+	default:
+		return -1;
 	}
 
 	*stateContext = new_stateContext;
