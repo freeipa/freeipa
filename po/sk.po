@@ -13442,7 +13442,8 @@ msgstr "neplatné doménové meno"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
-msgstr "doménové meno '%(domain)s' by malo byť normalizované na: %(normalized)s"
+msgstr ""
+"doménové meno '%(domain)s' by malo byť normalizované na: %(normalized)s"
 
 #, python-format
 msgid "invalid domain-name: %s"
@@ -20188,7 +20189,8 @@ msgstr "Vlastník"
 #, python-format
 msgid ""
 "Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
-msgstr "Certifikát so sériovým číslom %(serial)s vydaný CA '%(ca)s' sa nenašiel"
+msgstr ""
+"Certifikát so sériovým číslom %(serial)s vydaný CA '%(ca)s' sa nenašiel"
 
 #, fuzzy
 #| msgid "\"%s\" is not a valid permission type"
@@ -22496,8 +22498,8 @@ msgid ""
 "li> </ol>"
 msgstr ""
 "<ol> <li>Vytvorte databázu certifikátov alebo použite už existujúcu. "
-"Vytvorenie novej databázy:<br/> <code># certutil -N -d &lt;database "
-"path&gt;</code> </li> <li>Vytvorte CSR so subjektom <em>CN=&lt;${cn_name}"
+"Vytvorenie novej databázy:<br/> <code># certutil -N -d &lt;database path&gt;"
+"</code> </li> <li>Vytvorte CSR so subjektom <em>CN=&lt;${cn_name}"
 "&gt;,O=&lt;realm&gt;</em>, napríklad:<br/> <code># certutil -R -d "
 "&lt;database path&gt; -a -g &lt;key size&gt; -s 'CN=${cn},O=${realm}'${san}</"
 "code> </li> <li> Nakopírujte CSR (od <em>-----BEGIN NEW CERTIFICATE "
@@ -22766,7 +22768,8 @@ msgstr "Odstrániť povolenie"
 
 #, python-brace-format
 msgid "Are you sure you want to remove permission for DNS Zone ${object}?"
-msgstr "Ste si istý/istá, že chcete odstrániť povolenie pre DNS zónu ${object}?"
+msgstr ""
+"Ste si istý/istá, že chcete odstrániť povolenie pre DNS zónu ${object}?"
 
 msgid "Skip DNS check"
 msgstr "Preskočiť DNS kontrolu"
