@@ -106,6 +106,16 @@ class test_i18n_messages(XMLRPC_test, Unauthorized_HTTP_test):
         response_data = response.read()
         raises(ValueError, json.loads, response_data)
 
+    def test_max_size_payload_not_413(self):
+        """
+        A body of exactly MAX_REQUEST_BODY_SIZE must not be rejected as 413.
+        """
+        response = self.send_request(params="x" * MAX_REQUEST_BODY_SIZE)
+
+        assert response.status != 413
+        assert_equal(response.status, 400)
+        assert_equal(response.reason, "Bad Request")
+
     def test_only_post_serves(self):
         """
         Test if end point fulfills only POST method

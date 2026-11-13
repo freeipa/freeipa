@@ -47,6 +47,7 @@ def bad_request(start_response):
     start_response(status, response_headers)
     return [response]
 
+
 def request_body_too_large(start_response):
     """
     Return a 413 Content Too Large error.
@@ -57,6 +58,7 @@ def request_body_too_large(start_response):
 
     start_response(status, response_headers)
     return [response]
+
 
 def wsgi_redirect(start_response, loc):
     start_response('302 Found', [('Location', loc)])
