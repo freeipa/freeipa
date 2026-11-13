@@ -47,7 +47,7 @@ def bad_request(start_response):
     start_response(status, response_headers)
     return [response]
 
-def request_entity_too_large(start_response):
+def request_body_too_large(start_response):
     """
     Return a 413 Content Too Large error.
     """
@@ -98,8 +98,11 @@ def application(environ, start_response):
     except (ValueError, TypeError):
         return bad_request(start_response)
 
-    if length < 0 or length > MAX_REQUEST_BODY:
-        return request_entity_too_large(start_response)
+    if length < 0:
+        return bad_request(start_response)
+
+    if length > MAX_REQUEST_BODY:
+        return request_body_too_large(start_response)
 
     query_string = environ["wsgi.input"].read(length).decode("utf-8")
 
