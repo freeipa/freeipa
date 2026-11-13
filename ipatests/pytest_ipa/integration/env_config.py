@@ -97,6 +97,10 @@ def get_global_config(env=None):
     You can also optionally specify the IP address of the host:
         BEAKER<role>_IP_env1: IP address of the machine of the extra role
 
+    A host that is not of the default kind has its host_type:
+        BEAKER<role><n>_TYPE_env1: for example samba, a Samba AD DC that
+        the tests drive with samba-tool instead of PowerShell
+
     The framework will try to resolve the hostname to its IP address
     if not passed via this environment variable.
 
@@ -209,6 +213,9 @@ def config_to_env(config, simple=True):
                                 env_suffix)] = host.hostname
                 env['BEAKER%s%s' % (suffix, env_suffix)] = ext_hostname
                 env['BEAKER%s_IP%s' % (suffix, env_suffix)] = host.ip
+                if host.host_type not in (None, 'default'):
+                    env['BEAKER%s_TYPE%s' % (suffix, env_suffix)] = (
+                        host.host_type)
 
     if simple:
         # Simple Vars for simplicity and backwards compatibility with older
@@ -335,11 +342,16 @@ def host_from_env(env, domain, hostname, role, index, domain_index):
                  (role.upper(), index, domain_index), None)
     external_hostname = env.get(
         'BEAKER%s%s_env%s' % (role.upper(), index, domain_index), None)
+    # a host that is not of the default kind (host_type: samba for a Samba
+    # AD DC) says so: the class of the host depends on it
+    host_type = env.get(
+        'BEAKER%s%s_TYPE_env%s' % (role.upper(), index, domain_index), None)
+    kwargs = {'host_type': host_type} if host_type else {}
 
-    cls = domain.get_host_class({})
+    cls = domain.get_host_class(kwargs)
 
     return cls(domain, hostname, role, ip=ip,
-               external_hostname=external_hostname)
+               external_hostname=external_hostname, **kwargs)
 
 
 def host_to_env(host, **kwargs):

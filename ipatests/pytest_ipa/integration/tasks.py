@@ -727,12 +727,12 @@ def unconfigure_dns_for_trust(master, *ad_hosts):
 
 
 def configure_windows_dns_for_trust(ad, master):
-    ad.run_command(['dnscmd', '/zoneadd', master.domain.name,
-                    '/Forwarder', master.ip])
+    """Let the AD DNS server resolve the IPA zone (Windows or Samba AD)"""
+    ad.dns_forwarder_add(master.domain.name, master.ip)
 
 
 def unconfigure_windows_dns_for_trust(ad, master):
-    ad.run_command(['dnscmd', '/zonedelete', master.domain.name, '/f'])
+    ad.dns_forwarder_del(master.domain.name)
 
 
 def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),

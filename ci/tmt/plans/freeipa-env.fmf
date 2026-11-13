@@ -1,0 +1,99 @@
+summary: Run a FreeIPA env queue job on a Testing Farm guest
+description: |
+    The only CI file in this tree: a pin. The test itself, the freeipa-env
+    tool and the presets live in the ci-freeipa repository; this plan finds
+    them at a fixed ref, so CI code and the branch under test have separate
+    versions. To use newer CI tools, change `ref`.
+
+    The `prepare` step installs the BuildRequires of this branch's
+    freeipa.spec.in: the guest builds an SRPM of the branch (`make srpms`)
+    when no packages are supplied. Build dependencies belong to the code
+    that is built, so this list changes with the branch, not with ci-freeipa.
+
+    Run it with `freeipa-env queue run QUEUE --runner testing-farm
+    --freeipa-src .` from ci-freeipa, or locally from this tree:
+
+        tmt run plan --name /ci/tmt/plans/freeipa-env -e FREEIPA_SRC=$PWD
+
+    Design: doc/designs/ci_modernization.md.
+discover:
+    how: fmf
+    url: https://github.com/freeipa/ci-freeipa
+    ref: effdc9a4ec2bb5a96bad5cbe94f6376dafd16295
+    test: "^/tmt/tests/"
+prepare:
+    how: install
+    package:
+      - podman
+      - curl
+      - git
+      - rpm
+      - rpm-build
+      - make
+      - autoconf
+      - automake
+      - libtool
+      - pkgconf
+      - pkgconfig
+      - gettext
+      - gettext-devel
+      - gcc
+      - diffutils
+      - file
+      - findutils
+      - xz
+      - tar
+      - openldap-devel
+      - krb5-devel
+      - krb5-server
+      - libcurl-devel
+      - jansson-devel
+      - popt-devel
+      - gnupg2
+      - nspr-devel
+      - openssl-devel
+      - libini_config-devel
+      - cyrus-sasl-devel
+      - python3-devel
+      - python3-setuptools
+      - python3-argcomplete
+      - systemd
+      - httpd
+      - xmlrpc-c-devel
+      - 389-ds-base-devel
+      - samba-devel
+      - libtalloc-devel
+      - libtevent-devel
+      - libuuid-devel
+      - libpwquality-devel
+      - libsss_idmap-devel
+      - libsss_certmap-devel
+      - libsss_nss_idmap-devel
+      - nodejs
+      - npm
+      - python3-rjsmin
+      - libverto-devel
+      - libunistring-devel
+      - python3-lesscpy
+      - cracklib-dicts
+      - python3-cffi
+      - python3-dns
+      - python3-ldap
+      - python3-libsss_nss_idmap
+      - python3-netaddr
+      - python3-pyasn1
+      - python3-pyasn1-modules
+      - python3-six
+      - python3-psutil
+      - libcmocka-devel
+      - selinux-policy-devel
+      # nested-qemu presets: qemu VMs on the guest (it needs KVM, which a
+      # request that has a qemu preset asks for), installing the RPMs built here
+      - qemu-system-x86-core
+      - qemu-img
+      - xorriso
+      - rsync
+      - openssh-clients
+      - python3-pyyaml
+execute:
+    how: tmt

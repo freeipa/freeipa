@@ -2052,12 +2052,7 @@ class TestTrustFunctionalUser(BaseTestTrust):
             user_fqdn = f"{test_user}@{ad_domain}"
             try:
                 # Set MinPasswordAge to 0 to allow immediate password change
-                ad_host.run_command([
-                    'powershell', '-c',
-                    f'$ProgressPreference = "SilentlyContinue"; '
-                    f'Set-ADDefaultDomainPasswordPolicy '
-                    f'-Identity "{ad_domain}" -MinPasswordAge 0'
-                ], set_env=False)
+                ad_host.password_min_age_set(0)
 
                 tasks.clear_sssd_cache(self.clients[0])
                 self.clients[0].run_command(['id', user_fqdn])
@@ -2073,21 +2068,10 @@ class TestTrustFunctionalUser(BaseTestTrust):
                 )
             finally:
                 # Reset password back to original
-                ad_host.run_command([
-                    'powershell', '-c',
-                    f'$ProgressPreference = "SilentlyContinue"; '
-                    f'Set-ADAccountPassword -Identity "{test_user}" '
-                    f'-Reset -NewPassword '
-                    f'(ConvertTo-SecureString "{original_password}" '
-                    f'-AsPlainText -Force)'
-                ], raiseonerr=False, set_env=False)
+                ad_host.user_reset_password(
+                    test_user, original_password, raiseonerr=False)
                 # Restore MinPasswordAge to 1 day
-                ad_host.run_command([
-                    'powershell', '-c',
-                    f'$ProgressPreference = "SilentlyContinue"; '
-                    f'Set-ADDefaultDomainPasswordPolicy '
-                    f'-Identity "{ad_domain}" -MinPasswordAge 1.00:00:00'
-                ], raiseonerr=False, set_env=False)
+                ad_host.password_min_age_set(1, raiseonerr=False)
 
     def test_homedir_access_commands(self):
         """Test home directory access commands for AD users."""
