@@ -102,9 +102,70 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
     *pkset = NULL;
 }
 
+/* The same as ipapwd_encrypt_encode_key(), but 'salt' is the raw
+ * string-to-key salt to use for the generated keys (e.g. the salt stored
+ * beside the existing keys of a principal), not a principal name. */
+static Slapi_Value **ipapwd_encrypt_encode_key_raw(
+                                        struct ipapwd_krbcfg *krbcfg,
+                                        struct ipapwd_data *data,
+                                        char *preferred_principal,
+                                        const krb5_data *salt,
+                                        int num_encsalts,
+                                        krb5_key_salt_tuple *encsalts,
+                                        char **errMesg);
+
 Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
                                         char *preferred_principal,
+                                        const char *salt,
+                                        int num_encsalts,
+                                        krb5_key_salt_tuple *encsalts,
+                                        char **errMesg)
+{
+    krb5_context krbctx = krbcfg->krbctx;
+    krb5_principal salt_princ = NULL;
+    krb5_data salt_data = { 0 };
+    Slapi_Value **svals;
+
+    if (salt != NULL) {
+        /* The explicit salt is given as the name whose normal salt must
+         * be used for key derivation, so that the derived keys match the
+         * ones generated for a principal actually carrying that name. */
+        krb5_error_code krberr;
+
+        krberr = krb5_parse_name(krbctx, salt, &salt_princ);
+        if (krberr != 0) {
+            LOG("krb5_parse_name failed for salt [%s]\n", salt);
+            *errMesg = "invalid salt principal name\n";
+            return NULL;
+        }
+        krberr = krb5_principal2salt(krbctx, salt_princ, &salt_data);
+        krb5_free_principal(krbctx, salt_princ);
+        if (krberr != 0) {
+            LOG("krb5_principal2salt failed for salt [%s]\n", salt);
+            *errMesg = "cannot derive salt from the salt principal name\n";
+            return NULL;
+        }
+    }
+
+    svals = ipapwd_encrypt_encode_key_raw(krbcfg, data, preferred_principal,
+                                          salt_data.length ? &salt_data :
+                                                             NULL,
+                                          num_encsalts, encsalts, errMesg);
+    if (salt_data.length) {
+        krb5_free_data_contents(krbctx, &salt_data);
+    }
+    return svals;
+}
+
+/* The same as ipapwd_encrypt_encode_key(), but 'salt' is the raw
+ * string-to-key salt to use for the generated keys (e.g. the salt stored
+ * beside the existing keys of a principal), not a principal name. */
+static Slapi_Value **ipapwd_encrypt_encode_key_raw(
+                                        struct ipapwd_krbcfg *krbcfg,
+                                        struct ipapwd_data *data,
+                                        char *preferred_principal,
+                                        const krb5_data *salt,
                                         int num_encsalts,
                                         krb5_key_salt_tuple *encsalts,
                                         char **errMesg)
@@ -171,10 +232,18 @@ Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     kvno += 1;
     kset->mkvno = krbcfg->mkvno;
 
-    krberr = ipa_krb5_generate_key_data(krbctx, princ,
-                                        pwd, kvno, krbcfg->kmkey,
-                                        num_encsalts, encsalts,
-                                        &kset->num_keys, &kset->keys);
+    if (salt != NULL) {
+        krberr = ipa_krb5_generate_key_data_with_salt(krbctx, princ,
+                                                      salt,
+                                                      pwd, kvno, krbcfg->kmkey,
+                                                      num_encsalts, encsalts,
+                                                      &kset->num_keys, &kset->keys);
+    } else {
+        krberr = ipa_krb5_generate_key_data(krbctx, princ,
+                                            pwd, kvno, krbcfg->kmkey,
+                                            num_encsalts, encsalts,
+                                            &kset->num_keys, &kset->keys);
+    }
     if (krberr != 0) {
         LOG_FATAL("generating kerberos keys failed [%s]\n",
                   krb5_get_error_message(krbctx, krberr));
@@ -210,6 +279,71 @@ enc_error:
     return NULL;
 }
 
+/* Extract the stored string-to-key salt of a principal from its
+ * krbPrincipalKey attribute, so that regenerated keys keep the same salt.
+ * Returns a krb5_data (allocated with slapi_ch_malloc) that the caller must
+ * free with free(), or an all-zero krb5_data when no explicit NORMAL salt
+ * is stored. Only keys with KRB5_KDB_SALTTYPE_NORMAL carry a meaningful
+ * literal salt; other salt types derive the salt differently and must not
+ * be reused.
+ */
+static krb5_data ipapwd_get_stored_salt(struct ipapwd_data *data)
+{
+    krb5_data salt = { 0 };
+    Slapi_Attr *attr = NULL;
+    Slapi_Value *value = NULL;
+    const struct berval *val;
+    krb5_key_data *keys = NULL;
+    int num_keys = 0;
+    int mkvno = 0;
+    int ret;
+    int i;
+
+    if (data->target == NULL) {
+        return salt;
+    }
+
+    ret = slapi_entry_attr_find(data->target, "krbPrincipalKey", &attr);
+    if (ret != 0) {
+        return salt;
+    }
+
+    ret = slapi_attr_first_value(attr, &value);
+    if (ret != 0) {
+        return salt;
+    }
+
+    val = slapi_value_get_berval(value);
+    if (val == NULL) {
+        return salt;
+    }
+
+    ret = ber_decode_krb5_key_data((struct berval *)val,
+                                   &mkvno, &num_keys, &keys);
+    if (ret != 0) {
+        return salt;
+    }
+
+    for (i = 0; i < num_keys; i++) {
+        if (keys[i].key_data_ver == 2
+            && keys[i].key_data_type[1] == KRB5_KDB_SALTTYPE_NORMAL
+            && keys[i].key_data_length[1] > 0
+            && keys[i].key_data_contents[1] != NULL) {
+            salt.data = slapi_ch_malloc(keys[i].key_data_length[1]);
+            if (salt.data == NULL) {
+                break;
+            }
+            memcpy(salt.data, keys[i].key_data_contents[1],
+                   keys[i].key_data_length[1]);
+            salt.length = keys[i].key_data_length[1];
+            break;
+        }
+    }
+
+    ipa_krb5_free_key_data(keys, num_keys);
+    return salt;
+}
+
 int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                       struct ipapwd_data *data, char *userpw,
                       int is_krb, int is_smb, int is_ipant, Slapi_Value ***svals,
@@ -224,11 +358,21 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
     *errMesg = NULL;
 
     if (is_krb) {
+        /* A principal whose existing keys were derived from an explicit
+         * salt (trust TDO accounts with a colliding NetBIOS/realm name)
+         * must keep that salt when its password changes through the LDAP
+         * password-modification path, or the new keys would no longer
+         * match the AD side of the trust. */
+        krb5_data stored_salt = ipapwd_get_stored_salt(data);
 
-        *svals = ipapwd_encrypt_encode_key(krbcfg, data, NULL,
+        *svals = ipapwd_encrypt_encode_key_raw(
+                                           krbcfg, data, NULL,
+                                           stored_salt.length ?
+                                           &stored_salt : NULL,
                                            krbcfg->num_pref_encsalts,
                                            krbcfg->pref_encsalts,
                                            errMesg);
+        free(stored_salt.data);
 
         if (!*svals) {
             /* errMesg should have been set in encrypt_encode_key() */

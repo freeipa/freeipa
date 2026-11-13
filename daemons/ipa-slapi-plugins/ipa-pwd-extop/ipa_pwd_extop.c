@@ -1402,6 +1402,7 @@ free_and_return:
 /* decode a getkeytab control request using libipaasn1 helpers */
 static int decode_getkeytab_request(struct berval *extop, bool *wantold,
                                     char **_svcname, char **_password,
+                                    char **_salt,
                                     krb5_key_salt_tuple **kenctypes,
                                     int *num_kenctypes, char **_err_msg)
 {
@@ -1409,6 +1410,7 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     char *err_msg = NULL;
     char *svcname = NULL;
     char *password = NULL;
+    char *salt = NULL;
     long *etypes = NULL;
     int numtypes = 0;
     krb5_key_salt_tuple *enctypes = NULL;
@@ -1416,7 +1418,7 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     bool ret;
 
     ret = ipaasn1_dec_getkt(extop->bv_val, extop->bv_len, &newkt,
-                            &svcname, &password, &etypes, &numtypes);
+                            &svcname, &password, &salt, &etypes, &numtypes);
     if (!ret) {
         err_msg = "Failed to decode GetKeytab Control.\n";
         rc = LDAP_PROTOCOL_ERROR;
@@ -1441,17 +1443,18 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     }
 
     rc = LDAP_SUCCESS;
-
 done:
     free(etypes);
     if (rc != LDAP_SUCCESS) {
         free(password);
         free(svcname);
+        free(salt);
         free(enctypes);
         *_err_msg = err_msg;
     } else {
         *_password = password;
         *_svcname = svcname;
+        *_salt = salt;
         *wantold = (newkt == false);
         *kenctypes = enctypes;
         *num_kenctypes = numtypes;
@@ -1624,6 +1627,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     bool acl_ok = false;
     char *password = NULL;
     int num_kenctypes = 0;
+    char *salt = NULL;
     krb5_key_salt_tuple *kenctypes = NULL;
     int mkvno = 0;
     int num_keys = 0;
@@ -1662,9 +1666,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         rc = LDAP_OPERATIONS_ERROR;
         goto free_and_return;
     }
-
     rc = decode_getkeytab_request(extop_value, &wantold, &service_name,
-                                  &password, &kenctypes, &num_kenctypes,
+                                  &password, &salt, &kenctypes, &num_kenctypes,
                                   &err_msg);
     if (rc != LDAP_SUCCESS) {
         goto free_and_return;
@@ -1748,7 +1751,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         data.target = target_entry;
         data.password = password;
 
-        svals = ipapwd_encrypt_encode_key(krbcfg, &data, service_name,
+        svals = ipapwd_encrypt_encode_key(krbcfg, &data, service_name, salt,
                                           kenctypes ? num_kenctypes :
                                                 krbcfg->num_pref_encsalts,
                                           kenctypes ? kenctypes :
@@ -1797,6 +1800,7 @@ free_and_return:
     free(kenctypes);
     free(service_name);
     free(password);
+    free(salt);
     if (target_entry) slapi_entry_free(target_entry);
     if (keys) ipa_krb5_free_key_data(keys, num_keys);
     if (svals) {

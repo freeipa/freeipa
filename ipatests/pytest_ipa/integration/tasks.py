@@ -38,6 +38,17 @@ import configparser
 from contextlib import contextmanager
 from packaging.version import parse as parse_version
 import uuid
+import dataclasses
+from typing import Annotated, Optional
+
+try:
+    from cryptography.hazmat.asn1 import (
+        asn1 as _pyca_asn1,
+        Explicit as _Asn1Explicit,
+        decode_der as _asn1_decode_der,
+    )
+except ImportError:
+    _pyca_asn1 = None
 
 import dns
 from ldif import LDIFWriter
@@ -70,6 +81,88 @@ from .resolver import ResolvedResolver
 from .fips import is_fips_enabled, enable_crypto_subpolicy
 
 logger = logging.getLogger(__name__)
+
+if _pyca_asn1 is not None:
+
+    @_pyca_asn1.sequence
+    @dataclasses.dataclass
+    class _Asn1SaltData:
+        salttype: Annotated[int, _Asn1Explicit(0)]
+        salt: Annotated[bytes, _Asn1Explicit(1)]
+
+    @_pyca_asn1.sequence
+    @dataclasses.dataclass
+    class _Asn1KeyData:
+        enctype: Annotated[int, _Asn1Explicit(0)]
+        keyvalue: Annotated[bytes, _Asn1Explicit(1)]
+
+    @_pyca_asn1.sequence
+    @dataclasses.dataclass
+    class _Asn1KeyEntry:
+        salt_data: Annotated[Optional[_Asn1SaltData], _Asn1Explicit(0)]
+        key_data: Annotated[_Asn1KeyData, _Asn1Explicit(1)]
+
+    @_pyca_asn1.sequence
+    @dataclasses.dataclass
+    class _Asn1PrincipalKey:
+        major: Annotated[int, _Asn1Explicit(0)]
+        minor: Annotated[int, _Asn1Explicit(1)]
+        kvno: Annotated[int, _Asn1Explicit(2)]
+        mkvno: Annotated[int, _Asn1Explicit(3)]
+        keys: Annotated[list[_Asn1KeyEntry], _Asn1Explicit(4)]
+
+
+def find_principal_entries(host, principal, search_base, attrs_list=()):
+    """Find LDAP entries carrying krbprincipalname=principal.
+
+    :param host: host object
+    :param principal: Kerberos principal name to search for
+    :param search_base: base DN of the search
+    :param attrs_list: additional attributes to return
+    :return: list of dicts mapping 'dn' and each attribute name to a list
+             of raw byte values
+    """
+    attrs = ['krbprincipalname', 'krbcanonicalname', 'krbprincipalkey']
+    attrs.extend(attrs_list)
+    conn = host.ldap_connect()
+    entries = conn.get_entries(
+        search_base,
+        scope=conn.SCOPE_SUBTREE,
+        filter='(krbprincipalname={})'.format(principal),
+        attrs_list=attrs)
+    result = []
+    for entry in entries:
+        item = {'dn': str(entry.dn)}
+        for attr in attrs:
+            values = entry.raw.get(attr.lower(), [])
+            item[attr] = [v if isinstance(v, bytes) else v.encode('utf-8')
+                          for v in values]
+        result.append(item)
+    conn.close()
+    return result
+
+
+def get_principal_key_data(host, principal, search_base):
+    """Decode the krbPrincipalKey blobs stored for a Kerberos principal.
+
+    Returns a list of (kvno, salt, enctype) tuples, one per stored key.
+    The key blobs are the BER encoding written by the ipa-kdb driver;
+    they are decoded with the declarative ASN.1 API from cryptography.
+    """
+    if _pyca_asn1 is None:
+        raise RuntimeError(
+            'cryptography.hazmat.asn1 is required to decode key data')
+    keys = []
+    for entry in find_principal_entries(host, principal, search_base):
+        for der in entry['krbprincipalkey']:
+            principal_key = _asn1_decode_der(_Asn1PrincipalKey, der)
+            for key in principal_key.keys:
+                salt = None
+                if key.salt_data is not None:
+                    salt = key.salt_data.salt.decode('utf-8')
+                keys.append((principal_key.kvno, salt,
+                             key.key_data.enctype))
+    return keys
 
 
 def check_arguments_are(slice, instanceof):
