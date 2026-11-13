@@ -153,6 +153,15 @@ def test_extract_query_request_body_size():
     raises(rpcserver.RequestBodyTooLarge,
            rpcserver.extract_query, environ, max_size)
 
+    # Content-Type with charset must still enforce the body size limit
+    environ = _environ_with_body(
+        'a=' + ('x' * max_size),
+        content_type='application/x-www-form-urlencoded; charset=UTF-8',
+        content_length=max_size + 1,
+    )
+    raises(rpcserver.RequestBodyTooLarge,
+           rpcserver.extract_query, environ, max_size)
+
     # Missing Content-Length yields an empty query (not 413)
     environ = _environ_with_body('user=tuser')
     environ['CONTENT_LENGTH'] = None

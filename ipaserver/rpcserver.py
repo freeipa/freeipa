@@ -353,11 +353,13 @@ def nicify_query(query, encoding='utf-8'):
 
 def extract_query(environ, max_size):
     """
-    Return the query as a ``dict``, or ``None`` if no query is presest.
+    Return the query as a ``dict``, or ``None`` if no query is present.
     """
     qstr = None
     if environ['REQUEST_METHOD'] == 'POST':
-        if environ['CONTENT_TYPE'] == 'application/x-www-form-urlencoded':
+        # Match form types with parameters (e.g. "; charset=UTF-8")
+        content_type = environ.get('CONTENT_TYPE', '').lower()
+        if content_type.startswith('application/x-www-form-urlencoded'):
             qstr = read_input(environ, max_size)
     elif environ['REQUEST_METHOD'] == 'GET':
         qstr = environ['QUERY_STRING']
