@@ -287,15 +287,45 @@ class HTTP_Status(plugable.Plugin):
         return [output.encode('utf-8')]
 
 
-def read_input(environ, max_size=None):
+class RequestBodyTooLarge(Exception):
     """
-    Read the request body from environ['wsgi.input']
-    and return None if the request body is too large.
+    Raised when the request Content-Length exceeds the allowed maximum.
+
+    Missing or invalid Content-Length returns None from read_input()
+    instead, so callers can return 400 rather than 413.
+    """
+
+
+def check_request_body_size(environ, max_size):
+    """
+    Raise RequestBodyTooLarge if the declared Content-Length exceeds max_size.
+
+    Does not read the body. Missing or invalid Content-Length is ignored
+    here; callers that require a body should still use read_input().
     """
     try:
         length = int(environ.get('CONTENT_LENGTH'))
-        if length < 0 or (max_size is not None and length > max_size):
+    except (ValueError, TypeError):
+        return
+    if length < 0:
+        return
+    if length > max_size:
+        raise RequestBodyTooLarge()
+
+
+def read_input(environ, max_size):
+    """
+    Read the request body from environ['wsgi.input'].
+
+    Return None if Content-Length is missing or invalid.
+    Raise RequestBodyTooLarge if the request body is too large.
+    """
+    try:
+        length = int(environ.get('CONTENT_LENGTH'))
+        if length < 0:
             return None
+        if length > max_size:
+            raise RequestBodyTooLarge()
     except (ValueError, TypeError):
         return None
     return environ['wsgi.input'].read(length).decode('utf-8')
@@ -321,14 +351,16 @@ def nicify_query(query, encoding='utf-8'):
             yield (key, tuple(v.decode(encoding) for v in value))
 
 
-def extract_query(environ):
+def extract_query(environ, max_size):
     """
-    Return the query as a ``dict``, or ``None`` if no query is presest.
+    Return the query as a ``dict``, or ``None`` if no query is present.
     """
     qstr = None
     if environ['REQUEST_METHOD'] == 'POST':
-        if environ['CONTENT_TYPE'] == 'application/x-www-form-urlencoded':
-            qstr = read_input(environ)
+        # Match form types with parameters (e.g. "; charset=UTF-8")
+        content_type = environ.get('CONTENT_TYPE', '').lower()
+        if content_type.startswith('application/x-www-form-urlencoded'):
+            qstr = read_input(environ, max_size)
     elif environ['REQUEST_METHOD'] == 'GET':
         qstr = environ['QUERY_STRING']
     if qstr:
@@ -398,7 +430,7 @@ class wsgi_dispatch(Executioner, HTTP_Status):
         self.__apps[key] = app
 
 
-class WSGIExecutioner(Executioner):
+class WSGIExecutioner(Executioner, HTTP_Status):
     """
     Base class for execution backends with a WSGI application interface.
     """
@@ -459,16 +491,20 @@ class WSGIExecutioner(Executioner):
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
             ):
-                data = read_input(environ)
+                data = read_input(environ, MAX_REQUEST_BODY_SIZE)
                 (name, args, options, _id) = self.unmarshal(data)
             else:
-                (name, args, options, _id) = self.simple_unmarshal(environ)
+                (name, args, options, _id) = self.simple_unmarshal(
+                    environ, MAX_REQUEST_BODY_SIZE
+                )
 
             if name in self._system_commands:
                 result = self._system_commands[name](self, *args, **options)
             else:
                 command = self._get_command(name)
                 result = command(*args, **options)
+        except RequestBodyTooLarge:
+            raise
         except PublicError as e:
             if self.api.env.debug:
                 logger.debug('WSGI wsgi_execute PublicError: %s',
@@ -528,9 +564,9 @@ class WSGIExecutioner(Executioner):
         version = options.get('version', VERSION_WITHOUT_CAPABILITIES)
         return self.marshal(result, error, _id, version)
 
-    def simple_unmarshal(self, environ):
+    def simple_unmarshal(self, environ, max_size):
         name = environ['PATH_INFO'].strip('/')
-        options = extract_query(environ)
+        options = extract_query(environ, max_size)
         return (name, tuple(), options, None)
 
     def __call__(self, environ, start_response):
@@ -547,6 +583,8 @@ class WSGIExecutioner(Executioner):
             else:
                 headers = [('Content-Type',
                             self.content_type + '; charset=utf-8')]
+        except RequestBodyTooLarge:
+            return self.request_body_too_large(environ, start_response)
         except Exception:
             logger.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
@@ -568,7 +606,7 @@ class WSGIExecutioner(Executioner):
         raise NotImplementedError('%s.marshal()' % type(self).__name__)
 
 
-class jsonserver(WSGIExecutioner, HTTP_Status):
+class jsonserver(WSGIExecutioner):
     """
     JSON RPC server.
 
@@ -790,6 +828,12 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
 
     def __call__(self, environ, start_response):
         logger.debug('KerberosWSGIExecutioner.__call__:')
+
+        try:
+            check_request_body_size(environ, MAX_REQUEST_BODY_SIZE)
+        except RequestBodyTooLarge:
+            return self.request_body_too_large(environ, start_response)
+
         user_ccache=environ.get('KRB5CCNAME')
 
         object.__setattr__(
@@ -936,9 +980,14 @@ class jsonserver_i18n_messages(jsonserver):
         if environ['REQUEST_METHOD'] != 'POST':
             return self.not_allowed(start_response)
 
-        data = read_input(environ, MAX_REQUEST_BODY_SIZE)
-        if data is None:
+        try:
+            data = read_input(environ, MAX_REQUEST_BODY_SIZE)
+        except RequestBodyTooLarge:
             return self.request_body_too_large(environ, start_response)
+        if data is None:
+            return self.bad_request(
+                environ, start_response, 'missing or invalid Content-Length'
+            )
         try:
             unmarshal_data = super(jsonserver_i18n_messages, self
                                 ).unmarshal(data)
@@ -975,6 +1024,11 @@ class jsonserver_session(jsonserver, KerberosSession):
 
         if not self.check_referer(environ):
             return self.bad_request(environ, start_response, 'denied')
+
+        try:
+            check_request_body_size(environ, MAX_REQUEST_BODY_SIZE)
+        except RequestBodyTooLarge:
+            return self.request_body_too_large(environ, start_response)
 
         # Redirect to login if no Kerberos credentials
         ccache_name = self.get_environ_creds(environ)
@@ -1110,12 +1164,17 @@ class login_password(Backend, KerberosSession):
 
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            try:
+                query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            except RequestBodyTooLarge:
+                return self.request_body_too_large(environ, start_response)
+            if query_string is None:
+                return self.bad_request(
+                    environ, start_response,
+                    'missing or invalid Content-Length'
+                )
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
-
-        if query_string is None:
-            return self.request_body_too_large(environ, start_response)
 
         try:
             query_dict = parse_qs(query_string)
@@ -1292,12 +1351,17 @@ class change_password(Backend, HTTP_Status):
 
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            try:
+                query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            except RequestBodyTooLarge:
+                return self.request_body_too_large(environ, start_response)
+            if query_string is None:
+                return self.bad_request(
+                    environ, start_response,
+                    'missing or invalid Content-Length'
+                )
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
-
-        if query_string is None:
-            return self.request_body_too_large(environ, start_response)
 
         try:
             query_dict = parse_qs(query_string)
@@ -1400,12 +1464,17 @@ class sync_token(Backend, HTTP_Status):
         # Make sure this is a POST request.
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            try:
+                query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
+            except RequestBodyTooLarge:
+                return self.request_body_too_large(environ, start_response)
+            if query_string is None:
+                return self.bad_request(
+                    environ, start_response,
+                    'missing or invalid Content-Length'
+                )
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
-
-        if query_string is None:
-            return self.request_body_too_large(environ, start_response)
 
         # Parse the query string to a dictionary.
         try:
@@ -1509,6 +1578,11 @@ class xmlserver_session(xmlserver, KerberosSession):
 
         if not self.check_referer(environ):
             return self.bad_request(environ, start_response, 'denied')
+
+        try:
+            check_request_body_size(environ, MAX_REQUEST_BODY_SIZE)
+        except RequestBodyTooLarge:
+            return self.request_body_too_large(environ, start_response)
 
         ccache_name = environ.get('KRB5CCNAME')
 

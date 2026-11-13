@@ -22,6 +22,8 @@ Test the `ipaserver.rpc` module.
 """
 
 import json
+from io import BytesIO
+
 import pytest
 
 
@@ -47,6 +49,132 @@ class StartResponse:
         assert isinstance(headers, list)
         self.status = status
         self.headers = headers
+
+
+def _environ_with_body(body, content_type='application/x-www-form-urlencoded',
+                       method='POST', content_length=None):
+    if isinstance(body, str):
+        body = body.encode('utf-8')
+    if content_length is None:
+        content_length = len(body)
+    return {
+        'REQUEST_METHOD': method,
+        'CONTENT_TYPE': content_type,
+        'CONTENT_LENGTH': str(content_length),
+        'QUERY_STRING': '',
+        'wsgi.input': BytesIO(body),
+    }
+
+
+def test_request_body_too_large():
+    api = 'the api instance'
+    f = rpcserver.HTTP_Status(api)
+    t = rpcserver._request_body_too_large_template
+    s = StartResponse()
+
+    assert_equal(
+        f.request_body_too_large(None, s),
+        [(t % dict(message='Request body too large')).encode('utf-8')]
+    )
+    assert s.status == rpcserver.HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE
+    assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
+
+
+def test_check_request_body_size():
+    max_size = 16
+
+    # Within and exact max size are allowed without reading the body
+    rpcserver.check_request_body_size(
+        {'CONTENT_LENGTH': str(max_size)}, max_size
+    )
+    rpcserver.check_request_body_size(
+        {'CONTENT_LENGTH': str(max_size - 1)}, max_size
+    )
+
+    # Oversized Content-Length raises before any body read
+    raises(rpcserver.RequestBodyTooLarge,
+           rpcserver.check_request_body_size,
+           {'CONTENT_LENGTH': str(max_size + 1)}, max_size)
+
+    # Missing, invalid, or negative Content-Length is ignored here
+    rpcserver.check_request_body_size({'CONTENT_LENGTH': None}, max_size)
+    rpcserver.check_request_body_size(
+        {'CONTENT_LENGTH': 'not-a-number'}, max_size
+    )
+    rpcserver.check_request_body_size({'CONTENT_LENGTH': '-1'}, max_size)
+
+
+def test_read_input():
+    max_size = 16
+    body = b'abcdefghijklmnop'
+
+    # Valid body within the limit
+    environ = _environ_with_body(body[:8])
+    assert_equal(rpcserver.read_input(environ, max_size), 'abcdefgh')
+
+    # Exact max size is allowed
+    environ = _environ_with_body(body)
+    assert_equal(rpcserver.read_input(environ, max_size), body.decode('utf-8'))
+
+    # Oversized Content-Length raises RequestBodyTooLarge
+    environ = _environ_with_body(body + b'x', content_length=max_size + 1)
+    raises(rpcserver.RequestBodyTooLarge,
+           rpcserver.read_input, environ, max_size)
+
+    # Missing Content-Length returns None (not 413)
+    environ = {
+        'CONTENT_LENGTH': None,
+        'wsgi.input': BytesIO(body),
+    }
+    assert rpcserver.read_input(environ, max_size) is None
+
+    # Invalid Content-Length returns None
+    environ = {
+        'CONTENT_LENGTH': 'not-a-number',
+        'wsgi.input': BytesIO(body),
+    }
+    assert rpcserver.read_input(environ, max_size) is None
+
+    # Negative Content-Length returns None
+    environ = {
+        'CONTENT_LENGTH': '-1',
+        'wsgi.input': BytesIO(body),
+    }
+    assert rpcserver.read_input(environ, max_size) is None
+
+
+def test_extract_query_request_body_size():
+    max_size = 64
+
+    # Oversized POST body propagates RequestBodyTooLarge
+    environ = _environ_with_body(
+        'a=' + ('x' * max_size), content_length=max_size + 1
+    )
+    raises(rpcserver.RequestBodyTooLarge,
+           rpcserver.extract_query, environ, max_size)
+
+    # Content-Type with charset must still enforce the body size limit
+    environ = _environ_with_body(
+        'a=' + ('x' * max_size),
+        content_type='application/x-www-form-urlencoded; charset=UTF-8',
+        content_length=max_size + 1,
+    )
+    raises(rpcserver.RequestBodyTooLarge,
+           rpcserver.extract_query, environ, max_size)
+
+    # Missing Content-Length yields an empty query (not 413)
+    environ = _environ_with_body('user=tuser')
+    environ['CONTENT_LENGTH'] = None
+    assert_equal(rpcserver.extract_query(environ, max_size), {})
+
+    # Exact max size does not raise RequestBodyTooLarge
+    environ = _environ_with_body('x' * max_size)
+    try:
+        rpcserver.extract_query(environ, max_size)
+    except rpcserver.RequestBodyTooLarge:
+        raise AssertionError(
+            'exact max-size body raised RequestBodyTooLarge'
+        )
 
 
 def test_not_found():
