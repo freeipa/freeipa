@@ -2052,12 +2052,16 @@ class TestIPACommand(IntegrationTest):
             stdin_text=user_kinit)
         tasks.kdestroy_all(self.clients[0])
         tasks.clear_sssd_cache(self.clients[0])
-        tasks.run_repeatedly(
-            self.clients[0],
-            command=['getent', 'passwd', restricted_user],
-            test=lambda stdout: restricted_user in stdout,
-            timeout=120,
-        )
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        for host, user in (
+                (self.clients[0], restricted_user),
+                (self.master, regular_user)):
+            tasks.run_repeatedly(
+                host,
+                command=['getent', 'passwd', user],
+                test=lambda stdout, u=user: u in stdout,
+                timeout=120,
+            )
 
         # ssh as a restricted user to a user with a valid shell should
         # work
