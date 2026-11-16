@@ -44,13 +44,15 @@ split into several parts which are associated with the corresponding Kerberos
 principals, whether they are used as clients or as targets.
 
 For users, Kerberos ticket life time and renewal age can be managed with
-Kerberos ticket policy commands described in ``ipa help krbtpolicy`` manual.
+Kerberos ticket policy commands described in :command:`ipa help krbtpolicy` manual.
 
 If no specific policy is associated with a user, a default one is applied. To
-manage the default policy the same ``ipa krbtpolicy-*`` commands are used,
+manage the default policy the same :command:`ipa krbtpolicy-*` commands are used,
 without an explicit user name.
 
-Display the default Kerberos ticket policy::
+Display the default Kerberos ticket policy:
+
+.. code-block:: console
 
   [admin@client]$ kinit admin
   Password for admin@IPADEMO.LOCAL:
@@ -58,19 +60,25 @@ Display the default Kerberos ticket policy::
     Max life: 86400
     Max renew: 604800
 
-Modify the default policy to 8 hours max life, 1-day max renewal::
+Modify the default policy to 8 hours max life, 1-day max renewal:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-mod --maxlife=28800 --maxrenew=86400
     Max life: 28800
     Max renew: 86640
 
-Display effective Kerberos ticket policy for user ``admin``::
+Display effective Kerberos ticket policy for user ``admin``:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-show admin
     Max life: 28800
     Max renew: 86640
 
-Modify per-user policy for user 'admin'::
+Modify per-user policy for user 'admin':
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-mod admin --maxlife=3600
     Max life: 3600
@@ -104,7 +112,9 @@ Now, we ask for a new ticket, the expectation is that the expiration date will r
 
 The difference between ``Valid starting`` and ``Expires`` got reduced to one hour.
 
-Now reset per-user policy for user ``admin``::
+Now reset per-user policy for user ``admin``:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-reset admin
     Max life: 28800
@@ -166,7 +176,9 @@ With FreeIPA 4.8.4 or later, Kerberos ticket policy allows an administrator to
 set different life time and renewal age for ticket granting tickets obtained
 with different pre-authentication methods. Each policy setting may include
 authentication indicator to say that the life time or renewal age applies to
-TGTs with which include this indicator::
+TGTs with which include this indicator:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-mod --help
     Usage: ipa [global-options] krbtpolicy-mod [USER] [options]
@@ -191,7 +203,9 @@ TGTs with which include this indicator::
      ....
 
 For example, we can allow ``admin`` user to renew its ticket for two days if it
-was obtained with ``hardened`` authentication indicator::
+was obtained with ``hardened`` authentication indicator:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-mod admin --hardened-maxrenew=$((2*24*60*60))
     Hardened max renew: 172800
@@ -202,7 +216,9 @@ was obtained with ``hardened`` authentication indicator::
 
 There is no way to see authentication indicators for already issued tickets with
 existing Kerberos utilities. However, MIT Kerberos tracing facilities can be
-used to see what pre-authentication method was used to obtain a ticket::
+used to see what pre-authentication method was used to obtain a ticket:
+
+.. code-block:: console
 
    [admin@client]$ KRB5_TRACE=/dev/stderr kinit admin
    [29708] 1583503381.62516: Getting initial credentials for admin@IPADEMO.LOCAL
@@ -254,7 +270,9 @@ used to see what pre-authentication method was used to obtain a ticket::
 
 As can be seen above, pre-authentication type, ``pa_type``, 151 (SPAKE)
 was used in for pre-authentication. A look at the credential cache content will
-show that the renewal age policy applied corresponds to the ``hardened`` variant::
+show that the renewal age policy applied corresponds to the ``hardened`` variant:
+
+.. code-block:: console
 
    [admin@client]$ klist -f -d -e
    Ticket cache: KCM:123456
@@ -269,7 +287,9 @@ As result, ``admin`` user can now use its ticket up to 8 hours and renew it
 until 48 hours since the original ticket was obtained.
 
 Finally, we can reset the default Kerberos ticket policy to the installation
-default::
+default:
+
+.. code-block:: console
 
   [admin@client]$ ipa krbtpolicy-reset
     Max life: 86400
@@ -294,21 +314,25 @@ authentication indicator-based authorization. Since version 2.6.0, SSSD provides
 a PAM module ``pam_sss_gss`` which allows to authenticate users with GSSAPI
 (Kerberos ticket) and optionally check authentication indicator that was used to
 obtain this ticket. More information can be found in the man page for
-``pam_sss_gss`` and for ``sssd.conf`` where options starting with ``pam_gssapi_``
+``pam_sss_gss`` and for :file:`sssd.conf` where options starting with ``pam_gssapi_``
 prefix are documented. This feature was also backported to SSSD 2.4.2 and 2.5.0.
 
 For example, setting the following in SSSD configuration would allow GSSAPI
-authentication to ``sudo`` and ``sudo -i`` only if the Kerberos ticket was
-obtained with the use of a smartcard or certificate-based authentcation::
+authentication to :command:`sudo` and :command:`sudo -i` only if the Kerberos ticket was
+obtained with the use of a smartcard or certificate-based authentcation:
+
+.. code-block:: ini
 
    [pam]
      pam_gssapi_services = sudo, sudo-i
      pam_gssapi_indicators_map = sudo:pkinit, sudo-i:pkinit
 
 The actual enforcement requires use of ``pam_sss_gss`` module in the PAM stack.
-Fedora and RHEL distributions provide ``authselect`` tool to handle PAM and NSS
-configuration. ``authselect`` was extended to allow use of ``pam_sss_gss`` as
-SSSD feature ``with-gssapi``::
+Fedora and RHEL distributions provide :command:`authselect` tool to handle PAM and NSS
+configuration. :command:`authselect` was extended to allow use of ``pam_sss_gss`` as
+SSSD feature ``with-gssapi``:
+
+.. code-block:: console
 
   [root@client ~]# authselect enable-feature with-gssapi
   Make sure that SSSD service is configured and enabled. See SSSD documentation for more information.
@@ -319,7 +343,9 @@ SSSD feature ``with-gssapi``::
 
 Once this change made and SSSD configuration updated to allow PAM services to
 use GSSAPI authentication, it will be possible to use Kerberos ticket to
-authenticate over a chosen PAM service. A session below demonstrates it::
+authenticate over a chosen PAM service. A session below demonstrates it:
+
+.. code-block:: console
 
    [root@client ~]# vim /etc/sssd/sssd.conf
    [root@client ~]# systemctl restart sssd
@@ -355,8 +381,10 @@ application will never see any user with a ticket that does not contain a
 specified authentication indicator.
 
 In order to enable the check, add authentication indicator to a service using
-``ipa service-mod`` command. We can create a new service and associate
-the ``pkinit`` authentication indicator with it::
+:command:`ipa service-mod` command. We can create a new service and associate
+the ``pkinit`` authentication indicator with it:
+
+.. code-block:: console
 
    [admin@client]$ ipa service-add my-service/`hostname`
    ---------------------------------------------------
@@ -373,9 +401,11 @@ random Kerberos keys was associated with it by retrieving a keytab with the
 keys. If we want to request a service ticket to the service, the service must
 have Kerberos keys.
 
-MIT Kerberos provides a nice tool to request Kerberos service tickets: ``kvno``.
+MIT Kerberos provides a nice tool to request Kerberos service tickets: :command:`kvno`.
 At this point our service has no authentication indicator associated and a
-request will succeed::
+request will succeed:
+
+.. code-block:: console
 
    [admin@client]$ KRB5_TRACE=/dev/stderr kvno -S my-service `hostname`
    [29770] 1583505522.60592: Getting credentials admin@IPADEMO.LOCAL -> my-service/client.ipademo.local@IPADEMO.LOCAL using ccache KCM:123456
@@ -400,7 +430,9 @@ request will succeed::
    [29770] 1583505522.60612: Storing admin@IPADEMO.LOCAL -> my-service/client.ipademo.local@IPADEMO.LOCAL in KCM:123456
    my-service/client.ipademo.local@IPADEMO.LOCAL: kvno = 1
 
-Let's associate ``pkinit`` authentication indicator with the service::
+Let's associate ``pkinit`` authentication indicator with the service:
+
+.. code-block:: console
 
    [admin@client]$ ipa service-mod my-service/`hostname` --auth-ind pkinit
    ------------------------------------------------------
@@ -412,9 +444,11 @@ Let's associate ``pkinit`` authentication indicator with the service::
      Managed by: client.ipademo.local
 
 Since our credentials cache already contains Kerberos ticket to
-``my-service/client.ipademo.local`` from the previous step, ``kvno`` will not
+``my-service/client.ipademo.local`` from the previous step, :command:`kvno` will not
 attempt to obtain a new ticket if we just request it again. Instead, we need to
-destroy our credentials cache or specify a different one and re-try again::
+destroy our credentials cache or specify a different one and re-try again:
+
+.. code-block:: console
 
    [admin@client]$ kdestroy
    [admin@client]$ kinit admin
@@ -450,7 +484,9 @@ destroy our credentials cache or specify a different one and re-try again::
    [29811] 1583506366.899836: TGS request result: -1765328372/KDC policy rejects request
    kvno: KDC policy rejects request while getting credentials for my-service/client.ipademo.local@IPADEMO.LOCAL
 
-Finally, we can remove the indicator from ``my-service/client.ipademo.local``::
+Finally, we can remove the indicator from ``my-service/client.ipademo.local``:
+
+.. code-block:: console
 
    [admin@client]$ ipa service-mod my-service/`hostname` --auth-ind ''
    ------------------------------------------------------

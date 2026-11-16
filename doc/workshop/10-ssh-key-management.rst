@@ -8,8 +8,8 @@ Unit 10: SSH user and host key management
 - :ref:`Unit 3: User management and Kerberos authentication <3-user-management>`
 
 In this module you will explore how to use FreeIPA as a backend
-provider for SSH keys.  Instead of distributing ``authorized_keys``
-and ``known_hosts`` files, SSH keys are uploaded to their
+provider for SSH keys.  Instead of distributing :file:`authorized_keys`
+and :file:`known_hosts` files, SSH keys are uploaded to their
 corresponding user and host entries in FreeIPA.
 
 Using FreeIPA as a backend store for SSH user keys
@@ -17,10 +17,10 @@ Using FreeIPA as a backend store for SSH user keys
 
 OpenSSH can use *public-private key pairs* to authenticate users.  A
 user wanting to access a host can get her *public key* added to an
-``authorized_keys`` file on the target host.  When the user attempts
+:file:`authorized_keys` file on the target host.  When the user attempts
 to log in, she presents her public key and the host grants access if
-her key is in an ``authorized_keys`` file.  There are system-wide
-and per-user ``authorized_keys`` files, but if the target systems do
+her key is in an :file:`authorized_keys` file.  There are system-wide
+and per-user :file:`authorized_keys` files, but if the target systems do
 not mount a network-backed home directory (e.g. NFS), then the user
 must copy her public key to every system she intends to log in to.
 
@@ -31,7 +31,9 @@ centralized repository of keys, which users can manage themselves.
 Administrators do not need to worry about distributing, updating or
 verifying user SSH keys.
 
-Generate a user keypair on the client system::
+Generate a user keypair on the client system:
+
+.. code-block:: console
 
   [client]$ sudo -i -u alice
   [alice@client]$
@@ -58,9 +60,11 @@ Generate a user keypair on the client system::
   |                 |
   +----[SHA256]-----+
 
-The public key is stored in ``/home/alice/.ssh/id_rsa.pub`` in an
+The public key is stored in :file:`/home/alice/.ssh/id_rsa.pub` in an
 OpenSSH-specific format.  ``alice`` can now upload it to her user
-entry in FreeIPA::
+entry in FreeIPA:
+
+.. code-block:: console
 
   [alice@client]$ kinit alice
   Password for alice@IPADEMO.LOCAL:
@@ -99,7 +103,9 @@ that will **allow ``alice`` to access the ``sshd`` service on any
 host**.
 
 Logging in to the server using SSH public key authentication should
-now work::
+now work:
+
+.. code-block:: console
 
   [alice@client]$ ssh -o GSSAPIAuthentication=no server.ipademo.local
   Enter passphrase for key '/home/alice/.ssh/id_rsa':
@@ -110,7 +116,9 @@ The ``-o GSSAPIAuthentication=no`` turns off the Kerberos authentication, which 
 You can tell that the key authentication is used if you are asked for the key passphrase, or you are not asked for anything if you generated a key without a passphrase.
 
 To confirm that the SSH public key was used for authentication, or to find out why it doesn't work, you
-can check the ``sshd`` log on the server::
+can check the ``sshd`` log on the server:
+
+.. code-block:: console
 
   [server]$ sudo journalctl -u sshd -S "5 minutes ago" --no-pager
   -- Logs begin at Mon 2018-06-04 19:01:11 UTC, end at Mon 2018-06-11 04:55:19 UTC. --
@@ -124,9 +132,9 @@ OpenSSH uses public keys to authenticate hosts.  When a client
 attempts to log in over SSH, the target host presents its public
 key.  The first time the host authenticates, the user may have to
 examine the target host's public key and manually authenticate it.
-The client then stores the host's public key in a ``known_hosts``
+The client then stores the host's public key in a :file:`known_hosts`
 file.  On subsequent attempts to log in, the client checks its
-``known_hosts`` files.  If the presented host key does not match the
+:file:`known_hosts` files.  If the presented host key does not match the
 stored host key, the OpenSSH client refuses to continue.
 
 Based on the last exercise, try to figure out how to upload SSH host

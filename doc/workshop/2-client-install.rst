@@ -14,23 +14,29 @@ into the client machine (subject to access policies) and that *services*
 on the client can leverage FreeIPA's authentication and
 authorisation services.
 
-From the directory that contains the ``Vagrantfile``, SSH into the
-``client`` machine::
+From the directory that contains the :file:`Vagrantfile`, SSH into the
+``client`` machine:
+
+.. code-block:: console
 
   $ vagrant ssh client
 
 
-On ``client``, start the FreeIPA client enrolment program::
+On ``client``, start the FreeIPA client enrolment program:
+
+.. code-block:: console
 
   [client]$ sudo ipa-client-install --mkhomedir
 
 The FreeIPA server should be detected through DNS autodiscovery.
 (If DNS discovery fails, e.g. due to client machine having incorrect
-``/etc/resolv.conf`` configuration, you would be prompted to
+:file:`/etc/resolv.conf` configuration, you would be prompted to
 manually enter the domain and server hostname instead).
 
 The autodetected server settings will be displayed; confirm to
-proceed::
+proceed:
+
+.. code-block:: console
 
   [client]$ sudo ipa-client-install --mkhomedir
   Discovery was successful!
@@ -44,7 +50,9 @@ proceed::
 
 Next, the client's time will be synchronised with the server, then
 the installer will prompt you to enter the credentials of a user
-authorised to enrol hosts (``admin``)::
+authorised to enrol hosts (``admin``):
+
+.. code-block:: text
 
   User authorized to enroll computers: admin
   Password for admin@IPADEMO.LOCAL:

@@ -16,13 +16,15 @@ authentication to authenticate users, PAM to enforce HBAC rules, and
 user attributes.
 
 All activities in this unit take place on ``client`` unless
-otherwise specified.  **Access the host via ``vagrant ssh client``**
-to ensure you have ``sudo`` access.
+otherwise specified.  **Access the host** via :command:`vagrant ssh client`
+to ensure you have :command:`sudo` access.
 
 The demo web application is trivial.  It just reads its request
 environment and responds in plain text with a list of variables
 starting with the string ``"REMOTE_"``.  It should be up and running
-already::
+already:
+
+.. code-block:: console
 
   [client]$ curl http://client.ipademo.local
   NOT LOGGED IN
@@ -51,14 +53,18 @@ Retrieve Kerberos keytab
 
 The service needs access to its Kerberos key in order to
 authenticate users.  Retrieve the key from the FreeIPA server and
-store it in a *keytab* file (you will need a TGT for ``admin``)::
+store it in a *keytab* file (you will need a TGT for ``admin``):
+
+.. code-block:: console
 
   [client]$ ipa-getkeytab -p HTTP/client.ipademo.local -k app.keytab
   Keytab successfully retrieved and stored in: app.keytab
 
 We also have to move the file, change its ownership and apply the
 proper SELinux labels to the keytab file so that the Apache process
-which runs under the confined ``apache`` user may read it::
+which runs under the confined ``apache`` user may read it:
+
+.. code-block:: console
 
   [client]$ sudo mv app.keytab /etc/httpd
   [client]$ sudo chown apache:apache /etc/httpd/app.keytab
@@ -74,8 +80,10 @@ Negotiate / SPNEGO authentication for a web application.
 .. _mod_auth_gssapi: https://github.com/modauthgssapi/mod_auth_gssapi
 
 The Apache configuration for the demo application lives in the file
-``/etc/httpd/conf.d/app.conf``.  Update the configuration (use
-``sudo vi`` or ``sudo nano``) to enable Kerberos authentication::
+:file:`/etc/httpd/conf.d/app.conf`.  Update the configuration (use
+:command:`sudo vi` or :command:`sudo nano`) to enable Kerberos authentication:
+
+.. code-block:: apache
 
   <VirtualHost *:80>
     ServerName client.ipademo.local
@@ -96,13 +104,17 @@ The Apache configuration for the demo application lives in the file
   </VirtualHost>
 
 
-When the configuration is in place, restart Apache::
+When the configuration is in place, restart Apache:
+
+.. code-block:: console
 
   [client]$ sudo systemctl restart httpd
 
 
-To test that Kerberos Negotiate authentication is working, ``kinit``
-and make a request using ``curl``::
+To test that Kerberos Negotiate authentication is working, :command:`kinit`
+and make a request using :command:`curl`:
+
+.. code-block:: console
 
   [client]$ kinit bob
   Password for bob@IPADEMO.LOCAL:
@@ -133,10 +145,12 @@ information about the authenticated user.
 .. _mod_lookup_identity: https://www.adelton.com/apache/mod_lookup_identity/
 
 ``mod_lookup_identity`` retrieves user attributes from SSSD (via D-Bus).
-Edit ``/etc/sssd/sssd.conf``; enable the SSSD ``ifp`` *InfoPipe*
+Edit :file:`/etc/sssd/sssd.conf`; enable the SSSD ``ifp`` *InfoPipe*
 responder, permit the ``apache`` user to query it, and configure the
 attributes that you want to expose.  Add the following configuration to
-``sssd.conf``::
+:file:`sssd.conf`:
+
+.. code-block:: ini
 
   [domain/ipademo.local]
   ...
@@ -151,17 +165,23 @@ attributes that you want to expose.  Add the following configuration to
   user_attributes = +mail, +givenname, +sn
 
 
-Restart SSSD::
+Restart SSSD:
+
+.. code-block:: console
 
   [client]$ sudo systemctl restart sssd
 
-If you had not added an email address to your users when you created them, you will need to empty the SSSD cache::
+If you had not added an email address to your users when you created them, you will need to empty the SSSD cache:
+
+.. code-block:: console
 
   [client]$ sudo sss_cache -E
 
 
-You can test the SSSD InfoPipe directly via the ``dbus-send``
-utility::
+You can test the SSSD InfoPipe directly via the :command:`dbus-send`
+utility:
+
+.. code-block:: console
 
   [client]$ sudo dbus-send --print-reply --system \
       --dest=org.freedesktop.sssd.infopipe /org/freedesktop/sssd/infopipe \
@@ -184,7 +204,7 @@ attributes can be expanded into multiple variables, as in the
 ``LookupUserGroupsIter`` directive.  Do not forget the
 ``LoadModule`` directive at the top!
 
-::
+.. code-block:: apache
 
   LoadModule lookup_identity_module modules/mod_lookup_identity.so
 
@@ -208,17 +228,23 @@ attributes can be expanded into multiple variables, as in the
   </VirtualHost>
 
 Default SELinux policy prevents Apache from communicating with SSSD
-over D-Bus.  Set ``httpd_dbus_sssd`` to ``1``::
+over D-Bus.  Set ``httpd_dbus_sssd`` to ``1``:
+
+.. code-block:: console
 
   [client]$ sudo setsebool -P httpd_dbus_sssd 1
 
-Restart Apache::
+Restart Apache:
+
+.. code-block:: console
 
   [client]$ sudo systemctl restart httpd
 
 Now make another request to the application and observe that user
 information that was injected into the request environment by
-``mod_lookup_identity`` is reflected in the response::
+``mod_lookup_identity`` is reflected in the response:
+
+.. code-block:: console
 
   [client]$ curl -u : --negotiate http://client.ipademo.local/
   LOGGED IN AS: alice@IPADEMO.LOCAL
@@ -250,7 +276,9 @@ You can do this as ``admin`` via the Web UI or CLI.  **Hint:** the
 ``hbacsvc`` plugin provides this functionality.
 
 Next, add an HBAC rule allowing members of the ``sysadmin`` user
-group access to ``app`` (on any host)::
+group access to ``app`` (on any host):
+
+.. code-block:: console
 
   [client]$ ipa hbacrule-add --hostcat=all sysadmin_app
   ------------------------------
@@ -282,28 +310,38 @@ group access to ``app`` (on any host)::
 Next, define the PAM service on ``client``.  The name must match the
 ``hbacsvc`` name (in our case: ``app``), and the name is indicated
 by the *name of the file* that configures the PAM stack.  Create
-``/etc/pam.d/app`` with the following contents::
+:file:`/etc/pam.d/app` with the following contents:
+
+.. code-block:: text
 
   account required   pam_sss.so
 
-Finally, update the Apache configuration.  Find the line::
+Finally, update the Apache configuration.  Find the line:
+
+.. code-block:: apache
 
   Require valid-user
 
-Replace with::
+Replace with:
+
+.. code-block:: apache
 
   Require pam-account app
 
-Also add the ``LoadModule`` directive to the top of the file::
+Also add the ``LoadModule`` directive to the top of the file:
+
+.. code-block:: apache
 
   LoadModule authnz_pam_module modules/mod_authnz_pam.so
 
 Once again, we must set a special SELinux boolean to allow
-``mod_authnz_pam`` to work::
+``mod_authnz_pam`` to work:
+
+.. code-block:: console
 
   [client]$ sudo setsebool -P allow_httpd_mod_auth_pam 1
 
-Restart Apache and try and perform the same ``curl`` request again
+Restart Apache and try and perform the same :command:`curl` request again
 as ``alice``.  Everything should work as before because ``alice`` is
 a member of the ``sysadmin`` group.  What happens when you are
 authenticated as ``bob`` instead?
