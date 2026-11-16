@@ -109,9 +109,11 @@ with IPA.
 Setting up IdP references (OAuth 2.0 clients) in IPA can be done with ``ipa
 idp-add`` command. The command accepts an option to specify a pre-defined
 template for one of the known IdPs. If none of the pre-defined templates is
-suitable, individual parameters can also be added::
+suitable, individual parameters can also be added:
 
-  ipa help idp-add
+.. code-block:: console
+
+  [root@client ~]# ipa help idp-add
   Usage: ipa [global-options] idp-add NAME [options]
 
   Add a new Identity Provider reference.
@@ -213,8 +215,7 @@ stored at ``/etc/pki/tls/private/keycloak.store``.
 
 Finally, we need to set up ``systemd`` service to run Keycloak::
 
-  # Setup keycloak service and config files
-
+  [root@client ~]# # Setup keycloak service and config files
   [root@client ~]# cat > /etc/sysconfig/keycloak <<EOF
   KEYCLOAK_ADMIN=admin
   KEYCLOAK_ADMIN_PASSWORD=Secret123
@@ -249,9 +250,12 @@ Finally, we need to set up ``systemd`` service to run Keycloak::
   [root@client ~]# systemctl daemon-reload
 
 
-When ``systemd`` service is prepared, Keycloak needs to be initialized::
+When ``systemd`` service is prepared, Keycloak needs to be initialized:
+Run the following multi-line command:
 
-  [root@client ~]# su - keycloak -c '''
+.. code-block:: bash
+
+  su - keycloak -c '
   export KEYCLOAK_ADMIN=admin
   export KEYCLOAK_ADMIN_PASSWORD=Secret123
   export KC_HOSTNAME=$(hostname):8443
@@ -261,7 +265,7 @@ When ``systemd`` service is prepared, Keycloak needs to be initialized::
   export KC_HTTPS_TRUST_STORE_PASSWORD=Secret123
   export KC_HTTP_RELATIVE_PATH=/auth
   /opt/keycloak-${KEYCLOAK_VERSION}/bin/kc.sh --verbose build
-  '''
+  '
 
 and can be started with the standard ``systemctl`` tool::
 
@@ -290,30 +294,30 @@ operations without visiting the Keycloak Web UI.
 With ``kcadm.sh`` we login as admin and create user ``testuser1`` and set a password::
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh config truststore \
-        --trustpass Secret123 \
-        /etc/pki/tls/private/keycloak.store
+  >     --trustpass Secret123 \
+  >     /etc/pki/tls/private/keycloak.store
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh config credentials \
-        --server https://$(hostname):8443/auth/ \
-        --realm master --user admin --password Secret123
+  >     --server https://$(hostname):8443/auth/ \
+  >     --realm master --user admin --password Secret123
   Logging into https://client.ipademo.local:8443/auth/ as user admin of realm master
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh create users \
-        -r master \
-        -s username=testuser1 -s enabled=true -s email=testuser1@ipademo.local
+  >     -r master \
+  >     -s username=testuser1 -s enabled=true -s email=testuser1@ipademo.local
   Created new user with id 'd319b32a-4cea-43c5-8ef8-19b2b8418d0a'
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh set-password \
-        -r master \
-        --username testuser1 --new-password Secret123
+  >     -r master \
+  >     --username testuser1 --new-password Secret123
 
 With ``kcreg.sh`` we can create OAuth 2.0 client using a pre-defined template
 that will include all parameters we need to allow OAuth 2.0 Device Authorization
 Grant flow::
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcreg.sh config credentials \
-        --server https://$(hostname):8443/auth \
-        --realm master --user admin --password Secret123
+  >     --server https://$(hostname):8443/auth \
+  >     --realm master --user admin --password Secret123
 
   [root@client ~]# cat >ipa_client.json <<EOF
   {
@@ -330,8 +334,8 @@ Grant flow::
   EOF
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcreg.sh create \
-        -f ipa_client.json  \
-        -s clientId=ipa_oidc_client
+  >     -f ipa_client.json  \
+  >     -s clientId=ipa_oidc_client
 
 At this point, we have a Keycloak instance with a default ``master`` realm
 (organization) and base URL ``https://$(hostname):8443/auth/``. In this realm we
@@ -367,10 +371,10 @@ The following command adds IdP reference named ``keycloak`` as IPA administrator
   ..
   [root@client ~]# echo -e "Secret123\nSecret123" | \
   [root@client ~]# ipa idp-add keycloak --provider keycloak \
-        --org master \
-        --base-url https://client.ipademo.local:8443/auth \
-        --client-id ipa_oidc_client \
-        --secret
+  >     --org master \
+  >     --base-url https://client.ipademo.local:8443/auth \
+  >     --client-id ipa_oidc_client \
+  >     --secret
   -----------------------------------------
   Added Identity Provider reference "keycloak"
   -----------------------------------------
@@ -445,8 +449,8 @@ satisfied:
 We can set these options to ``testuser1`` with ``ipa user-mod`` command::
 
   [root@client ~]# ipa user-mod testuser1 --idp keycloak \
-                         --idp-user-id testuser1@ipademo.local \
-                         --user-auth-type=idp
+  >                      --idp-user-id testuser1@ipademo.local \
+  >                      --user-auth-type=idp
   -------------------------
   Modified user "testuser1"
   -------------------------
