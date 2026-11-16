@@ -31,8 +31,10 @@ application-specific communication to the target application server.
 
 When a KDC issues a ticket, there are few properties that can be controlled with
 the help of a Kerberos policy in FreeIPA. Each ticket has its own life time and
-a potential renewal age: a ticket can be renewed before its life time has ended
-but until the renewal age expired.
+a potential renewal age --- a ticket can be renewed only if both conditions hold:
+
+- the ticket's its current life time has not yet expired, and
+- the renewal age counted since the ticket's creation also hasn't expired.
 
 The combination of Kerberos ticket life time and renewal age altogether
 comprises a **Kerberos ticket policy**. The policy itself is not stored in a single
@@ -73,7 +75,36 @@ Modify per-user policy for user 'admin'::
   [admin@client]$ ipa krbtpolicy-mod admin --maxlife=3600
     Max life: 3600
 
-Reset per-user policy for user ``admin``::
+
+Is it really the case? Time to check it out!
+The expiration/renewal metadata is part of the ticket, so a tickets issued before those changes are not affected.
+You can check using the :command:`klist` command:
+
+.. code-block:: console
+
+  [admin@client]$ klist -f -d -e
+
+  ...
+  Valid starting       Expires              Service principal
+  06.03.2020 09.03.06  06.03.2020 17.03.06  ...
+  ...
+
+Now, we ask for a new ticket, the expectation is that the expiration date will reduce dramatically:
+
+.. code-block:: console
+
+  [admin@client]$ kdestroy
+  [admin@client]$ kinit admin
+  [admin@client]$ klist -f -d -e
+
+  ...
+  Valid starting       Expires              Service principal
+  06.03.2020 09.23.06  06.03.2020 10.23.06  ...
+  ...
+
+The difference between ``Valid starting`` and ``Expires`` got reduced to one hour.
+
+Now reset per-user policy for user ``admin``::
 
   [admin@client]$ ipa krbtpolicy-reset admin
     Max life: 28800

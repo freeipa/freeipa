@@ -106,6 +106,11 @@ The ``--servicecat=all`` option applies this rule for all services on
 matching hosts.  It could have been set during the ``hbacrule-add``
 command instead.
 
+.. tip::
+
+   When you make changes to the setup, it may take time to propagate to the enrolled systems.
+   You can use :command:`sudo sss_cache -E` to flush caches on the system you want to interact with.
+
 
 Testing HBAC rules
 ------------------

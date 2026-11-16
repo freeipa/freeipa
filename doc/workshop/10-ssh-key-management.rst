@@ -106,7 +106,10 @@ now work::
   Last login: Tue Feb  2 15:10:13 2016
   [alice@server]$
 
-To verify that the SSH public key was used for authentication, you
+The ``-o GSSAPIAuthentication=no`` turns off the Kerberos authentication, which could take precedence over the key authentication that we are trying to verify in this exercise.
+You can tell that the key authentication is used if you are asked for the key passphrase, or you are not asked for anything if you generated a key without a passphrase.
+
+To confirm that the SSH public key was used for authentication, or to find out why it doesn't work, you
 can check the ``sshd`` log on the server::
 
   [server]$ sudo journalctl -u sshd -S "5 minutes ago" --no-pager
