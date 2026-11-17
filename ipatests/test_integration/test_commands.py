@@ -1887,7 +1887,7 @@ class TestIPACommand(IntegrationTest):
         """
         user = 'ldapuser'
         password = 'Secret123'
-        bad_password = 'foo'
+        bad_password = 'WrongPassword'
         basedn = self.master.domain.basedn
         binddn = DN(f"uid={user},cn=users,cn=accounts,{basedn}")
 
@@ -1924,7 +1924,7 @@ class TestIPACommand(IntegrationTest):
         user = 'tuser'
         original_passwd = 'Secret123'
         new_passwd = 'newPasswd123'
-        bad_passwd = 'foo'
+        bad_passwd = 'WrongPassword'
 
         tasks.kinit_admin(self.master)
         tasks.user_add(self.master, user, password=original_passwd)
