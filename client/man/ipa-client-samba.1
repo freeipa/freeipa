@@ -11,7 +11,7 @@ Configures a Samba file server on the client machine to use IPA domain controlle
 
 The tool configures Samba file server to be a domain member of IPA domain. Samba file server will use SSSD to resolve information about users and groups, and will use IPA master it is enrolled against as its domain controller.
 
-It is not possible to reconciliate original Samba environment if that was pre-existing on the client with new configuration. Samba databases will be updated to follow IPA domain details and \fBsmb.conf\fR configuration will will be overwritten. It is recommended to enable Samba suite on a freshly deployed IPA client.
+It is not possible to reconcile original Samba environment if that was pre-existing on the client with new configuration. Samba databases will be updated to follow IPA domain details and \fBsmb.conf\fR configuration will be overwritten. It is recommended to enable Samba suite on a freshly deployed IPA client.
 
 .TP
 During the configuration process, the tool will perform following steps:
@@ -29,7 +29,7 @@ During the configuration process, the tool will perform following steps:
 6. Create a default [homes] share to allow users to log in to their home directories unless \-\-no\-homes option was specified.
 
 .TP
-The tool does not start nor does it enable Samba file services after the configuration. In order to enable and start Samba file services, one needs to enable both \fBsmb.service\fR and \fBwinbind.service\fR system services. Please check that \fB/etc/samba/smb.conf\fR contains all settings for your use case as starting Samba service will make identity mapping details written into the Samba databases. To enable and start Samba file services at the same time one can use \fBsystemctl enable \-\-now\fR command:
+The tool does not start nor does it enable Samba file services after the configuration. In order to enable and start Samba file services, one needs to enable both \fBsmb.service\fR and \fBwinbind.service\fR system services. Please check that \fB/etc/samba/smb.conf\fR contains all settings for your use case as starting Samba service will write identity mapping details into the Samba databases. To enable and start Samba file services at the same time one can use \fBsystemctl enable \-\-now\fR command:
 
 systemctl enable --now smb winbind
 
@@ -39,7 +39,7 @@ The ipa\-client\-samba script assumes that the machine has already been enrolled
 .SS "IPA Master Requirements"
 At least one IPA master must hold a \fBTrust Controller\fR role. This can be achieved by running ipa\-adtrust\-install on the IPA master. The utility will configure IPA master to be a domain controller for IPA domain.
 
-IPA master holding a \fBTrust Controller\fR role has also to have support for a special service command to create SMB service, \fBipa service-add-smb\fR. This command is available with IPA 4.8.0 or later release.
+IPA master holding a \fBTrust Controller\fR role must also provide support for a special service command to create SMB service, \fBipa service-add-smb\fR. This command is available with IPA 4.8.0 or later release.
 
 .SH "OPTIONS"
 .SS "BASIC OPTIONS"
