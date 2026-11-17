@@ -22,8 +22,13 @@ Test the `ipaserver/plugins/cert.py` module against a RA.
 from __future__ import print_function, absolute_import
 
 import base64
+import datetime
 import os
 
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
 import pytest
 from ipalib import api
 from ipalib import errors
@@ -32,6 +37,7 @@ from ipapython.certdb import NSSDatabase
 from ipapython.dn import DN
 from ipapython.ipautil import run
 from ipatests.test_xmlrpc.testcert import subject_base
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
 # So we can save the cert from issuance and compare it later
@@ -289,6 +295,34 @@ class test_cert_find(XMLRPC_test):
 
         is_db_configured()
 
+    @pytest.fixture(scope="function")
+    def user_with_external_cert(self, request):
+        tracker = UserTracker(name="extcertuser", givenname="Ext", sn="Cert")
+        tracker.create()
+        request.addfinalizer(tracker.delete)
+
+        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COMMON_NAME, tracker.uid),
+        ])
+        now = datetime.datetime.now(datetime.timezone.utc)
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subject)
+            .issuer_name(issuer)
+            .public_key(key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(now - datetime.timedelta(days=1))
+            .not_valid_after(now + datetime.timedelta(days=30))
+            .sign(key, hashes.SHA256())
+        )
+        cert_b64 = base64.b64encode(
+            cert.public_bytes(serialization.Encoding.DER)
+        ).decode("ascii")
+
+        api.Command.user_add_cert(tracker.uid, usercertificate=cert_b64)
+        return tracker
+
     short = api.env.host.split('.', maxsplit=1)[0]
 
     def test_0001_find_all_certs(self):
@@ -456,6 +490,16 @@ class test_cert_find(XMLRPC_test):
         """
         with pytest.raises(errors.ConversionError):
             api.Command['cert_find'](issuedon_from='xyz')
+
+    def test_search_for_user_cert_sizelimit_zero(self, user_with_external_cert):
+        """Verify cert_find with sizelimit=0 returns external user certs
+
+        Regression test for Web UI cert_find call passing sizelimit=0.
+        """
+        res = api.Command.cert_find(
+            user=[user_with_external_cert.uid], sizelimit=0, all=True
+        )
+        assert res['count'] == 1
 
 
 @pytest.mark.tier1
