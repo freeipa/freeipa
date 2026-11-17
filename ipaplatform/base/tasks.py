@@ -571,6 +571,10 @@ class BaseTaskNamespace:
                 'camellia256-cts:normal', 'camellia128-cts:normal']
 
     # Encryption types used in the past, not supported anymore
+    #
+    # If camellia is ever removed, remember to remove its old aliases,
+    # camellia{128,256}-cts-cmac:{normal,special} which were formerly added by
+    # kerberos.ldif, as well as the values returned by get_supported_enctypes.
     def get_removed_supported_enctypes(self):
         return ['des3-hmac-sha1:special', 'des3-hmac-sha1:normal']
 
