@@ -457,84 +457,84 @@ class LDAPUpdate:
             # Perform variable substitution on constructued line
             logical_line = self._template_str(logical_line)
 
-            # skip line if substitution has added a comment. FIPS mode
-            # disables some lines that way.
-            logical_line = logical_line.strip()
-            if not logical_line or logical_line.startswith('#'):
-                return
+            # Handle multi-line template variable values
+            for sub_line in logical_line.splitlines():
+                sub_line = sub_line.strip()
+                if not sub_line:
+                    continue
 
-            items = logical_line.split(':', 2)
+                items = sub_line.split(":", 2)
 
-            if len(items) == 0:
-                raise BadSyntax("Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line))
-
-            action = items[0].strip().lower()
-
-            if action not in self.action_keywords:
-                raise BadSyntax("Unknown update action '%s', data source=%s" % (action, data_source_name))
-
-            if action == 'deleteentry':
-                new_value = None
-                disposition = "deleteentry"
-            else:
-                if len(items) != 3:
+                if len(items) == 0:
                     raise BadSyntax("Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line))
 
-                attr = items[1].strip()
-                # do not strip here, we need detect '::' due to base64 encoded
-                # values, strip may result into fake detection
-                value = items[2]
+                action = items[0].strip().lower()
 
-                # detect base64 encoding
-                # value which start with ':' are base64 encoded
-                # decode it as a binary value
-                if value.startswith(':'):
-                    value = value[1:]
-                    binary = True
+                if action not in self.action_keywords:
+                    raise BadSyntax("Unknown update action '%s', data source=%s" % (action, data_source_name))
+
+                if action == 'deleteentry':
+                    new_value = None
+                    disposition = "deleteentry"
                 else:
-                    binary = False
-                value = value.strip()
+                    if len(items) != 3:
+                        raise BadSyntax("Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line))
 
-                if action == 'replace':
-                    try:
-                        value = value.split('::', 1)
-                    except ValueError:
-                        raise BadSyntax(
-                            "Bad syntax in replace on line %s:%d: %s, needs to "
-                            "be in the format old::new in %s" % (
-                                data_source_name, lcount, logical_line, value)
-                        )
-                else:
-                    value = [value]
+                    attr = items[1].strip()
+                    # do not strip here, we need detect '::' due to base64 encoded
+                    # values, strip may result into fake detection
+                    value = items[2]
 
-                if binary:
-                    for i, v in enumerate(value):
+                    # detect base64 encoding
+                    # value which start with ':' are base64 encoded
+                    # decode it as a binary value
+                    if value.startswith(':'):
+                        value = value[1:]
+                        binary = True
+                    else:
+                        binary = False
+                    value = value.strip()
+
+                    if action == 'replace':
                         try:
-                            value[i] = base64.b64decode(v)
-                        except (TypeError, ValueError) as e:
+                            value = value.split('::', 1)
+                        except ValueError:
                             raise BadSyntax(
-                                "Base64 encoded value %s on line %s:%d: %s is "
-                                "incorrect (%s)" % (v, data_source_name,
-                                                    lcount, logical_line, e)
+                                "Bad syntax in replace on line %s:%d: %s, needs to "
+                                "be in the format old::new in %s" % (
+                                    data_source_name, lcount, logical_line, value)
                             )
-                else:
-                    for i, v in enumerate(value):
-                        if isinstance(v, str):
-                            value[i] = v.encode('utf-8')
+                    else:
+                        value = [value]
 
-                if action != 'replace':
-                    value = value[0]
+                    if binary:
+                        for i, v in enumerate(value):
+                            try:
+                                value[i] = base64.b64decode(v)
+                            except (TypeError, ValueError) as e:
+                                raise BadSyntax(
+                                    "Base64 encoded value %s on line %s:%d: %s is "
+                                    "incorrect (%s)" % (v, data_source_name,
+                                                        lcount, logical_line, e)
+                                )
+                    else:
+                        for i, v in enumerate(value):
+                            if isinstance(v, str):
+                                value[i] = v.encode('utf-8')
 
-                if action == "default":
-                    new_value = {'attr': attr, 'value': value}
-                    disposition = "default"
-                else:
-                    new_value = {'action': action, "attr": attr,
-                                 'value': value}
-                    disposition = "updates"
+                    if action != 'replace':
+                        value = value[0]
 
-            disposition_list = update.setdefault(disposition, [])
-            disposition_list.append(new_value)
+                    if action == "default":
+                        new_value = {'attr': attr, 'value': value}
+                        disposition = "default"
+                    else:
+                        new_value = {'action': action, "attr": attr,
+                                     'value': value}
+                        disposition = "updates"
+
+                disposition_list = update.setdefault(disposition, [])
+                disposition_list.append(new_value)
 
         def emit_update(update):
             '''
