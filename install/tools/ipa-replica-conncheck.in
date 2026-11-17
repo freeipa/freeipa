@@ -239,10 +239,12 @@ def configure_krb5_conf(realm, kdc, filename):
 
     opts = [{'name':'comment', 'type':'comment',
              'value':'File created by ipa-replica-conncheck'},
-            {'name':'empty', 'type':'empty'},
-            {'name':'include', 'type':'option', 'delim':' ',
-             'value':'/etc/krb5.conf.d/crypto-policies'},
             {'name':'empty', 'type':'empty'}]
+    if paths.CRYPTO_POLICY_KRB5_FILE is not None:
+        opts.extend([
+            {'name':'include', 'type':'option', 'delim':' ',
+             'value': paths.CRYPTO_POLICY_KRB5_FILE},
+            {'name':'empty', 'type':'empty'}])
 
     #[libdefaults]
     libdefaults = [{'name':'default_realm', 'type':'option', 'value':realm}]
