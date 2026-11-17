@@ -23,6 +23,9 @@ import os
 import os.path
 import tempfile
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
@@ -219,8 +222,8 @@ class ServerCertInstall(admintool.AdminTool):
 
         with tempfile.NamedTemporaryFile("rb") as temp:
             certs.install_key_from_p12(pkcs12_file.name, pin, temp.name)
-            key = x509.load_pem_private_key(
-                temp.read(), None, backend=x509.default_backend())
+            key = load_pem_private_key(
+                temp.read(), None, backend=default_backend())
 
         return cert, key, ca_cert
 
