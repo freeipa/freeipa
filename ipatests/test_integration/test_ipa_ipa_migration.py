@@ -62,15 +62,17 @@ def prepare_ipa_server(master):
     )
 
     # Adding stage user
+    password = "Secret123"
     master.run_command(
         [
             "ipa",
             "stageuser-add",
+            "tuser1",
             "--first=Tim",
             "--last=User",
             "--password",
-            "tuser1",
-        ]
+        ],
+        stdin_text="%s\n%s\n" % (password, password),
     )
 
     # Add SSH key to normal user
