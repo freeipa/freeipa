@@ -136,6 +136,35 @@ is a true *single sign-on* protocol!
   06/04/2018 21:38:41  06/05/2018 21:38:24  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
 
 
+.. _switching_tickets:
+
+Switching active tickets
+------------------------
+
+When you run :command:`kinit admin`, later followed by :command:`kinit bob`, you already know that ``bob``'s ticket ends up being the one that is effective.
+But what if you want to act as ``admin`` again, is there another way than re-running :command:`kinit admin`?
+Turns out that yes, you can change which ticket is effective, i.e. the default principal by running :command:`kswitch`.
+In the following snippet, we destroy all tickets, authenticate as ``admin``, then as ``bob``, and then we again select ``admin`` as default:
+
+.. code-block:: console
+
+  [server]$ kdestroy -A
+  [server]$ kinit admin
+  Password for admin@IPADEMO.LOCAL:
+  [server]$ kinit bob
+  Password for bob@IPADEMO.LOCAL:
+  [server]$ klist | grep Default
+  Default principal: bob@IPADEMO.LOCAL
+  [server]$ klist -l
+  Principal name            Cache name
+  --------------            ----------
+  bob@IPADEMO.LOCAL         ...
+  admin@IPADEMO.LOCAL       ...
+  [server]$ kswitch -p admin
+  [server]$ klist | grep Default
+  Default principal: admin@IPADEMO.LOCAL
+
+
 Now that you have created some users, it's time to define some
 access policies.  Proceed to
 :ref:`Unit 4: Host-based access control (HBAC) <4-hbac>`.
