@@ -133,6 +133,31 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
                                            int *_num_keys,
                                            krb5_key_data **_keys)
 {
+    return ipa_krb5_generate_key_data_with_salt(krbctx, principal, NULL,
+                                                pwd, kvno, kmkey,
+                                                num_encsalts, encsalts,
+                                                _num_keys, _keys);
+}
+
+/*
+ * Generate a krb5_key_data set by encrypting keys according to
+ * enctype/salttype preferences. When salt_override is not NULL its
+ * contents are used as the string-to-key salt of every generated key
+ * whose tuple requests KRB5_KDB_SALTTYPE_NORMAL, instead of the salt
+ * derived from the principal name; tuples requesting other salt types
+ * keep deriving (and recording) their own salt so that the stored salt
+ * type always matches the salt actually used to derive the key.
+ */
+krb5_error_code ipa_krb5_generate_key_data_with_salt(krb5_context krbctx,
+                                                     krb5_principal principal,
+                                                     const krb5_data *salt_override,
+                                                     krb5_data pwd, int kvno,
+                                                     krb5_keyblock *kmkey,
+                                                     int num_encsalts,
+                                                     krb5_key_salt_tuple *encsalts,
+                                                     int *_num_keys,
+                                                     krb5_key_data **_keys)
+{
     krb5_error_code kerr;
     krb5_key_data *keys;
     int num_keys;
@@ -165,7 +190,15 @@ krb5_error_code ipa_krb5_generate_key_data(krb5_context krbctx,
         keys[i].key_data_ver = 2; /* we always have a salt */
         keys[i].key_data_kvno = kvno;
 
-        switch (encsalts[i].ks_salttype) {
+        if (salt_override != NULL
+            && encsalts[i].ks_salttype == KRB5_KDB_SALTTYPE_NORMAL) {
+            salt.data = strndup(salt_override->data, salt_override->length);
+            if (salt.data == NULL) {
+                kerr = ENOMEM;
+                goto done;
+            }
+            salt.length = salt_override->length;
+        } else switch (encsalts[i].ks_salttype) {
 
         case KRB5_KDB_SALTTYPE_ONLYREALM:
 

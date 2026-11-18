@@ -12,7 +12,8 @@ KeytabModule DEFINITIONS ::= BEGIN
     GKNewKeys ::= SEQUENCE {
         serviceIdentity [0] OCTET STRING,
         enctypes        [1] SEQUENCE OF Int32,
-        password        [2] OCTET STRING OPTIONAL
+        password        [2] OCTET STRING OPTIONAL,
+        salt            [3] OCTET STRING OPTIONAL
     }
 
     GKCurrentKeys ::= SEQUENCE {
