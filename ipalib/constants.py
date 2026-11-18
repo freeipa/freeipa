@@ -356,7 +356,9 @@ USER_CACHE_PATH = (
     os.path.expanduser('~/.cache')
 )
 
-SOFTHSM_DNSSEC_TOKEN_LABEL = 'ipaDNSSEC'
+DNSSEC_TOKEN_LABEL = 'ipaDNSSEC'
+SOFTHSM_DNSSEC_TOKEN_LABEL = DNSSEC_TOKEN_LABEL
+
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'
