@@ -18,6 +18,25 @@ login access to ``client.ipademo.local`` to members of the
 ``sysadmin`` user group.
 
 
+How does it work
+----------------
+
+When a user wants to run a service on a particular host, that action can be represented as combination of *user* operating a *service* on a *host* .
+All interactions that are allowed are completely described as a 3-tuple of sets --- set of *users*, of *hosts* and of *services*, one such 3-tuple for each rule.
+For an action to be allowed, a rule has to exist for which the user wanting to perform the action is member of the rule's users,
+the host in question is member of that rule's set of hosts, and the same for the service in question.
+
+So for example, given an action that involves Alice SSHing to the ``client`` host, an action that translates to (``alice``, ``client``, ``sshd``),
+the action is allowed if there is a rule for which all three statements are true:
+
+- ``alice`` is member of the rule's users,
+- ``client`` is member of the rule's hosts, and
+- ``sshd`` is member of the rule's services.
+
+The sets in question can be defined by means of groups, by listing individual entries, or by using ``all``, which is a set that always contains all elements.
+If this sounds too theoretical, don't worry, you will see it in action.
+
+
 Adding a host group
 -------------------
 
@@ -133,6 +152,10 @@ command:
 Poor ``bob``.  He won't be allowed in because he is not a member of
 the ``sysadmin`` group.  What is the result of :command:`ipa hbactest` for
 ``alice``?
+
+.. tip::
+
+   Remember that you can :ref:`switch between principals <switching_tickets>` without running :command:`kinit` all over again
 
 :command:`kinit` as ``bob`` and try to log in to the client:
 
