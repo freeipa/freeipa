@@ -1310,11 +1310,12 @@ class TestSudo_Functional(IntegrationTest):
         master = self.master
         kinit_admin(master)
 
+        # Delete sudo rule first; sudocmdgroup-del refuses while the group
+        # is still linked from memberallowcmd / memberdenycmd.
+        master.run_command(["ipa", "sudorule-del", self.SUDO_RULE],
+                           raiseonerr=False)
         # Delete sudo command group
         master.run_command(["ipa", "sudocmdgroup-del", self.SUDO_GROUP],
-                           raiseonerr=False)
-        # Delete sudo rule
-        master.run_command(["ipa", "sudorule-del", self.SUDO_RULE],
                            raiseonerr=False)
         # Delete sudo commands
         sudo_commands = [
