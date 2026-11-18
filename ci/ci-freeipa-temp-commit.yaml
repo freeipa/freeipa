@@ -1,0 +1,45 @@
+#
+# Template for a temporary test commit: run tests with ci-freeipa on your
+# fork, the way PRCI runs ipatests/prci_definitions/temp_commit.yaml.
+#
+#   $ ln -sf ci/ci-freeipa-temp-commit.yaml .ci-freeipa.yaml
+#   $ git add .ci-freeipa.yaml && git commit -m "TEMP: ci-freeipa"
+#   $ git push <your fork> <branch>
+#
+# The workflow .github/workflows/ci-freeipa.yml of your fork finds
+# .ci-freeipa.yaml in the pushed commit, builds FreeIPA from the commit, runs
+# what is listed below on a GitHub runner of your fork, and reports in the
+# summary of the run. It does nothing in the organization's repository, and
+# nothing in a fork whose commits have no .ci-freeipa.yaml. Drop the commit
+# before you open the pull request.
+#
+# To use Testing Farm instead of a GitHub runner, add your Testing Farm API
+# token to your fork as the secret TESTING_FARM_API_TOKEN. The workflow then
+# submits the request: the guest clones the pushed commit (the fork must be
+# public), builds it, and runs the presets. Only presets of ci-freeipa run
+# there: no preset of your own, no `tests` list, no `build: false`. A qemu
+# preset runs too: the RPMs are built once in podman on the guest and the
+# VMs install them.
+#
+# A path is a file of your commit if there is one (add your own preset next
+# to this file if you need a different topology), else a file of the
+# ci-freeipa version that ci/tmt/plans/freeipa-env.fmf pins: a preset is
+# relative to its env/ directory, a queue to the repository root. Presets
+# are listed in env/presets/ and queues/ of
+# https://github.com/abbra/ci-freeipa.
+
+# Build FreeIPA from this commit and install it on the test machines. Set it
+# to false to test the packages of the distribution.
+build: true
+
+presets:
+  # one qemu VM from the published Fedora image: install a FreeIPA server
+  - presets/qemu-smoke.yaml
+
+  # a preset, with the tests it runs replaced by yours
+  # - preset: presets/qemu-smoke.yaml
+  #   tests:
+  #     - test_integration/test_installation.py::TestInstallMaster
+
+# or a queue: every preset it lists runs one after the other
+# queue: queues/qemu-copr.yaml

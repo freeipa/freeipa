@@ -193,12 +193,7 @@ class BaseTestTrust(IntegrationTest):
         if ad_host is None:
             ad_host = self.ad
 
-        ps_cmd = (
-            '$ProgressPreference = "SilentlyContinue"; '
-            'Add-ADGroupMember -Identity "{}" -Members "{}"'
-            .format(groupname, username)
-        )
-        ad_host.run_command(['powershell', '-c', ps_cmd], set_env=False)
+        ad_host.group_add_member(groupname, username)
 
     def _ad_group_del(self, groupname, ad_host=None):
         """Delete a group from the given AD DC.
@@ -249,20 +244,11 @@ class BaseTestTrust(IntegrationTest):
         tasks.kdestroy_all(self.master)
         tasks.kinit_admin(self.master)
 
-        # Check if user is already a member (using PowerShell since
-        # 'net ads group members' is not available)
-        ps_check_member = (
-            '$ProgressPreference = "SilentlyContinue"; '
-            'Get-ADGroupMember -Identity "{}" | '
-            'Where-Object {{$_.SamAccountName -eq "{}"}}'
-            .format(groupname, username)
-        )
-        result = ad_host.run_command(
-            ['powershell', '-c', ps_check_member], raiseonerr=False,
-            set_env=False
-        )
+        # Check if user is already a member ('net ads group members' is
+        # not available)
+        is_member = ad_host.group_has_member(groupname, username)
 
-        if not result.stdout_text.strip():
+        if not is_member:
             self._ad_group_add_member(groupname, username, ad_host=ad_host)
 
         return group_created
@@ -676,17 +662,10 @@ class TestTrust(BaseTestTrust):
 
         # Create subordinate UPN suffix
         subordinate_suffix = 'test_subdomain.' + self.ad_domain
-        self.ad.run_command([
-            'powershell', '-c',
-            'Set-ADForest -Identity {} -UPNSuffixes @{{add="{}"}}'.format(
-                self.ad_domain, subordinate_suffix)])
+        self.ad.upn_suffix_add(subordinate_suffix)
         try:
             # Verify UPN suffix is created
-            cmd = ('Get-ADForest -Identity {} '
-                   '| Select-Object -Property UPNSuffixes'
-                   .format(self.ad_domain))
-            res = self.ad.run_command(['powershell', '-c', cmd])
-            assert subordinate_suffix in res.stdout_text
+            assert subordinate_suffix in self.ad.upn_suffixes()
 
             # Verify IPA does not receive subordinate suffix from AD
             self.master.run_command(
@@ -698,9 +677,7 @@ class TestTrust(BaseTestTrust):
 
             # Set UPN for the AD user
             upn = 'testuser@' + subordinate_suffix
-            cmd = 'Set-Aduser -UserPrincipalName {} -Identity testuser'.format(
-                upn)
-            self.ad.run_command(['powershell', '-c', cmd])
+            self.ad.user_set_upn('testuser', upn)
 
             # Check user resolution
             res = self.master.run_command(['getent', 'passwd', upn])
@@ -717,9 +694,7 @@ class TestTrust(BaseTestTrust):
         finally:
             # cleanup
             tasks.kdestroy_all(self.master)
-            cmd = ('Set-ADForest -Identity {} -UPNSuffixes @{{Remove="{}"}}'
-                   .format(self.ad_domain, subordinate_suffix))
-            self.ad.run_command(['powershell', '-c', cmd])
+            self.ad.upn_suffix_del(subordinate_suffix)
 
     def test_ssh_aduser(self):
         """Test ssh with GSSAPI is working with aduser
@@ -1079,14 +1054,9 @@ class TestTrust(BaseTestTrust):
              self.srv_gc_record_name,
              '--srv-rec', self.srv_gc_record_value])
 
-        # create windows side of trust using powershell bindings
-        # to .Net functions
-        ps_cmd = (
-            '[System.DirectoryServices.ActiveDirectory.Forest]'
-            '::getCurrentForest()'
-            '.CreateLocalSideOfTrustRelationship("{}", 1, "{}")'.format(
-                self.master.domain.name, self.shared_secret))
-        self.ad.run_command(['powershell', '-c', ps_cmd])
+        # create the AD side of the trust
+        self.ad.trust_local_side_create(
+            self.master.domain.name, self.shared_secret)
 
         # create ipa side of trust
         tasks.establish_trust_with_ad(
@@ -1123,12 +1093,7 @@ class TestTrust(BaseTestTrust):
 
     @skip_in_fips_mode_due_to_issue_8715
     def test_remove_forest_trust_with_shared_secret(self):
-        ps_cmd = (
-            '[System.DirectoryServices.ActiveDirectory.Forest]'
-            '::getCurrentForest()'
-            '.DeleteLocalSideOfTrustRelationship("{}")'.format(
-                self.master.domain.name))
-        self.ad.run_command(['powershell', '-c', ps_cmd])
+        self.ad.trust_local_side_delete(self.master.domain.name)
 
         self.remove_trust(self.ad)
 
@@ -1149,13 +1114,9 @@ class TestTrust(BaseTestTrust):
         tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.configure_windows_dns_for_trust(self.ad, self.master)
 
-        # create windows side of trust using powershell
-        ps_cmd = (
-            '[System.DirectoryServices.ActiveDirectory.Forest]'
-            '::getCurrentForest()'
-            '.CreateLocalSideOfTrustRelationship("{}", 1, "{}")'.format(
-                self.master.domain.name, self.shared_secret))
-        self.ad.run_command(['powershell', '-c', ps_cmd])
+        # create the AD side of the trust
+        self.ad.trust_local_side_create(
+            self.master.domain.name, self.shared_secret, external=True)
 
         # create ipa side of trust
         tasks.establish_trust_with_ad(
@@ -1193,12 +1154,7 @@ class TestTrust(BaseTestTrust):
     @skip_in_fips_mode_due_to_issue_8715
     def test_remove_external_trust_with_shared_secret(self):
         try:
-            ps_cmd = (
-                '[System.DirectoryServices.ActiveDirectory.Forest]'
-                '::getCurrentForest()'
-                '.DeleteLocalSideOfTrustRelationship("{}")'.format(
-                    self.master.domain.name))
-            self.ad.run_command(['powershell', '-c', ps_cmd])
+            self.ad.trust_local_side_delete(self.master.domain.name)
             self.remove_trust(self.ad)
         finally:
             tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)

@@ -1,0 +1,161 @@
+# Run the tests that a "temp commit" asks for with ci-freeipa, on the GitHub
+# runners of a contributor's fork. See ci/ci-freeipa-temp-commit.yaml.
+#
+# It never runs in the organization's repository (`github.event.repository.fork`
+# is false there), and it does not run for pull requests: a pull request
+# would run the contributor's code on the organization's runners. A fork
+# whose pushed commit has no .ci-freeipa.yaml costs the few seconds of the
+# `detect` job.
+name: ci-freeipa
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-freeipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    if: github.event.repository.fork && github.repository_owner != 'freeipa'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      request: ${{ steps.find.outputs.request }}
+      testing_farm: ${{ steps.find.outputs.testing_farm }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        env:
+          # a secret is not available to `if`: test it here
+          TF_TOKEN: ${{ secrets.TESTING_FARM_API_TOKEN }}
+        run: |
+          if [ -e .ci-freeipa.yaml ]; then
+              echo "request=true" >> "$GITHUB_OUTPUT"
+              if [ -n "$TF_TOKEN" ]; then
+                  echo "testing_farm=true" >> "$GITHUB_OUTPUT"
+                  echo "TESTING_FARM_API_TOKEN is set: submitting to Testing Farm" \
+                      >> "$GITHUB_STEP_SUMMARY"
+              fi
+          else
+              echo "no .ci-freeipa.yaml in this commit: nothing to run" \
+                  >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  run:
+    needs: detect
+    if: >-
+      needs.detect.outputs.request == 'true' &&
+      needs.detect.outputs.testing_farm != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      # make srpms needs the history and the tags for the version
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Prepare the host
+        run: |
+          # let the runner user use KVM; load the module first, since a
+          # runner may not have loaded it
+          sudo modprobe kvm_intel 2>/dev/null || sudo modprobe kvm_amd 2>/dev/null || true
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo udevadm settle
+          for _ in $(seq 15); do [ -w /dev/kvm ] && break; sleep 2; done
+          [ -w /dev/kvm ] || echo "::warning::no /dev/kvm: qemu presets cannot run on this runner"
+          # azure.archive.ubuntu.com does not always resolve: use the main
+          # archive, then kernel.org's mirror
+          sudo sed -i 's#azure\.archive\.ubuntu\.com#archive.ubuntu.com#g' \
+              /etc/apt/apt-mirrors.txt /etc/apt/sources.list \
+              /etc/apt/sources.list.d/* 2>/dev/null || true
+          apt_opts="-o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20"
+          for attempt in 1 2 3; do
+              # shellcheck disable=SC2086
+              sudo apt-get $apt_opts update && sudo apt-get $apt_opts install -y --no-install-recommends \
+                  qemu-system-x86 qemu-utils xorriso rsync openssh-client podman python3-yaml && break
+              [ "$attempt" = 3 ] && { echo "::error::apt is unreachable"; exit 1; }
+              echo 'https://mirrors.edge.kernel.org/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+              sudo sed -i -E 's#https?://([a-z]+\.)?(archive|security)\.ubuntu\.com/ubuntu/?#https://mirrors.edge.kernel.org/ubuntu/#g' \
+                  /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null || true
+              sleep 10
+          done
+          # the VMs authorize the runner's ssh key
+          [ -e ~/.ssh/id_ed25519 ] || ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519
+          echo "WORK=$RUNNER_TEMP/request" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/request"
+
+      # the version of ci-freeipa is the one of the pin plan: one place
+      - name: Check out ci-freeipa at the pinned ref
+        run: |
+          eval "$(python3 -c "import yaml; d = yaml.safe_load(open('ci/tmt/plans/freeipa-env.fmf'))['discover']; print('url=%s ref=%s' % (d['url'], d['ref']))")"
+          git clone --quiet "$url" "$RUNNER_TEMP/ci-freeipa"
+          git -C "$RUNNER_TEMP/ci-freeipa" checkout --quiet "$ref"
+          echo "ci-freeipa $url at $ref" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run what .ci-freeipa.yaml asks for
+        run: |
+          "$RUNNER_TEMP/ci-freeipa/env/freeipa-env" request .ci-freeipa.yaml \
+              --freeipa-src "$PWD" --workdir "$WORK"
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-freeipa-logs
+          path: |
+            ${{ env.WORK }}/**/logs
+            ${{ env.WORK }}/**/results.md
+            ${{ env.WORK }}/*.preset.yaml
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # With a TESTING_FARM_API_TOKEN secret in the fork, the request goes to
+  # Testing Farm instead: the guest clones this commit from the fork (which
+  # must be public), builds it, and runs the presets of ci-freeipa. It does
+  # not use the runner's own KVM. See `freeipa-env request --help`.
+  testing-farm:
+    needs: detect
+    if: >-
+      needs.detect.outputs.request == 'true' &&
+      needs.detect.outputs.testing_farm == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PyYAML for freeipa-env
+        run: python3 -c 'import yaml' 2>/dev/null || pip install --break-system-packages pyyaml
+
+      - name: Check out ci-freeipa at the pinned ref
+        run: |
+          eval "$(python3 -c "import yaml; d = yaml.safe_load(open('ci/tmt/plans/freeipa-env.fmf'))['discover']; print('url=%s ref=%s' % (d['url'], d['ref']))")"
+          git clone --quiet "$url" "$RUNNER_TEMP/ci-freeipa"
+          git -C "$RUNNER_TEMP/ci-freeipa" checkout --quiet "$ref"
+          echo "ci-freeipa $url at $ref" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Submit to Testing Farm and wait
+        env:
+          TESTING_FARM_API_TOKEN: ${{ secrets.TESTING_FARM_API_TOKEN }}
+        run: |
+          "$RUNNER_TEMP/ci-freeipa/env/freeipa-env" request .ci-freeipa.yaml \
+              --runner testing-farm --freeipa-src "$PWD" \
+              --tf-repo-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              --tf-ref "$GITHUB_SHA" --workdir "$RUNNER_TEMP/request"
+
+      - name: Keep the Testing Farm results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-freeipa-testing-farm
+          path: ${{ runner.temp }}/request/queue
+          retention-days: 14
+          if-no-files-found: ignore
