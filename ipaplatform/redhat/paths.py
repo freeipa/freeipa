@@ -31,6 +31,7 @@ from ipaplatform.base.paths import BasePathNamespace
 
 
 class RedHatPathNamespace(BasePathNamespace):
+    CRYPTO_POLICY_KRB5_FILE = "/etc/krb5.conf.d/crypto-policies"
     CRYPTO_POLICY_OPENSSLCNF_FILE = (
         '/etc/crypto-policies/back-ends/opensslcnf.config'
     )
