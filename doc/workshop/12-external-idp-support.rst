@@ -106,12 +106,14 @@ case the local Keycloak instance would need to be registered as an OAuth 2.0
 client with the remote IdP. Local Keycloak instance would then be registered
 with IPA.
 
-Setting up IdP references (OAuth 2.0 clients) in IPA can be done with ``ipa
-idp-add`` command. The command accepts an option to specify a pre-defined
+Setting up IdP references (OAuth 2.0 clients) in IPA can be done with :command:`ipa
+idp-add` command. The command accepts an option to specify a pre-defined
 template for one of the known IdPs. If none of the pre-defined templates is
-suitable, individual parameters can also be added::
+suitable, individual parameters can also be added:
 
-  ipa help idp-add
+.. code-block:: console
+
+  [root@client ~]# ipa help idp-add
   Usage: ipa [global-options] idp-add NAME [options]
 
   Add a new Identity Provider reference.
@@ -156,7 +158,9 @@ in both places but this would simplify our configuration. We also would use
 automation provided by the Keycloak to set up OAuth 2.0 clients and user
 accounts.
 
-First, we would download keycloak and unpack it into ``/opt/keycloak-<VERSION>`` as ``root``::
+First, we would download keycloak and unpack it into :file:`/opt/keycloak-<VERSION>` as ``root``:
+
+.. code-block:: console
 
   [root@client ~]# dnf -y install java-11-openjdk-headless openssl
 
@@ -177,13 +181,15 @@ Next step would be to prepare a TLS certificate to be used to protect HTTPS
 connections in Keycloak. Since our system is already enrolled into IPA, we can
 rely on two features:
 
-* Enrolled IPA client has Kerberos host principal registered with keytab in ``/etc/krb5.keytab``
+* Enrolled IPA client has Kerberos host principal registered with keytab in :file:`/etc/krb5.keytab`
 * Enrolled IPA client host Kerberos principal can manage Kerberos services on the same host
 
 This means we can create ``HTTP/client...`` Kerberos service right from the IPA
 client and use ``certmonger`` to issue TLS certificate for it. Certmonger would
 automatically renew the certificate. The following sequence of commands
-demonstrates how to achieve this, run as root::
+demonstrates how to achieve this, run as root:
+
+.. code-block:: console
 
   ########## setup TLS certificate using IPA CA ###############################
   [root@client ~]# kinit -k
@@ -204,17 +210,18 @@ demonstrates how to achieve this, run as root::
   [root@client ~]# chown keycloak:keycloak /etc/pki/tls/private/keycloak.store
 
 The private key for this certificate is stored in
-``/etc/pki/tls/private/keycloak.key``, only accessible to the keycloak user.
-Public part of the certificate is stored in ``/etc/pki/tls/certs/keycloak.crt``
+:file:`/etc/pki/tls/private/keycloak.key`, only accessible to the keycloak user.
+Public part of the certificate is stored in :file:`/etc/pki/tls/certs/keycloak.crt`
 and has permissions 0644.
 
 We also import IPA CA's chain to a Java keystore that would be used by Keycloak,
-stored at ``/etc/pki/tls/private/keycloak.store``.
+stored at :file:`/etc/pki/tls/private/keycloak.store`.
 
-Finally, we need to set up ``systemd`` service to run Keycloak::
+Finally, we need to set up ``systemd`` service to run Keycloak:
 
-  # Setup keycloak service and config files
+.. code-block:: console
 
+  [root@client ~]# # Setup keycloak service and config files
   [root@client ~]# cat > /etc/sysconfig/keycloak <<EOF
   KEYCLOAK_ADMIN=admin
   KEYCLOAK_ADMIN_PASSWORD=Secret123
@@ -249,9 +256,12 @@ Finally, we need to set up ``systemd`` service to run Keycloak::
   [root@client ~]# systemctl daemon-reload
 
 
-When ``systemd`` service is prepared, Keycloak needs to be initialized::
+When ``systemd`` service is prepared, Keycloak needs to be initialized:
+Run the following multi-line command:
 
-  [root@client ~]# su - keycloak -c '''
+.. code-block:: bash
+
+  su - keycloak -c '
   export KEYCLOAK_ADMIN=admin
   export KEYCLOAK_ADMIN_PASSWORD=Secret123
   export KC_HOSTNAME=$(hostname):8443
@@ -261,9 +271,11 @@ When ``systemd`` service is prepared, Keycloak needs to be initialized::
   export KC_HTTPS_TRUST_STORE_PASSWORD=Secret123
   export KC_HTTP_RELATIVE_PATH=/auth
   /opt/keycloak-${KEYCLOAK_VERSION}/bin/kc.sh --verbose build
-  '''
+  '
 
-and can be started with the standard ``systemctl`` tool::
+and can be started with the standard :command:`systemctl` tool:
+
+.. code-block:: console
 
   [root@client ~]# systemctl start keycloak
 
@@ -284,36 +296,40 @@ and can be started with the standard ``systemctl`` tool::
   Hint: Some lines were ellipsized, use -l to show in full.
 
 Now we can use it for setting up users and OAuth 2.0 clients. There are two
-handy scripts, ``kcadm.sh`` and ``kcreg.sh`` that allow to perform all
+handy scripts, :command:`kcadm.sh` and :command:`kcreg.sh` that allow to perform all
 operations without visiting the Keycloak Web UI.
 
-With ``kcadm.sh`` we login as admin and create user ``testuser1`` and set a password::
+With :command:`kcadm.sh` we login as admin and create user ``testuser1`` and set a password:
+
+.. code-block:: console
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh config truststore \
-        --trustpass Secret123 \
-        /etc/pki/tls/private/keycloak.store
+  >     --trustpass Secret123 \
+  >     /etc/pki/tls/private/keycloak.store
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh config credentials \
-        --server https://$(hostname):8443/auth/ \
-        --realm master --user admin --password Secret123
+  >     --server https://$(hostname):8443/auth/ \
+  >     --realm master --user admin --password Secret123
   Logging into https://client.ipademo.local:8443/auth/ as user admin of realm master
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh create users \
-        -r master \
-        -s username=testuser1 -s enabled=true -s email=testuser1@ipademo.local
+  >     -r master \
+  >     -s username=testuser1 -s enabled=true -s email=testuser1@ipademo.local
   Created new user with id 'd319b32a-4cea-43c5-8ef8-19b2b8418d0a'
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcadm.sh set-password \
-        -r master \
-        --username testuser1 --new-password Secret123
+  >     -r master \
+  >     --username testuser1 --new-password Secret123
 
-With ``kcreg.sh`` we can create OAuth 2.0 client using a pre-defined template
+With :command:`kcreg.sh` we can create OAuth 2.0 client using a pre-defined template
 that will include all parameters we need to allow OAuth 2.0 Device Authorization
-Grant flow::
+Grant flow:
+
+.. code-block:: console
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcreg.sh config credentials \
-        --server https://$(hostname):8443/auth \
-        --realm master --user admin --password Secret123
+  >     --server https://$(hostname):8443/auth \
+  >     --realm master --user admin --password Secret123
 
   [root@client ~]# cat >ipa_client.json <<EOF
   {
@@ -330,8 +346,8 @@ Grant flow::
   EOF
 
   [root@client ~]# /opt/keycloak-18.0.0/bin/kcreg.sh create \
-        -f ipa_client.json  \
-        -s clientId=ipa_oidc_client
+  >     -f ipa_client.json  \
+  >     -s clientId=ipa_oidc_client
 
 At this point, we have a Keycloak instance with a default ``master`` realm
 (organization) and base URL ``https://$(hostname):8443/auth/``. In this realm we
@@ -361,16 +377,18 @@ to be merged to fix the default settings.
 Add IdP reference to IPA
 ------------------------
 
-The following command adds IdP reference named ``keycloak`` as IPA administrator::
+The following command adds IdP reference named ``keycloak`` as IPA administrator:
+
+.. code-block:: console
 
   [root@client ~]# kinit admin
   ..
   [root@client ~]# echo -e "Secret123\nSecret123" | \
   [root@client ~]# ipa idp-add keycloak --provider keycloak \
-        --org master \
-        --base-url https://client.ipademo.local:8443/auth \
-        --client-id ipa_oidc_client \
-        --secret
+  >     --org master \
+  >     --base-url https://client.ipademo.local:8443/auth \
+  >     --client-id ipa_oidc_client \
+  >     --secret
   -----------------------------------------
   Added Identity Provider reference "keycloak"
   -----------------------------------------
@@ -405,7 +423,9 @@ solution to integrate between IPA and Keycloak to allow automatically propagate
 changes between the two. For the purpose of this workshop we would create users
 manually -- we already did that for Keycloak.
 
-Create a user ``testuser1`` in IPA::
+Create a user ``testuser1`` in IPA:
+
+.. code-block:: console
 
   [root@client ~]# ipa user-add testuser1 --first Test --last User1
   ----------------------
@@ -434,19 +454,21 @@ created. In order to allow user to login via IdP we need few conditions to be
 satisfied:
 
 * IdP reference defined for this IdP in IPA
-* IdP reference associated with the user (``--idp`` option to ``ipa user-add``
-  or ``ipa user-mod``)
+* IdP reference associated with the user (``--idp`` option to :command:`ipa user-add`
+  or :command:`ipa user-mod`)
 * IdP identity for the user is set in the user entry (``--idp-user-id`` option
-  to ``ipa user-add`` or ``ipa user-mod``)
+  to :command:`ipa user-add` or :command:`ipa user-mod`)
 * finally, user should be allowed to use ``idp`` user authentication method
-  (``--user-auth-type=idp`` option to ``ipa user-add`` or ``ipa user-mod`` or
+  (``--user-auth-type=idp`` option to :command:`ipa user-add` or :command:`ipa user-mod` or
   ``idp`` method set globally)
 
-We can set these options to ``testuser1`` with ``ipa user-mod`` command::
+We can set these options to ``testuser1`` with :command:`ipa user-mod` command:
+
+.. code-block:: console
 
   [root@client ~]# ipa user-mod testuser1 --idp keycloak \
-                         --idp-user-id testuser1@ipademo.local \
-                         --user-auth-type=idp
+  >                      --idp-user-id testuser1@ipademo.local \
+  >                      --user-auth-type=idp
   -------------------------
   Modified user "testuser1"
   -------------------------
@@ -478,10 +500,10 @@ Access IPA resources as an IdP user
 There are two ways to trigger authentication and authorization of ``testuser1``
 via our Keycloak IdP instance:
 
-* obtain Kerberos ticket with ``kinit`` tool
+* obtain Kerberos ticket with :command:`kinit` tool
 * login to the target system via SSH or on the console
 
-In order to obtain initial Kerberos ticket, we need to use ``kinit`` tool. SSSD
+In order to obtain initial Kerberos ticket, we need to use :command:`kinit` tool. SSSD
 2.7.0 provides a special package ``sssd-idp`` which implements Kerberos
 pre-authentication method ``idp``. When this package is installed, MIT Kerberos
 configuration on the host is updated to automatically allow use of ``idp``
@@ -492,8 +514,10 @@ When IPA is deployed with integrated CA, IPA also provides a way to obtain a
 special ticket, called Anonymous PKINIT, to use as a FAST channel factor.
 
 Let's use Anonymous PKINIT to obtain a ticket and store it in the file
-``./fast.ccache``. Then we can enable FAST channel with the use of ``-T`` option
-for ``kinit`` tool::
+:file:`./fast.ccache`. Then we can enable FAST channel with the use of ``-T`` option
+for :command:`kinit` tool:
+
+.. code-block:: console
 
   [root@client ~]# kinit -n -c ./fast.ccache
   [root@client ~]# kinit -T ./fast.ccache testuser1
@@ -514,7 +538,9 @@ propagated back to the Kerberos client and displayed by the client side of the
 At this point we need to visit the page and authorize access to the information.
 Once it is done, we complete the process by pressing ``<ENTER>`` key. If
 authorization was granted, KDC will issue a Kerberos ticket to and it will be
-stored in the credentials cache::
+stored in the credentials cache:
+
+.. code-block:: console
 
   [root@client ~]# klist
   Ticket cache: KCM:0:58420
@@ -530,7 +556,9 @@ authenticate and authorize remote access can also benefit from the flow. For
 example, SSH daemon can be configured with ``keyboard-interactive`` method which
 will allow PAM authentication and authorization. As part of it, PAM messages
 will be relayed to the SSH client and SSH client's user input will be sent back
-to PAM::
+to PAM:
+
+.. code-block:: console
 
   $ ssh testuser1@client.ipademo.local
   (testuser1@client.ipademo.local) Authenticate at https://client.ipademo.local:8443/auth/realms/master/device?user_code=XYFL-ROYR and press ENTER.
@@ -546,7 +574,7 @@ to PAM::
 Once initial Kerberos ticket is available, it can be used to perform normal IPA
 operations:
 
-- access IPA API with command line tool ``ipa`` or through a Web UI in a browser
+- access IPA API with command line tool :command:`ipa` or through a Web UI in a browser
 - login to other systems with GSSAPI authentication
 - access PAM services which use ``pam_sss_gss`` module in their PAM stack definitions
 
@@ -556,14 +584,18 @@ Troubleshooting IdP integration
 -------------------------------
 
 Communication with an IdP server happens on IPA server when KDC calls out to
-``ipa-otpd`` daemon and ``ipa-otpd`` daemon launches ``oidc_child`` helper.
-Journal logs for ``ipa-otpd`` can be checked with the ``journalctl`` tool.
-``ipa-otpd`` processes start on demand and content from all sessions can be
-captured with the following command::
+:command:`ipa-otpd` daemon and :command:`ipa-otpd` daemon launches :command:`oidc_child` helper.
+Journal logs for :command:`ipa-otpd` can be checked with the :command:`journalctl` tool.
+:command:`ipa-otpd` processes start on demand and content from all sessions can be
+captured with the following command:
+
+.. code-block:: console
 
   [root@master #] journalctl -u 'ipa-otpd@*'
 
-The output would look similar to the following real world example::
+The output would look similar to the following real world example:
+
+.. code-block:: text
 
   May 02 18:51:28 dc.ipa.test systemd[1]: Started ipa-otpd service (PID 1473660/UID 0).
   May 02 18:51:28 dc.ipa.test ipa-otpd[1636136]: LDAP: ldapi://%2Frun%2Fslapd-IPA-TEST.socket
@@ -582,8 +614,8 @@ The output would look similar to the following real world example::
   May 02 18:51:29 dc.ipa.test ipa-otpd[1636136]: Socket closed, shutting down...
 
 First part of the output until ``idp query start`` is similar to RADIUS proxy
-operation. Unlike RADIUS proxy, in the case of IdP communication, ``ipa-otpd``
-first receives an initial state from the ``oidc_child`` process and sends it
+operation. Unlike RADIUS proxy, in the case of IdP communication, :command:`ipa-otpd`
+first receives an initial state from the :command:`oidc_child` process and sends it
 back to the KDC within a RADIUS packet with ``Access-Challenge`` message.
 
 The state is then transferred to the Kerberos client and results in a message
@@ -591,8 +623,10 @@ that instructs to visit the verification URI and enter the code. Some IdPs also
 return a complete message to show, like in the case of Keycloak in our examples
 above.
 
-Once the Kerberos client returns, another ``ipa-otpd`` call is performed,
-this time to request an access token::
+Once the Kerberos client returns, another :command:`ipa-otpd` call is performed,
+this time to request an access token:
+
+.. code-block:: text
 
   May 02 18:51:50 dc.ipa.test systemd[1]: Started ipa-otpd service (PID 1473661/UID 0).
   May 02 18:51:50 dc.ipa.test ipa-otpd[1636149]: LDAP: ldapi://%2Frun%2Fslapd-IPA-TEST.socket
@@ -612,18 +646,22 @@ An access token request followed by the request to obtain a user information.
 The resource owner's subject then compared with the value set in the LDAP entry
 for this Kerberos principal with the help of ``--idp-user-id`` option. Subject's
 field name is chosen through the same option to the IdP reference. If the check
-is successful, ``ipa-otpd`` sends a RADIUS packet with ``Access-Accept``
+is successful, :command:`ipa-otpd` sends a RADIUS packet with ``Access-Accept``
 response code.
 
-Communication performed by ``oidc_child`` is not included into the journal logs
+Communication performed by :command:`oidc_child` is not included into the journal logs
 by default. If there are issues in accessing IdPs, a special option can be added
-to ``/etc/ipa/default.conf`` to increase log level of ``oidc_child`` output. By
-default, it is 0 and could be any number between 0 and 10::
+to :file:`/etc/ipa/default.conf` to increase log level of :command:`oidc_child` output. By
+default, it is 0 and could be any number between 0 and 10:
+
+.. code-block:: ini
 
   [global]
   oidc_child_debug_level=10
 
-A value greater than 6 would include debug output from the ``libcurl`` utility::
+A value greater than 6 would include debug output from the ``libcurl`` utility:
+
+.. code-block:: text
 
   May 02 18:51:50 dc.ipa.test oidc_child[1636150]: oidc_child started.
   May 02 18:51:50 dc.ipa.test oidc_child[1636150]: Running with effective IDs: [0][0].
@@ -774,6 +812,6 @@ A value greater than 6 would include debug output from the ``libcurl`` utility::
   May 02 18:51:50 dc.ipa.test oidc_child[1636150]: oidc_child finished successful!
 
 Don't forget to remove ``oidc_child_debug_level`` from the
-``/etc/ipa/default.conf`` once troubleshooting is done. Information like above
+:file:`/etc/ipa/default.conf` once troubleshooting is done. Information like above
 often contains personal details of the user and should probably not stored in
 the system journal.

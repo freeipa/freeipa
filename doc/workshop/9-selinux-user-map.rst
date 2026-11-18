@@ -19,15 +19,17 @@ policy when the log into hosts that are members of the
 user's SELinux context when they execute commands via Sudo.
 
 **Note:** SELinux contexts are applied during PAM-based login, so
-when testing our changes in this unit ``su -l <user>`` will not
+when testing our changes in this unit :command:`su -l <user>` will not
 suffice: it is necessary to log in via SSH.  You can do this from
 any of the VMs (even ``client`` itself).
 
 Confining users
 ---------------
 
-Log in as ``alice`` and run ``id -Z`` to see her current SELinux
-context::
+Log in as ``alice`` and run :command:`id -Z` to see her current SELinux
+context:
+
+.. code-block:: console
 
   [alice@client]$ id -Z
   unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
@@ -46,7 +48,9 @@ will automatically be used.
 Recall that members of the ``sysadmin`` User Group already have
 access to ``webservers`` via the ``sysadmin_webservers`` rule that
 was created in :ref:`Unit 4: Host-based access control (HBAC)<4-hbac>`.  Create
-the SELinux User Map::
+the SELinux User Map:
+
+.. code-block:: console
 
   [client]$ ipa selinuxusermap-add sysadmin_staff_t \
       --hbacrule sysadmin_webservers --selinuxuser staff_u:s0-s0:c0.c1023
@@ -60,7 +64,9 @@ the SELinux User Map::
 
 
 Now login in as ``alice`` over SSH and observe that she is confined
-by the ``staff_u`` policy::
+by the ``staff_u`` policy:
+
+.. code-block:: console
 
   [server]$ ssh alice@client.ipademo.local
   alice@client.ipademo.local's password:
@@ -77,13 +83,15 @@ multiple policies match, the winning policy may be chosen
 inconsistently.
 
 
-Unconfined ``sudo``
--------------------
+Unconfined :command:`sudo`
+--------------------------
 
 ``alice`` is now confined by the ``staff_u`` policy, but being a
 ``sysadmin`` she needs to be unconfined when running commands via
-``sudo``.  With the current configuration, commands run via ``sudo``
-inherit a user's context, as the following commands demonstrate::
+:command:`sudo`.  With the current configuration, commands run via :command:`sudo`
+inherit a user's context, as the following commands demonstrate:
+
+.. code-block:: console
 
   [alice@client]$ sudo -s
   [sudo] password for alice:
@@ -95,9 +103,11 @@ inherit a user's context, as the following commands demonstrate::
   sh: /etc/motd: Permission denied
 
 As you can see, ``alice`` became ``root``, but the SELinux
-confinement prevents her from writing ``/etc/motd`` (and many other
+confinement prevents her from writing :file:`/etc/motd` (and many other
 things).  Let's make it so that ``alice`` can do her job.  We need
-to update the Sudo rule to change the SELinux context::
+to update the Sudo rule to change the SELinux context:
+
+.. code-block:: console
 
   [alice@client]$ ipa sudorule-add-option sysadmin_sudo --sudooption type=unconfined_t
   -------------------------------------------------------------
@@ -123,8 +133,10 @@ to update the Sudo rule to change the SELinux context::
     RunAs Group category: all
     Sudo Option: type=unconfined_t, role=unconfined_r
 
-Now when ``alice`` runs ``sudo`` it changes the SELinux context of
-the program being run::
+Now when ``alice`` runs :command:`sudo` it changes the SELinux context of
+the program being run:
+
+.. code-block:: console
 
   [alice@client]$ sudo -s
 

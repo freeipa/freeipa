@@ -17,7 +17,9 @@ Issue the service certificate
 -----------------------------
 
 Let's start by confirming that the HTTP service does not yet have a
-certificate::
+certificate:
+
+.. code-block:: console
 
   [client]$ ipa service-show HTTP/client.ipademo.local
     Principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
@@ -25,13 +27,17 @@ certificate::
     Keytab: True
     Managed by: client.ipademo.local
 
-Enable and start Certmonger::
+Enable and start Certmonger:
+
+.. code-block:: console
 
   [client]$ sudo systemctl enable --now certmonger
   Created symlink /etc/systemd/system/multi-user.target.wants/certmonger.service → /usr/lib/systemd/system/certmonger.service.
 
 Now let's request a certificate.  We will generate keys and store
-certificates in the NSS database at ``/etc/httpd/alias``::
+certificates in the NSS database at :file:`/etc/httpd/alias`:
+
+.. code-block:: console
 
   [client]$ sudo ipa-getcert request \
               -f /etc/pki/tls/certs/app.crt \
@@ -60,7 +66,9 @@ the system hostname, which in our case (``client.ipademo.local``) is
 appropriate.
 
 Let's check the status of our certificate request using the tracking
-identifier given in the ``ipa-getcert request`` output::
+identifier given in the :command:`ipa-getcert request` output:
+
+.. code-block:: console
 
   [client]$ sudo getcert list -i 20180603185400
   Number of certificates and requests being tracked: 1.
@@ -85,7 +93,7 @@ identifier given in the ``ipa-getcert request`` output::
 
 Confirm that the certificate was issued and that Certmonger is now
 ``MONITORING`` the certificate and will ``auto-renew`` it when it is
-close to expiration.  Now if you run ``ipa service-show``, you will
+close to expiration.  Now if you run :command:`ipa service-show`, you will
 see a number of attributes related to the certificate, including the
 certificate itself.  Can you work out how to save the PEM-encoded
 certificate to a file?
@@ -94,7 +102,9 @@ Set up TLS for Apache
 ---------------------
 
 Now we can reconfigure Apache to serve our app over TLS.  Update
-``app.conf`` to listen on port 443 and add the SSL directives::
+:file:`app.conf` to listen on port 443 and add the SSL directives:
+
+.. code-block:: apache
 
   ...
   Listen 443
@@ -108,7 +118,9 @@ Now we can reconfigure Apache to serve our app over TLS.  Update
       ...
 
 
-Restart Apache and make a request to the app over HTTPS::
+Restart Apache and make a request to the app over HTTPS:
+
+.. code-block:: console
 
   [client]$ sudo systemctl restart httpd
   [client]$ curl -u : --negotiate https://client.ipademo.local

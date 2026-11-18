@@ -14,13 +14,13 @@ In this unit you will install a FreeIPA server.  All tasks in
 subsequent units require the services and data provided by the
 server.
 
-First, in the directory containing the ``Vagrantfile`` (the clone of
-this repository), execute ``vagrant up`` to bring up the Vagrant
+First, in the directory containing the :file:`Vagrantfile` (the clone of
+this repository), execute :command:`vagrant up` to bring up the Vagrant
 environment.  (If you are using the VirtualBox provider on a platform
 where that is not the default, e.g. Fedora, you will also need the
 ``--provider virtualbox`` option).
 
-::
+.. code-block:: console
 
   $ vagrant up --provider virtualbox
 
@@ -30,13 +30,17 @@ The Vagrant environment contains three hosts:
 - ``replica.ipademo.local``
 - ``client.ipademo.local``
 
-From the directory containing the ``Vagrantfile``, SSH into the
-``server`` machine::
+From the directory containing the :file:`Vagrantfile`, SSH into the
+``server`` machine:
+
+.. code-block:: console
 
   $ vagrant ssh server
 
 
-On ``server``, start the FreeIPA server installation program::
+On ``server``, start the FreeIPA server installation program:
+
+.. code-block:: console
 
   [server]$ sudo ipa-server-install --no-host-dns --mkhomedir
 
@@ -50,12 +54,16 @@ consider using that for production deployments.
 You will be asked a series of questions. Accept the defaults for most
 of the questions, except as outlined below.
 
-Configure FreeIPA's DNS server::
+Configure FreeIPA's DNS server:
+
+.. code-block:: text
 
   Do you want to configure integrated DNS (BIND)? [no]: yes
 
 
-Accept default values for the server hostname, domain name and realm::
+Accept default values for the server hostname, domain name and realm:
+
+.. code-block:: text
 
   Enter the fully qualified domain name of the computer
   on which you're setting up server software. Using the form
@@ -81,7 +89,7 @@ directory server) and *admin* (the main account used for FreeIPA
 administration).  Use something simple that you're not going to
 forget during the workshop!
 
-::
+.. code-block:: text
 
   Certain directory server operations require an administrative user.
   This user is referred to as the Directory Manager and has full access
@@ -101,7 +109,9 @@ forget during the workshop!
 
 Do not configure a DNS forwarder (you will want to configure a DNS
 forwarder for a real-world deployment but it is not needed for this
-workshop) and accept the defaults for configuring the reverse zone::
+workshop) and accept the defaults for configuring the reverse zone:
+
+.. code-block:: text
 
   Checking DNS domain ipademo.local., please wait ...
   Do you want to configure DNS forwarders? [yes]: no
@@ -113,7 +123,9 @@ workshop) and accept the defaults for configuring the reverse zone::
 
 Next, you will be presented with a summary of the server
 configuration and asked for final confirmation.  Give confirmation to begin the
-server installation::
+server installation:
+
+.. code-block:: text
 
   The IPA Master Server will be configured with:
   Hostname:       server.ipademo.local
@@ -136,14 +148,18 @@ server installation::
 The installation takes a few minutes; you will see output indicating
 the progress.
 
-When it completes, run ``kinit admin`` and enter your *admin*
+When it completes, run :command:`kinit admin` and enter your *admin*
 password to obtain a Kerberos *ticket granting ticket* (TGT) for the
-``admin`` user::
+``admin`` user:
+
+.. code-block:: console
 
   [server]$ kinit admin
   Password for admin@IPADEMO.LOCAL:  <enter password>
 
-Run ``klist`` to view your current Kerberos tickets::
+Run :command:`klist` to view your current Kerberos tickets:
+
+.. code-block:: console
 
   [server]$ klist
   Ticket cache: KEYRING:persistent:1000:1000
