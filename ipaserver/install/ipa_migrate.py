@@ -11,7 +11,7 @@ import argparse
 import base64
 import datetime
 import getpass
-import ldap
+from ldap import MOD_ADD, MOD_DELETE
 import ldif
 import logging
 import os
@@ -20,7 +20,6 @@ import subprocess
 import sys
 import time
 from cryptography import x509 as crypto_x509
-from ldap.controls import SimplePagedResultsControl
 from ipalib import api, errors
 from ipalib.facts import is_ipa_configured
 from ipalib.x509 import IPACertificate
@@ -34,6 +33,7 @@ from ipaserver.install.ipa_migrate_constants import (
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
     DNA_REGEN_VAL, DNA_REGEN_ATTRS, IGNORE_ATTRS,
     DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS, REDACTED_ATTRS,
+    CASE_INSENSITIVE_MATCHING_RULES, DB_SEARCH_PAGE_SIZE,
 )
 
 """
@@ -326,16 +326,21 @@ class IPAMigrate():
     remote_realm = None
     dryrun = False
     dryrun_record = None
-    post_notes = [
-        'You will have to manually migrate IDM related configuration files.  '
-        'Here are some, but not all, of the configuration files to look into:'
-        '\n    - /etc/ipa/*'
-        '\n    - /etc/sssd/sssd.conf'
-        '\n    - /etc/named.conf'
-        '\n    - /etc/named/*'
-        '\n    - ...',
-        'SSSD should be restarted after a successful migration',
-    ]
+
+    def __init__(self):
+        self._case_insensitive_attrs = set()
+        self._case_sensitive_attrs = set()
+        self.post_notes = [
+            'You will have to manually migrate IDM related configuration '
+            'files.  Here are some, but not all, of the configuration files '
+            'to look into:'
+            '\n    - /etc/ipa/*'
+            '\n    - /etc/sssd/sssd.conf'
+            '\n    - /etc/named.conf'
+            '\n    - /etc/named/*'
+            '\n    - ...',
+            'SSSD should be restarted after a successful migration',
+        ]
 
     #
     # Argument Options (will be impacted by AdminTool)
@@ -553,11 +558,37 @@ class IPAMigrate():
     # Helper functions
     #
     def attr_is_operational(self, attr):
-        schema = self.local_conn.schema
-        attr_obj = schema.get_obj(ldap.schema.AttributeType, attr)
-        if attr_obj is not None:
-            if attr_obj.usage == 1:
-                return True
+        return self.local_conn.is_attribute_operational(attr) or False
+
+    def attr_is_case_insensitive(self, attr):
+        """
+        Check the schema to determine if an attribute uses case-insensitive
+        equality matching. Results are cached in two sets for O(1) lookup
+        on subsequent calls.
+        """
+        attr_lower = attr.lower()
+
+        if attr_lower in self._case_insensitive_attrs:
+            return True
+        if attr_lower in self._case_sensitive_attrs:
+            return False
+
+        result = self._resolve_case_sensitivity(attr)
+        if result:
+            self._case_insensitive_attrs.add(attr_lower)
+        else:
+            self._case_sensitive_attrs.add(attr_lower)
+        return result
+
+    def _resolve_case_sensitivity(self, attr):
+        """
+        Look up the schema to determine if an attribute uses case-insensitive
+        equality matching. Walks the superior attribute type chain if the
+        equality rule is not set directly on the attribute.
+        """
+        equality_rule = self.local_conn.get_attribute_equality_rule(attr)
+        if equality_rule is not None:
+            return equality_rule in CASE_INSENSITIVE_MATCHING_RULES
         return False
 
     def replace_suffix(self, entry_dn):
@@ -638,9 +669,9 @@ class IPAMigrate():
                 mod_type = mod[0]
                 attr = mod[1]
                 vals = mod[2]
-                if mod_type == ldap.MOD_ADD:
+                if mod_type == MOD_ADD:
                     action = "add"
-                elif mod_type == ldap.MOD_DELETE:
+                elif mod_type == MOD_DELETE:
                     action = "delete"
                 else:
                     action = "replace"
@@ -798,13 +829,12 @@ class IPAMigrate():
                     "CA certificate is invalid"
                 )
             except (
-                ldap.LDAPError,
                 errors.NetworkError,
                 errors.DatabaseError,
                 IOError
             ) as e:
                 self.handle_error(
-                    f"Failed to connect to remote server: {str(e)}"
+                    f"Failed to connect to remote server: {e}"
                 )
         else:
             # LDAP (insecure)
@@ -819,7 +849,7 @@ class IPAMigrate():
             errors.ACIError,
             errors.DatabaseError
         ) as e:
-            self.handle_error(f"Failed to bind to remote server: {str(e)}")
+            self.handle_error(f"Failed to bind to remote server: {e}")
 
         # All set, stash the remote connection
         self.bindpw = None
@@ -832,13 +862,15 @@ class IPAMigrate():
         try:
             ds_conn = LDAPClient(self.ldapiuri, force_schema_updates=True)
             ds_conn.external_bind()
-            ds_conn._get_schema()
-        except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, errors.NetworkError):
+            # Fetch and cache the schema now. Assigned to a named
+            # variable so pylint doesn't flag a pointless statement.
+            _schema = ds_conn.schema
+        except errors.NetworkError:
             self.handle_error(
                 "Local server is not running, or is unreachable.")
-        except ldap.LDAPError as e:
+        except (errors.ACIError, errors.DatabaseError) as e:
             self.handle_error(
-                f"Failed to bind to local server: {str(e)}")
+                f"Failed to bind to local server: {e}")
 
         # All set, stash the local conn
         self.local_conn = ds_conn
@@ -889,7 +921,7 @@ class IPAMigrate():
                         f.close()
                 except EnvironmentError as e:
                     self.handle_error(
-                        "Failed to open password file: " + str(e))
+                        f"Failed to open password file: {e}")
             else:
                 # Prompt for password
                 while self.bindpw is None or self.bindpw == "":
@@ -958,13 +990,13 @@ class IPAMigrate():
                             return DN(suffix)
                         except (IndexError, KeyError) as e:
                             self.handle_error(
-                                "Failed to find naming context: " + str(e))
+                                f"Failed to find naming context: {e}")
                 # If we got here there is no userroot
                 self.handle_error(
                     "Failed to get database base DN as it does not exist")
-        except ldap.LDAPError as e:
+        except errors.DatabaseError as e:
             self.handle_error(
-                "Failed to search Root DSE on remote server: " + str(e))
+                f"Failed to search Root DSE on remote server: {e}")
 
         return None
 
@@ -1413,7 +1445,13 @@ class IPAMigrate():
                 for val in remote_attrs[attr]:
                     local_attr_vals = self.get_ldapentry_attr_vals(local_entry,
                                                                    attr)
-                    if val not in local_attr_vals:
+                    if self.attr_is_case_insensitive(attr):
+                        val_exists = any(val.lower() == local_val.lower()
+                                         for local_val in local_attr_vals)
+                    else:
+                        val_exists = val in local_attr_vals
+
+                    if not val_exists:
                         # Check if we should reset the DNA range for this entry
                         if (
                             self.args.reset_range
@@ -1499,7 +1537,8 @@ class IPAMigrate():
 
     def process_db_entry(self, entry_dn, entry_attrs):
         """
-        Process chunks of remote entries from a paged results search
+        Process one remote entry, as read from the remote server or from
+        the DB LDIF file
 
         entry_dn = the remote entry DN
         entry_attrs = the remote entry's attributes stored in a dict
@@ -1608,7 +1647,7 @@ class IPAMigrate():
                 pass
             except (errors.NetworkError, errors.DatabaseError) as e:
                 self.log_error('Failed to find a local matching entry for '
-                               f'"{local_dn}" error: {str(e)}')
+                               f'"{local_dn}" error: {e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1647,10 +1686,10 @@ class IPAMigrate():
             except errors.MidairCollision as e:
                 # Typically means no such attribute, ok to ignore
                 self.log_debug(f'Failed to update "{local_dn}" error: '
-                               f'{str(e)} - ok to ignore')
+                               f'{e} - ok to ignore')
             except errors.ExecutionError as e:
                 self.log_error(f'Failed to update "{local_dn}" error: '
-                               f'{str(e)}')
+                               f'{e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1677,7 +1716,7 @@ class IPAMigrate():
                     DB_OBJECTS[entry_type]['count'] += 1
                 self.log_debug(f"Added entry: {local_dn}")
             except errors.ExecutionError as e:
-                self.log_error(f'Failed to add "{local_dn}" error: {str(e)}')
+                self.log_error(f'Failed to add "{local_dn}" error: {e}')
                 if self.args.force:
                     stats['ignored_errors'] += 1
                     return
@@ -1696,75 +1735,51 @@ class IPAMigrate():
         ldifParser.set_class(self)
         ldifParser.parse_entry_records()
 
+    def _iter_remote_db_entries(self):
+        """
+        Search the remote database using a Paged Result search, and yield
+        the DN and the attributes of each entry.  Failing to get entries
+        from the remote server is fatal, an empty result is not.
+
+        The error handling is here, and not around the processing of the
+        entries, so that an error raised while processing an entry is never
+        reported as a failure to get the remote entries.
+        """
+        try:
+            for entry in self.remote_conn.iter_entries(
+                    DN(self.remote_suffix),
+                    filter="(objectclass=*)",
+                    attrs_list=['*', 'nsaccountlock'],
+                    size_limit=0,
+                    time_limit=0,
+                    page_size=DB_SEARCH_PAGE_SIZE,
+                    paged_critical=True):
+                yield str(entry.dn), decode_attr_vals(entry.raw)
+        except errors.EmptyResult:
+            self.log_info("No entries found on remote server")
+        except (
+            errors.NotFound,
+            errors.NetworkError,
+            errors.DatabaseError,
+            errors.LimitsExceeded,
+            errors.ACIError
+        ) as e:
+            self.handle_error(f"Failed to get remote entries: {e}")
+
     def processDBOnline(self):
         """
-        Search UserRoot using a Paged Result search.  This prevents loading
-        too many entries into memory at one time
+        Process the entries of the remote database as they are received
+        from a Paged Result search.  This prevents loading too many entries
+        into memory at one time: only one page of entries is held at a time.
         """
-        results_done = False
-        paged_ctrl = SimplePagedResultsControl(True, size=500, cookie='')
-        controls = [paged_ctrl]
-        req_pr_ctrl = controls[0]
-        db_filter = ("(objectclass=*)")
-
-        # Start the paged results search
-        try:
-            remote_msgid = self.remote_conn.conn.search_ext(
-                str(self.remote_suffix),
-                ldap.SCOPE_SUBTREE,
-                db_filter,
-                ['*', 'nsaccountlock'],
-                serverctrls=controls)
-        except ldap.LDAPError as e:
-            self.log_error(f"Failed to get remote entries: {str(e)}")
-            sys.exit(1)
-
-        while not results_done:
-            try:
-                if not results_done:
-                    type, db_data, db_msgid, db_ctrls = \
-                        self.remote_conn.conn.result3(remote_msgid)
-                    if self.args.verbose:
-                        self.log_debug("Database search succeeded: "
-                                       f"type {type} msgid {db_msgid}")
-            except ldap.LDAPError as e:
-                self.handle_error("Database search failed: "
-                                  f"{str(e)} type {type} msgid {db_msgid}")
-
-            #
-            # Process this chunk of remote entries
-            #
-            for entry in db_data:
-                entry_dn = entry[0]
-                entry_attrs = decode_attr_vals(entry[1])
-                self.process_db_entry(entry_dn, entry_attrs)
-
-            # Get the next batch of entries
-            dbctrls = [
-                c
-                for c in db_ctrls
-                if c.controlType == SimplePagedResultsControl.controlType
-            ]
-            if dbctrls and dbctrls[0].cookie:
-                try:
-                    req_pr_ctrl.cookie = dbctrls[0].cookie
-                    controls = [req_pr_ctrl]
-                    remote_msgid = self.remote_conn.conn.search_ext(
-                        str(self.remote_suffix),
-                        ldap.SCOPE_SUBTREE,
-                        db_filter,
-                        ['*', 'nsaccountlock'],
-                        serverctrls=controls)
-                except ldap.LDAPError as e:
-                    self.handle_error("Problem searching the remote server: "
-                                      f"{str(e)}")
-
-            else:
-                results_done = True
+        for entry_dn, entry_attrs in self._iter_remote_db_entries():
+            self.process_db_entry(entry_dn, entry_attrs)
 
     def migrateDB(self):
         """
-        Used paged search for online method to avoid large memory footprint
+        Migrate the database entries one at a time, from the remote server
+        (online) or from the DB LDIF file (offline), to avoid a large memory
+        footprint
         """
         self.log_info("Migrating database ... (this may take a while)")
         if self.args.db_ldif is not None:
@@ -1794,8 +1809,7 @@ class IPAMigrate():
         else:
             # Query the remote server for its schema
             self.log_debug("Getting schema from the remote server ...")
-            schema = self.remote_conn._get_schema()
-            schema_entry = schema.ldap_entry()
+            schema_entry = self.remote_conn.get_schema_ldap_entry()
             # Grab attribute list
             normalize_attr(schema_entry, 'attributeTypes')
             attributes = ensure_list_str(schema_entry['attributeTypes'])
@@ -1807,8 +1821,7 @@ class IPAMigrate():
                        f"{len(objectclasses)} objectClasses")
 
         # Loop over attributes and objectclasses and count them
-        schema = self.local_conn.schema
-        local_schema = schema.ldap_entry()
+        local_schema = self.local_conn.get_schema_ldap_entry()
         for schema_type in [(attributes, "attributeTypes"),
                             (objectclasses, "objectClasses")]:
             for attr_val in schema_type[0]:
@@ -1853,30 +1866,25 @@ class IPAMigrate():
                             self.dryrun_record.write(schema_update)
                         continue
 
-                    self.local_conn.conn.modify_ext_s(
-                        "cn=schema", [(
-                            ldap.MOD_ADD,
-                            schema_type[1],
-                            bytes(attr_val, 'utf-8')
-                        )]
-                    )
+                    self.local_conn.add_schema_element(
+                        schema_type[1], attr_val)
                     if schema_type[1] == "attributeTypes":
                         stats['schema_attrs_added'] += 1
                     else:
                         stats['schema_oc_added'] += 1
                     self.log_debug(
                         f"Added schema - {schema_type[1]}: {attr_val}")
-                except ldap.TYPE_OR_VALUE_EXISTS:
-                    # Error 16 - this attribute already exists, move on
+                except errors.DuplicateEntry:
+                    # This schema element already exists, move on
                     if schema_type[1] == "attributeTypes":
                         stats['schema_attrs_skipped'] += 1
                     else:
                         stats['schema_oc_skipped'] += 1
-                except ldap.LDAPError as e:
+                except errors.PublicError as e:
                     if self.args.force:
                         self.log_debug(
                             "Skipping schema value that triggered an "
-                            f"error: '{attr_val}' - {str(e)}")
+                            f"error: '{attr_val}' - {e}")
                         if schema_type[1] == "attributeTypes":
                             stats['schema_attrs_skipped'] += 1
                         else:
@@ -1884,7 +1892,7 @@ class IPAMigrate():
                         stats['ignored_errors'] += 1
                     else:
                         self.handle_error("Failed to add schema value: "
-                                          f"'{attr_val}' - {str(e)}")
+                                          f"'{attr_val}' - {e}")
 
         # Flush the schema cache
         self.local_conn._flush_schema()
@@ -1986,10 +1994,10 @@ class IPAMigrate():
                     except Exception as e:
                         if not self.args.force:
                             self.handle_error(
-                                f"Error updating local entry: {str(e)}")
+                                f"Error updating local entry: {e}")
                         else:
                             self.log_error(
-                                f"Error updating local entry: {str(e)}")
+                                f"Error updating local entry: {e}")
                             stats['ignored_errors'] += 1
 
                 self.write_update_to_ldif(local_entry)
@@ -2110,11 +2118,11 @@ class IPAMigrate():
         # Make sure local IPA server is in migration mode
         if not self.dryrun:
             config_dn = f"cn=ipaconfig,cn=etc,{self.local_suffix}"
-            ldap = api.Backend.ldap2
-            config = ldap.get_entry(DN(config_dn), ['ipaMigrationEnabled'])
+            conn = api.Backend.ldap2
+            config = conn.get_entry(DN(config_dn), ['ipaMigrationEnabled'])
             if not config['ipaMigrationEnabled'][0]:
                 config['ipaMigrationEnabled'] = ["TRUE"]
-                ldap.update_entry(config)
+                conn.update_entry(config)
                 self.post_notes.append("The local server has been put into "
                                        "migration mode. Once all migration "
                                        "tasks are done you will have to take "
@@ -2191,7 +2199,7 @@ class IPAMigrate():
                                         capture_output=True, text=True)
                 self.log_debug("SIDGEN task:\n" + result.stdout)
             except subprocess.CalledProcessError as e:
-                self.log_error("SIDGEN task failed: " + str(e))
+                self.log_error(f"SIDGEN task failed: {e}")
                 self.post_notes.append("SIDGEN task failed, "
                                        "needs investigation.")
 
@@ -2238,7 +2246,7 @@ class IPAMigrate():
         try:
             api.finalize()
         except Exception as e:
-            self.handle_error(f'Problem with IPA installation: {str(e)}',
+            self.handle_error(f'Problem with IPA installation: {e}',
                               err=2)
 
         print("Connecting to local server ...")
