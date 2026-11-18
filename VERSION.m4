@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: add tln_exclusions option to trust_mod
-define(IPA_API_VERSION_MINOR, 258)
+# Last change: add incremental trust namespace options
+define(IPA_API_VERSION_MINOR, 259)
 
 ########################################################
 # Following values are auto-generated from values above

@@ -1,6 +1,13 @@
 # Copyright (C) 2026  FreeIPA Contributors - see LICENSE file
 
-from samba.ndr import ndr_unpack
+from contextlib import nullcontext
+from types import SimpleNamespace
+
+import pytest
+
+from ipaserver import dcerpc
+
+from samba.ndr import ndr_pack, ndr_unpack
 from samba.dcerpc import drsblobs, lsa
 
 from ipaserver.dcerpc import (
@@ -132,3 +139,39 @@ class TestBuildForestTrustInfoBlob:
         assert ftinfo.records[0].record.data.string == 'd.test'
         assert (ftinfo.records[0].record.type
                 == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
+
+
+def test_fetch_domains_extracts_remote_exclusions(monkeypatch):
+    entry = SimpleNamespace(
+        flags=0, time=123, type=lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX,
+        forest_trust_data=SimpleNamespace(string='excluded.test'))
+    domain = SimpleNamespace(ftinfo_data=SimpleNamespace(entries=[entry]))
+    monkeypatch.setattr(dcerpc, 'discover_trust_instance',
+                        lambda *args, **kwargs: nullcontext(domain))
+    result = dcerpc.fetch_domains(None, 'ipa.test', 'ad.test')
+    assert result['exclusions'] == ['excluded.test']
+    info = ndr_unpack(drsblobs.ForestTrustInfo, result['ftinfo_data'])
+    assert info.records[0].record.data.string == 'excluded.test'
+
+
+def test_corrupt_existing_blob_is_not_replaced():
+    with pytest.raises(RuntimeError):
+        build_forest_trust_info_blob('a.test', [], [], b'invalid')
+
+
+def test_merge_removes_only_old_managed_names():
+    blob = build_forest_trust_info_blob(
+        'a.test', ['Old.test', 'remote.test'],
+        ['old-ex.test', 'remote-ex.test'])
+    info = ndr_unpack(drsblobs.ForestTrustInfo, blob)
+    info.records[2].record.flags = 2
+    blob = ndr_pack(info)
+    merged = ndr_unpack(drsblobs.ForestTrustInfo, build_forest_trust_info_blob(
+        'a.test', [], [], blob, ['OLD.TEST'], ['OLD-EX.TEST']))
+    names = [(r.record.type, r.record.data.string, r.record.flags)
+             for r in merged.records]
+    assert names == [
+        (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'a.test', 0),
+        (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'remote.test', 2),
+        (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX, 'remote-ex.test', 0),
+    ]

@@ -49,7 +49,7 @@ import random
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
-from samba.ndr import ndr_pack, ndr_print
+from samba.ndr import ndr_pack, ndr_print, ndr_unpack
 from samba import net
 from samba import ntstatus
 import samba
@@ -898,23 +898,43 @@ def find_namespace_collision(candidate_names, my_exclusions, other_trusts):
     return None
 
 
-def build_forest_trust_info_blob(domain_name, suffixes, exclusions):
-    """
-    Build a raw NDR-serialized ForestTrustInfo blob suitable for
-    storing directly in a trust's ipaNTTrustForestTrustInfo attribute,
-    from that trust's own domain name, UPN suffixes, and TLN
-    exclusions.
-
-    This performs no RPC round-trip: it is the same construction
-    fetch_domains() already does when parsing a remote domain's
-    forest trust info (drsblobs.ForestTrustInfo /
-    ForestTrustInfoRecord / ForestTrustInfoRecordArmor, packed with
-    ndr_pack()), applied locally to our own trust's data. Only top
-    level name and top level name exclusion records are produced,
-    matching TrustDomainInstance.generate_ftinfo()'s scope.
-    """
+def build_forest_trust_info_blob(domain_name, suffixes, exclusions, blob=None,
+                                 old_suffixes=(), old_exclusions=()):
+    """Merge IPA namespace changes into a forest trust information blob."""
     trust_timestamp = int(time.time() * 1e7 + 116444736000000000)
-    records = []
+    if blob is not None:
+        ftinfo = ndr_unpack(drsblobs.ForestTrustInfo, blob)
+        records = list(ftinfo.records)
+    else:
+        ftinfo = drsblobs.ForestTrustInfo()
+        ftinfo.version = 1
+        records = []
+
+    tln = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME
+    tln_ex = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+    desired = {
+        tln: [domain_name] + list(suffixes),
+        tln_ex: list(exclusions),
+    }
+    removed = {
+        tln: (
+            {name.lower() for name in old_suffixes}
+            - {name.lower() for name in desired[tln]}
+        ),
+        tln_ex: (
+            {name.lower() for name in old_exclusions}
+            - {name.lower() for name in desired[tln_ex]}
+        ),
+    }
+    records = [armor for armor in records
+               if armor.record.type not in removed
+               or armor.record.data.string.lower()
+               not in removed[armor.record.type]]
+    existing = {kind: set() for kind in desired}
+    for armor in records:
+        record = armor.record
+        if record.type in existing:
+            existing[record.type].add(record.data.string.lower())
 
     def add_record(name, rec_type):
         record = drsblobs.ForestTrustInfoRecord()
@@ -926,16 +946,14 @@ def build_forest_trust_info_blob(domain_name, suffixes, exclusions):
         armor.record = record
         records.append(armor)
 
-    add_record(domain_name, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
-    for suffix in suffixes:
-        add_record(suffix, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
-    for excl in exclusions:
-        add_record(excl, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX)
+    for kind, names in desired.items():
+        for name in names:
+            if name.lower() not in existing[kind]:
+                add_record(name, kind)
+                existing[kind].add(name.lower())
 
-    ftinfo = drsblobs.ForestTrustInfo()
     ftinfo.count = len(records)
     ftinfo.records = records
-    ftinfo.version = 1
 
     return ndr_pack(ftinfo)
 
@@ -1710,7 +1728,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         if domains is None:
             return None
 
-    result = {'domains': {}, 'suffixes': {}}
+    result = {'domains': {}, 'suffixes': {}, 'exclusions': []}
     # netr_DsRGetForestTrustInformation returns two types of entries:
     # domain information  -- name, NetBIOS name, SID of the domain
     # top level name info -- a name suffix associated with the forest
@@ -1750,6 +1768,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             result['suffixes'][tname] = {'cn': tname}
         elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX:
             record.data.string = t.forest_trust_data.string
+            result['exclusions'].append(t.forest_trust_data.string)
 
         rc = drsblobs.ForestTrustInfoRecordArmor()
         rc.record = record
