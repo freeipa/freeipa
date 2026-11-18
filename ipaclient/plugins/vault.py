@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 import base64
+from collections import namedtuple
 import errno
 import io
 import json
@@ -40,12 +41,14 @@ try:
         MLKEM1024PublicKey, MLKEM1024PrivateKey,
     )
     from cryptography.hazmat.primitives.keywrap import (
+        InvalidUnwrap,
         aes_key_wrap_with_padding, aes_key_unwrap_with_padding)
     MLKEM_PUBLIC_KEY_TYPES = (
         MLKEM768PublicKey, MLKEM1024PublicKey)
     MLKEM_PRIVATE_KEY_TYPES = (
         MLKEM768PrivateKey, MLKEM1024PrivateKey)
 except ImportError:
+    InvalidUnwrap = None
     MLKEM_PUBLIC_KEY_TYPES = ()
     MLKEM_PRIVATE_KEY_TYPES = ()
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -121,12 +124,17 @@ def generate_symmetric_key(password, salt):
     return base64.b64encode(kdf.derive(password.encode('utf-8')))
 
 
+EncryptResult = namedtuple(
+    'EncryptResult', ['encrypted_key', 'kem_ciphertext']
+)
+
+
 def encrypt(data, symmetric_key=None, public_key=None):
     """
     Encrypts data with symmetric key or public key.
 
-    For ML-KEM public keys, returns (kem_ciphertext, wrapped_data) tuple.
-    For RSA public keys, returns encrypted data bytes.
+    For public keys, returns EncryptResult(encrypted_key, kem_ciphertext).
+    kem_ciphertext is None for RSA, set for ML-KEM.
     For symmetric keys, returns Fernet-encrypted data bytes.
     """
     if symmetric_key is not None:
@@ -145,8 +153,8 @@ def encrypt(data, symmetric_key=None, public_key=None):
         if isinstance(public_key_obj, MLKEM_PUBLIC_KEY_TYPES):
             shared_key, kem_ciphertext = public_key_obj.encapsulate()
             wrapped_data = aes_key_wrap_with_padding(shared_key, data)
-            return kem_ciphertext, wrapped_data
-        return public_key_obj.encrypt(
+            return EncryptResult(wrapped_data, kem_ciphertext)
+        encrypted = public_key_obj.encrypt(
             data,
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -154,6 +162,7 @@ def encrypt(data, symmetric_key=None, public_key=None):
                 label=None
             )
         )
+        return EncryptResult(encrypted, None)
     else:
         raise ValueError("Either a symmetric or a public key is required.")
 
@@ -178,22 +187,29 @@ def decrypt(data, symmetric_key=None, private_key=None,
                 message=_('Invalid credentials'))
 
     elif private_key is not None:
-        try:
-            private_key_obj = load_pem_private_key(
-                data=private_key,
-                password=None,
-                backend=default_backend()
-            )
-            if isinstance(private_key_obj, MLKEM_PRIVATE_KEY_TYPES):
-                if kem_ciphertext is None:
-                    raise ValueError(
+        private_key_obj = load_pem_private_key(
+            data=private_key,
+            password=None,
+            backend=default_backend()
+        )
+        if isinstance(private_key_obj, MLKEM_PRIVATE_KEY_TYPES):
+            if kem_ciphertext is None:
+                raise errors.ValidationError(
+                    name='kem_ciphertext',
+                    error=_(
                         "kem_ciphertext is required for ML-KEM "
                         "decryption"
                     )
+                )
+            try:
                 shared_key = private_key_obj.decapsulate(
                     kem_ciphertext
                 )
                 return aes_key_unwrap_with_padding(shared_key, data)
+            except (ValueError, InvalidUnwrap):
+                raise errors.AuthenticationError(
+                    message=_('Invalid credentials'))
+        try:
             return private_key_obj.decrypt(
                 data,
                 padding.OAEP(
@@ -1148,11 +1164,8 @@ class vault_archive(ModVaultData):
             encrypted_result = encrypt(
                 encryption_key, public_key=public_key
             )
-            if isinstance(encrypted_result, tuple):
-                kem_ciphertext, encrypted_key = encrypted_result
-            else:
-                kem_ciphertext = None
-                encrypted_key = encrypted_result
+            encrypted_key = encrypted_result.encrypted_key
+            kem_ciphertext = encrypted_result.kem_ciphertext
 
         else:
             raise errors.ValidationError(
