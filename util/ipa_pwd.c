@@ -32,6 +32,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <errno.h>
+#include <inttypes.h>
 #if defined(USE_PWQUALITY)
 #include <pwquality.h>
 #endif
@@ -643,7 +644,10 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
              * policy is set */
 
             if (cur_time < last_pwd_change + policy->min_pwd_life) {
-                syslog(LOG_ERR, "Password too young. %d seconds since last change, policy requires %u seconds.\n", (cur_time - last_pwd_change), policy->min_pwd_life);
+                syslog(LOG_ERR, "Password too young. %jd seconds since last "
+                       "change, policy requires %u seconds.\n",
+                       (intmax_t)(cur_time - last_pwd_change),
+                       policy->min_pwd_life);
                 return IPAPWD_POLICY_PWD_TOO_YOUNG;
             }
         }
@@ -653,7 +657,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
 
     if (policy->min_complexity) {
         int num_digits = 0;
-        int num_alphas = 0;
         int num_uppers = 0;
         int num_lowers = 0;
         int num_specials = 0;
@@ -673,7 +676,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
                 num_digits++;
             /* alpha/lower/upper, is checked only for pure ASCII chars */
             } else if (utf8_isalpha(p)) {
-                num_alphas++;
                 if (islower(*p)) {
                     num_lowers++;
                 } else {

@@ -717,7 +717,7 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
      * but we still need to set the account flags correctly */
     if ((is_host || is_service)) {
         /* it is either host or service, so get the hostname first */
-        char *sep = strchr(info3->base.account_name.string, '/');
+        const char *sep = strchr(info3->base.account_name.string, '/');
         bool is_master;
 
         ret = is_master_host(ipactx,
@@ -1718,12 +1718,8 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
     bool result;
     bool is_from_trusted_domain = false;
     struct ipadb_e_data *ied = NULL;
-    int flags = 0;
     struct dom_sid client_sid;
     const char *stmsg = NULL;
-#ifdef KRB5_KDB_FLAG_ALIAS_OK
-    flags = KRB5_KDB_FLAG_ALIAS_OK;
-#endif
 
     ipactx = ipadb_get_context(context);
     if (!ipactx) {
@@ -2159,6 +2155,7 @@ done:
     return kerr;
 }
 
+#if !defined(KRB5_KDB_FLAG_CLIENT)
 static krb5_error_code get_delegation_info(krb5_context context,
                                 TALLOC_CTX *memctx, krb5_data *pac_blob,
                                 struct PAC_CONSTRAINED_DELEGATION_CTR *info)
@@ -2307,6 +2304,8 @@ done:
     talloc_free(tmpctx);
     return kerr;
 }
+
+#endif
 
 krb5_error_code ipadb_common_verify_pac(krb5_context context,
                                         unsigned int flags,

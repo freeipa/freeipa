@@ -40,6 +40,8 @@
 #include "util.h"
 #include <string.h>
 
+int repl_version_plugin_init(Slapi_PBlock *pb);
+
 /* Identify the type of data we're sending, an unsigned int in this case */
 #define REPL_VERSION_DATA_GUID "2D562D8B-2F30-4447-AF76-2B721D1D5F6A"
 

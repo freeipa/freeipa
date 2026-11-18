@@ -72,6 +72,8 @@
 
 #define IPA_PLUGIN_NAME IPA_EXTDOM_PLUGIN_NAME
 
+int ipa_extdom_init(Slapi_PBlock *pb);
+
 enum extdom_version {
     EXTDOM_V0 = 0,
     EXTDOM_V1,

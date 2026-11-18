@@ -27,7 +27,7 @@
 
 #include "ipa_cldap.h"
 
-void test_make_netbios_name(void **state)
+static void test_make_netbios_name(void **state)
 {
     char *r;
     size_t c;

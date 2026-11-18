@@ -314,7 +314,7 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
  * }
  */
 
-    req = calloc(sizeof(struct extdom_req), 1);
+    req = calloc(1, sizeof(struct extdom_req));
     if (req == NULL) {
         /* Since we return req even in the case of an error we make sure it is
          * always safe to call free_req_data() on the returned data. */

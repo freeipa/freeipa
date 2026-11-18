@@ -55,8 +55,6 @@
 
 #define IPA_CONFIG "/etc/ipa/default.conf"
 
-char * read_config_file(const char *filename);
-char * get_config_entry(char * data, const char *section, const char *key);
 static size_t
 jsonrpc_handle_response(char *ptr, size_t size, size_t nmemb, void *userdata);
 
