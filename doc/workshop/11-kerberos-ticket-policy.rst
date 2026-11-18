@@ -47,7 +47,7 @@ For users, Kerberos ticket life time and renewal age can be managed with
 Kerberos ticket policy commands described in :command:`ipa help krbtpolicy` manual.
 
 If no specific policy is associated with a user, a default one is applied. To
-manage the default policy the same :command:`ipa krbtpolicy-*` commands are used,
+manage the default policy, use the same :command:`ipa krbtpolicy-mod` command
 without an explicit user name.
 
 Display the default Kerberos ticket policy:
@@ -101,7 +101,7 @@ Now, we ask for a new ticket, the expectation is that the expiration date will r
 
 .. code-block:: console
 
-  [admin@client]$ kdestroy
+  [admin@client]$ kdestroy -A
   [admin@client]$ kinit admin
   [admin@client]$ klist -f -d -e
 

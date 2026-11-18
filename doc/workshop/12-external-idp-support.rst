@@ -528,8 +528,8 @@ Kerberos client. When KDC received the initial ticket granting ticket request,
 IPA database driver (KDB) performed an LDAP lookup of the Kerberos principal and
 found out that ``testuser1@IPADEMO.LOCAL`` Kerberos principal has ``idp`` user
 authentication type. This, in turn, activated KDC side of the ``idp``
-pre-authentication method and led to a request to :command:`ipa-otpd` daemon. Finally,
-:command:`ipa-otpd` daemon asked :command:`oidc_child` to request a device code authorization
+pre-authentication method and led to a request to ``ipa-otpd`` daemon. Finally,
+``ipa-otpd`` daemon asked ``oidc_child`` to request a device code authorization
 grant from the IdP associated with the ``testuser1@IPADEMO.LOCAL`` principal.
 The grant flow resulted in IdP returning a code and a message which was
 propagated back to the Kerberos client and displayed by the client side of the
