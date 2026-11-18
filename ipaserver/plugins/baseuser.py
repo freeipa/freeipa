@@ -147,7 +147,8 @@ def update_samba_attrs(ldap, dn, entry_attrs, **options):
         oc = entry_attrs['objectclass']
     if 'ipantuserattrs' not in (item.lower() for item in oc):
         for attr in smb_attrs:
-            if options.get(attr, None):
+            # --setattr puts SMB attrs in entry_attrs, not options
+            if options.get(attr, None) or entry_attrs.get(attr, None):
                 raise errors.ValidationError(
                     name=attr,
                     error=_(

@@ -150,6 +150,26 @@ class TestCRUD(XMLRPC_test):
             raise AssertionError("Expected validation error for "
                                  "altSecurityIdentities used for IPA domain")
 
+    def test_associateddomain_untrusted(self, certmap_rule):
+        """Reject untrusted associateddomain via option and setattr."""
+        certmap_rule.ensure_exists()
+        bad_domain = 'untrusted.example'
+        with raises_exact(errors.ValidationError(
+                name='domain',
+                error='The domain %s is neither IPA domain nor a trusted'
+                      'domain.' % bad_domain)):
+            api.Command['certmaprule_mod'](
+                certmap_rule.name, associateddomain=bad_domain
+            )
+        with raises_exact(errors.ValidationError(
+                name='domain',
+                error='The domain %s is neither IPA domain nor a trusted'
+                      'domain.' % bad_domain)):
+            api.Command['certmaprule_mod'](
+                certmap_rule.name,
+                setattr='associateddomain=%s' % bad_domain,
+            )
+
 
 class TestEnableDisable(XMLRPC_test):
     def test_disable(self, certmap_rule):

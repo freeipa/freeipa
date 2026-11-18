@@ -150,17 +150,22 @@ def check_maprule_is_for_trusted_domain(api_inst, options, entry_attrs):
             )
 
 
-def check_associateddomain_is_trusted(api_inst, options):
+def check_associateddomain_is_trusted(api_inst, options, entry_attrs=None):
     """
-    Check that the associateddomain in options are either IPA domain or
-    a trusted domain.
+    Check that the associateddomain in options or entry_attrs are either
+    IPA domain or a trusted domain.
 
     :param api_inst: API instance
-    :param associateddomain: domains to be checked
+    :param options: command options
+    :param entry_attrs: optional entry attributes (e.g. from --setattr)
 
     :raises: ValidationError if the domain is neither IPA domain nor trusted
     """
-    domains = options.get('associateddomain')
+    # --setattr puts associateddomain in entry_attrs, not options
+    if entry_attrs is None:
+        entry_attrs = {}
+    domains = options.get('associateddomain',
+                          entry_attrs.get('associateddomain'))
     if domains:
         trusted_domains = api_inst.Object.config.gather_trusted_domains()
         trust_suffix_namespace = {dom_name.lower() for dom_name in
@@ -357,7 +362,7 @@ class certmaprule_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
-        check_associateddomain_is_trusted(self.api, options)
+        check_associateddomain_is_trusted(self.api, options, entry_attrs)
         check_maprule_is_for_trusted_domain(self.api, options, entry_attrs)
         return dn
 
@@ -370,7 +375,7 @@ class certmaprule_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
-        check_associateddomain_is_trusted(self.api, options)
+        check_associateddomain_is_trusted(self.api, options, entry_attrs)
         # For update of the existing certmaprule we need to retrieve
         # content of the LDAP entry because modification may affect two cases:
         # - altSecurityIdentities might be removed by the modification
