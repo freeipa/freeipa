@@ -43,7 +43,7 @@ from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
-    Encoding, PublicFormat, PrivateFormat, load_pem_private_key
+    Encoding, PublicFormat, PrivateFormat
 )
 import pyasn1
 import pyasn1.error
@@ -67,11 +67,6 @@ DER = 1
 # a list of 2-tuples of the PEM and base64 data.
 PEM_CERT_REGEX = re.compile(
     b'(-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----)',
-    re.DOTALL)
-
-PEM_PRIV_REGEX = re.compile(
-    b'-----BEGIN(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----.*?'
-    b'-----END(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----',
     re.DOTALL)
 
 EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
@@ -524,35 +519,6 @@ def load_certificate_list_from_file(filename):
     """
     with open(filename, 'rb') as f:
         return load_certificate_list(f.read())
-
-
-def load_private_key_list(data, password=None):
-    """
-    Load a private key list from a sequence of concatenated PEMs.
-
-    :param data: bytes containing the private keys
-    :param password: bytes, the password to encrypted keys in the bundle
-
-    :returns: List of python-cryptography ``PrivateKey`` objects
-    """
-    crypto_backend = default_backend()
-    priv_keys = []
-
-    for match in re.finditer(PEM_PRIV_REGEX, data):
-        if re.search(b"ENCRYPTED", match.group()) is not None:
-            if password is None:
-                raise RuntimeError("Password is required for the encrypted "
-                                   "keys in the bundle.")
-            # Load private key as encrypted
-            priv_keys.append(
-                load_pem_private_key(match.group(), password,
-                                     backend=crypto_backend))
-        else:
-            priv_keys.append(
-                load_pem_private_key(match.group(), None,
-                                     backend=crypto_backend))
-
-    return priv_keys
 
 
 def pkcs7_to_certs(data, datatype=PEM):
