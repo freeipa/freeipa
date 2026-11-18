@@ -190,21 +190,21 @@ with open(private_path, 'rb') as f:
 encryption_key = base64.b64encode(os.urandom(32))
 
 result = encrypt(encryption_key, public_key=public_key)
-assert isinstance(result, tuple), \\
-    'ML-KEM encrypt() must return (kem_ciphertext, wrapped_key), got %r' \\
-    % type(result)
+assert hasattr(result, 'encrypted_key'), \\
+    'encrypt() must return EncryptResult, got %r' % type(result)
+assert hasattr(result, 'kem_ciphertext'), \\
+    'encrypt() must return EncryptResult, got %r' % type(result)
 
-kem_ciphertext, wrapped_key = result
-assert len(kem_ciphertext) == expected_ct_size, \\
-    'unexpected KEM ciphertext size %d' % len(kem_ciphertext)
+assert len(result.kem_ciphertext) == expected_ct_size, \\
+    'unexpected KEM ciphertext size %d' % len(result.kem_ciphertext)
 # AES-KW with padding: 8 byte AIV plus the key padded to a multiple of 8
 expected_wrapped = 8 + -(-len(encryption_key) // 8) * 8
-assert len(wrapped_key) == expected_wrapped, \\
-    'unexpected wrapped key size %d' % len(wrapped_key)
-assert encryption_key not in wrapped_key
+assert len(result.encrypted_key) == expected_wrapped, \\
+    'unexpected wrapped key size %d' % len(result.encrypted_key)
+assert encryption_key not in result.encrypted_key
 
-assert decrypt(wrapped_key, private_key=private_key,
-               kem_ciphertext=kem_ciphertext) == encryption_key
+assert decrypt(result.encrypted_key, private_key=private_key,
+               kem_ciphertext=result.kem_ciphertext) == encryption_key
 
 print('OK')
 """
@@ -230,10 +230,10 @@ with open(private_path, 'rb') as f:
     private_key = f.read()
 
 encryption_key = base64.b64encode(os.urandom(32))
-_kem_ciphertext, wrapped_key = encrypt(encryption_key, public_key=public_key)
+result = encrypt(encryption_key, public_key=public_key)
 
 try:
-    decrypt(wrapped_key, private_key=private_key)
+    decrypt(result.encrypted_key, private_key=private_key)
 except Exception as e:
     assert 'kem_ciphertext' in str(e), \\
         'misleading error for a missing KEM ciphertext: %s: %s' \\
