@@ -168,14 +168,12 @@ krb5_cc_get_principal.argtypes = (krb5_context, krb5_ccache,
 krb5_cc_get_principal.restype = krb5_error_code
 krb5_cc_get_principal.errcheck = krb5_errcheck
 
-# krb5_build_principal is a variadic function but that can't be expressed
-# in a ctypes argtypes definition, so I explicitly listed the number of
-# arguments we actually use through the code for type checking purposes
+# Only declare the fixed arguments of this variadic function. In particular,
+# Apple ARM64 uses a different calling convention for the variadic arguments.
+# The caller explicitly wraps each additional argument in a ctypes type.
 krb5_build_principal = LIBKRB5.krb5_build_principal
 krb5_build_principal.argtypes = (krb5_context, ctypes.POINTER(krb5_principal),
-                                 ctypes.c_uint, ctypes.c_char_p,
-                                 ctypes.c_char_p, ctypes.c_char_p,
-                                 ctypes.c_char_p, ctypes.c_char_p, )
+                                 ctypes.c_uint, ctypes.c_char_p, )
 krb5_build_principal.restype = krb5_error_code
 krb5_build_principal.errcheck = krb5_errcheck
 
