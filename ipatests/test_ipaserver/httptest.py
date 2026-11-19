@@ -36,11 +36,13 @@ class Unauthorized_HTTP_test:
     content_type = 'application/x-www-form-urlencoded'
     accept_language = 'en-us'
 
-    def send_request(self, method='POST', params=None, host=None):
+    def send_request(self, method='POST', params=None, host=None,
+                     headers=None):
         """
         Send a request to HTTP server
 
         :param key When not None, overrides default app_uri
+        :param headers Optional extra/override request headers
         """
         if params is not None:
             if self.content_type == 'application/x-www-form-urlencoded':
@@ -50,11 +52,13 @@ class Unauthorized_HTTP_test:
         else:
             url = 'https://' + self.host + self.app_uri
 
-        headers = {'Content-Type': self.content_type,
-                   'Accept-Language': self.accept_language,
-                   'Referer': url}
+        req_headers = {'Content-Type': self.content_type,
+                       'Accept-Language': self.accept_language,
+                       'Referer': url}
+        if headers:
+            req_headers.update(headers)
 
         conn = util.create_https_connection(
                 self.host, cafile=self.cacert)
-        conn.request(method, self.app_uri, params, headers)
+        conn.request(method, self.app_uri, params, req_headers)
         return conn.getresponse()
