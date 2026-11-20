@@ -346,16 +346,16 @@ def params_2_args_options(params):
     return (params[0], params[1])
 
 
-def nicify_query(query, encoding='utf-8'):
+def nicify_query(query):
     if not query:
         return
     for (key, value) in query.items():
         if len(value) == 0:
             yield (key, None)
         elif len(value) == 1:
-            yield (key, value[0].decode(encoding))
+            yield (key, value[0])
         else:
-            yield (key, tuple(v.decode(encoding) for v in value))
+            yield (key, tuple(value))
 
 
 def extract_query(environ, max_size):
