@@ -1591,6 +1591,10 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
         args = [paths.OPENSSL, "pkcs12", "-in",
                 paths.DOGTAG_ADMIN_P12, "-nodes",
                 "-passin", "pass:{}".format(dm_pass)]
+        # PKCS12 MAC uses PKCS12KDF which is not FIPS-approved; product
+        # openssl helpers already pass -nomacver in FIPS mode.
+        if self.master.is_fips_mode:
+            args.append('-nomacver')
         cmd = self.master.run_command(args)
 
         certs = x509.load_certificate_list(cmd.stdout_text.encode('utf-8'))
