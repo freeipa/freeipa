@@ -36,7 +36,7 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration import tasks, skip_if_fips
 from ipatests.create_external_ca import ExternalCA
 from ipatests.pytest_ipa.integration import create_caless_pki
 from ipalib.constants import DOMAIN_LEVEL_0
@@ -785,6 +785,8 @@ class TestServerInstall(CALessBase):
         assert ('Enter Directory Server private key unlock password'
                 in result.stdout_text), result.stdout_text
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @server_install_teardown
     def test_no_http_password(self):
         "IPA server install with empty HTTP password"
@@ -799,6 +801,8 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @server_install_teardown
     def test_no_ds_password(self):
         "IPA server install with empty DS password"
@@ -1120,6 +1124,8 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @replica_install_teardown
     def test_no_http_password(self):
         "IPA replica install with empty HTTP password"
@@ -1133,6 +1139,8 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @replica_install_teardown
     def test_no_ds_password(self):
         "IPA replica install with empty DS password"
@@ -1146,6 +1154,8 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @replica_install_teardown
     def test_certs_with_no_password(self):
         # related to https://pagure.io/freeipa/issue/7274
@@ -1161,6 +1171,8 @@ class TestReplicaInstall(CALessBase):
                              http_pin='', dirsrv_pin='')
         self.verify_installation()
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     @replica_install_teardown
     def test_certs_with_no_password_interactive(self):
         # related to https://pagure.io/freeipa/issue/7274
@@ -1490,12 +1502,16 @@ class TestCertInstall(CALessBase):
                                   stdin_text=self.cert_password + '\n')
         assert result.returncode == 0
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     def test_no_http_password(self):
         "Install new HTTP certificate with no PKCS#12 password"
 
         result = self.certinstall('w', 'ca1/server', pin='', p12_pin='')
         assert result.returncode == 0
 
+    @skip_if_fips(reason='empty PKCS#12 password not supported in FIPS mode; '
+                  'see https://codeberg.org/freeipa/freeipa/issues/10138')
     def test_no_ds_password(self):
         "Install new DS certificate with no PKCS#12 password"
 
