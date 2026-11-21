@@ -5,13 +5,14 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 # Léane GRASSER <leane.grasser@proton.me>, 2024.
 # François Grieu <francois.grieu@spirtech.com>, 2026.
+# William Oprandi <william.oprandi@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
-"PO-Revision-Date: 2026-09-25 16:04+0000\n"
-"Last-Translator: François Grieu <francois.grieu@spirtech.com>\n"
+"PO-Revision-Date: 2026-11-01 18:18+0000\n"
+"Last-Translator: William Oprandi <william.oprandi@gmail.com>\n"
 "Language-Team: French <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/fr/>\n"
 "Language: fr\n"
@@ -19,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.9.1\n"
+"X-Generator: Weblate 2026.10.1\n"
 
 #: ipaserver/rpcserver.py:624
 msgid "Request must be a dict"
@@ -36626,12 +36627,12 @@ msgstr "Aucune clé acceptée par le KDC\n"
 #: client/ipa-getkeytab.c:339
 #, c-format
 msgid "Out of memory \n"
-msgstr "Mémoire saturée\n"
+msgstr "Mémoire saturée \n"
 
 #: client/ipa-getkeytab.c:362
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr "Impossible d'initialiser la bibliothèque LDAP !\n"
+msgstr "Impossible d'initialiser la bibliothèque LDAP !\n"
 
 #: client/ipa-getkeytab.c:378
 msgid "Simple bind failed\n"
