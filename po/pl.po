@@ -578,7 +578,8 @@ msgstr "Błąd podczas rozwiązywania tablicy kluczy: %s.\n"
 #, fuzzy, c-format
 #| msgid "Error obtaining initial credentials: %s.\n"
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr "Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
+msgstr ""
+"Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
 
 #, fuzzy, c-format
 #| msgid "Error resolving keytab: %s.\n"
@@ -587,7 +588,8 @@ msgstr "Błąd podczas rozwiązywania tablicy kluczy: %s.\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr "Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
+msgstr ""
+"Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
 
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
@@ -13753,8 +13755,8 @@ msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
 "required"
 msgstr ""
-"co najmniej jedna z wartości: „type”, „filter”, „subtree”, „targetgroup”, „"
-"attrs” lub „memberof” jest wymagana"
+"co najmniej jedna z wartości: „type”, „filter”, „subtree”, „targetgroup”, "
+"„attrs” lub „memberof” jest wymagana"
 
 #, fuzzy
 #| msgid "type, filter, subtree and targetgroup are mutually exclusive"
@@ -17632,8 +17634,8 @@ msgstr ""
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
-"priorytet musi być unikalną wartością (%(prio)d jest już używane przez %"
-"(gname)s)"
+"priorytet musi być unikalną wartością (%(prio)d jest już używane przez "
+"%(gname)s)"
 
 msgid "Add Class of Service entry"
 msgstr ""
@@ -18735,8 +18737,8 @@ msgstr ""
 #| msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgid "order must be a unique value (%(order)d already used by %(rule)s)"
 msgstr ""
-"priorytet musi być unikalną wartością (%(prio)d jest już używane przez %"
-"(gname)s)"
+"priorytet musi być unikalną wartością (%(prio)d jest już używane przez "
+"%(gname)s)"
 
 #, fuzzy, python-format
 #| msgid "Added user \"%(value)s\""
