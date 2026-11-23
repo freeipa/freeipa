@@ -9,6 +9,7 @@ import pytest
 import time
 import dns.exception
 import dns.resolver
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSResolver
 from ipatests.pytest_ipa.integration import tasks, skip_if_fips
@@ -70,6 +71,11 @@ PTR_TTL = 59
 # Persistent search test values
 NEW_TXT = "newip=5.6.7.8"
 NEWER_TXT = "newip=8.7.6.5"
+
+# SyncRepl / replica DNS test values
+SYNC_ZONE = "dns-sync.test."
+SYNC_EMAIL = "hostmaster@dns-sync.test"
+SYNC_TIMEOUT = 120
 
 # TSIG key configuration for dynamic DNS updates (hmac-md5)
 KEY_NAME = "selfupdate"
@@ -2833,3 +2839,197 @@ class TestDNSMisc(IntegrationTest):
 
         finally:
             tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+
+
+class TestDNSSync(IntegrationTest):
+    """Tests for DNS sync between master and replica.
+
+    Covers SyncRepl record propagation, zone journal/IXFR, and GSS-TSIG
+    nsupdate writeback to LDAP.
+    """
+    num_replicas = 1
+    topology = 'star'
+    num_clients = 0
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+        tasks.kinit_admin(cls.master)
+        tasks.add_dns_zone(
+            cls.master, SYNC_ZONE,
+            skip_overlap_check=True,
+            dynamic_update=True,
+            admin_email=SYNC_EMAIL,
+            ttl=5,
+        )
+        tasks.mod_dns_zone(cls.master, SYNC_ZONE, '--allow-transfer=any;')
+        tasks.resolve_record(
+            cls.master.ip, SYNC_ZONE, 'SOA', timeout=SYNC_TIMEOUT
+        )
+        tasks.resolve_record(
+            cls.replicas[0].ip, SYNC_ZONE, 'SOA', timeout=SYNC_TIMEOUT
+        )
+
+    @classmethod
+    def uninstall(cls, mh):
+        tasks.kinit_admin(cls.master)
+        tasks.del_dns_zone(cls.master, SYNC_ZONE, raiseonerr=False)
+        super(TestDNSSync, cls).uninstall(mh)
+
+    def test_syncrepl_record_add_mod_del_on_replica_named(self):
+        """Test DNS record add/mod/del syncs to replica named."""
+        tasks.kinit_admin(self.master)
+        replica = self.replicas[0]
+        name = 'sync-host'
+        fqdn = f'{name}.{SYNC_ZONE.rstrip(".")}'
+        ip1 = '192.0.2.10'
+        ip2 = '192.0.2.11'
+
+        try:
+            # Add record and poll replica until the new address appears
+            tasks.add_dns_record(self.master, SYNC_ZONE, name, 'a', [ip1])
+            tasks.run_repeatedly(
+                replica,
+                ['dig', '+short', f'@{replica.ip}', fqdn, 'A'],
+                test=lambda out: ip1 in out,
+                timeout=SYNC_TIMEOUT,
+            )
+
+            # Modify record and poll until replica serves only the new address
+            tasks.mod_dns_record(
+                self.master, SYNC_ZONE, name,
+                f'--a-rec={ip1}', f'--a-ip-address={ip2}',
+            )
+            tasks.run_repeatedly(
+                replica,
+                ['dig', '+short', f'@{replica.ip}', fqdn, 'A'],
+                test=lambda out: ip2 in out and ip1 not in out,
+                timeout=SYNC_TIMEOUT,
+            )
+
+            # Delete record and verify NXDOMAIN on replica
+            tasks.del_dns_record(self.master, SYNC_ZONE, name, del_all=True)
+            tasks.run_repeatedly(
+                replica,
+                ['dig', f'@{replica.ip}', fqdn, 'A'],
+                assert_zero_rc=False,
+                test=lambda out: 'NXDOMAIN' in out,
+                timeout=SYNC_TIMEOUT,
+            )
+        finally:
+            tasks.del_dns_record(
+                self.master, SYNC_ZONE, name, del_all=True, raiseonerr=False
+            )
+
+    def test_zone_journal_and_ixfr(self):
+        """Test DNS zone journal exists and IXFR works after an update."""
+        tasks.kinit_admin(self.master)
+        replica = self.replicas[0]
+        name = 'ixfr-host'
+        fqdn = f'{name}.{SYNC_ZONE.rstrip(".")}'
+        ip = '192.0.2.20'
+        zone_dir = (
+            f'{paths.BIND_LDAP_DNS_ZONE_WORKDIR}{SYNC_ZONE.rstrip(".")}'
+        )
+
+        try:
+            old_serial = tasks.resolve_record(
+                self.master.ip, SYNC_ZONE, 'SOA'
+            )[0].serial
+
+            # Add record and wait until both servers answer
+            tasks.add_dns_record(self.master, SYNC_ZONE, name, 'a', [ip])
+            tasks.resolve_record(
+                self.master.ip, fqdn, 'A', timeout=SYNC_TIMEOUT
+            )
+            tasks.resolve_record(
+                replica.ip, fqdn, 'A', timeout=SYNC_TIMEOUT
+            )
+
+            new_serial = tasks.resolve_record(
+                self.master.ip, SYNC_ZONE, 'SOA'
+            )[0].serial
+            assert new_serial > old_serial
+
+            # Journal file and IXFR should be available on both servers
+            for host in (self.master, replica):
+                result = host.run_command(
+                    ['bash', '-c', f'ls {zone_dir}/*.jnl'],
+                    raiseonerr=False,
+                )
+                assert result.returncode == 0, result.stderr_text
+
+                # dig IXFR output has no "status: NOERROR" header (unlike
+                # normal queries); success is exit 0 + XFR content.
+                result = host.run_command([
+                    'dig', '+norecurse', f'@{host.ip}',
+                    SYNC_ZONE, f'IXFR={old_serial}',
+                ])
+                assert result.returncode == 0, result.stderr_text
+                assert 'XFR size:' in result.stdout_text, result.stdout_text
+                assert fqdn in result.stdout_text
+        finally:
+            tasks.del_dns_record(
+                self.master, SYNC_ZONE, name, del_all=True, raiseonerr=False
+            )
+
+    def test_gss_tsig_nsupdate_writeback_to_ldap(self):
+        """Test GSS-TSIG nsupdate is written to LDAP and visible on replica.
+        """
+        tasks.kinit_admin(self.master)
+        replica = self.replicas[0]
+        realm = self.master.domain.realm
+        hostname = f'gss-host.{SYNC_ZONE.rstrip(".")}'
+        ip = '192.0.2.30'
+        keytab = '/tmp/dns-sync-gss.keytab'
+        nsupdate_file = '/tmp/dns-sync-gss.nsupdate'
+
+        try:
+            self.master.run_command(
+                ['ipa', 'host-add', hostname, '--force']
+            )
+            self.master.run_command([
+                'ipa-getkeytab', '-s', self.master.hostname,
+                '-p', f'host/{hostname}@{realm}', '-k', keytab,
+            ])
+
+            nsupdate_content = (
+                f'server {self.master.hostname}\n'
+                f'zone {SYNC_ZONE}\n'
+                f'update delete {hostname}. A\n'
+                f'update add {hostname}. 60 IN A {ip}\n'
+                f'send\n'
+            )
+            self.master.put_file_contents(nsupdate_file, nsupdate_content)
+            self.master.run_command(
+                ['kinit', '-k', '-t', keytab, f'host/{hostname}']
+            )
+            self.master.run_command(['nsupdate', '-g', '-v', nsupdate_file])
+
+            # Verify answer on master and replica
+            ans = tasks.resolve_record(
+                self.master.ip, hostname, 'A', timeout=SYNC_TIMEOUT
+            )
+            assert ip in [r.address for r in ans]
+            ans = tasks.resolve_record(
+                replica.ip, hostname, 'A', timeout=SYNC_TIMEOUT
+            )
+            assert ip in [r.address for r in ans]
+
+            # Verify writeback to LDAP
+            tasks.kinit_admin(self.master)
+            show = tasks.show_dns_record(self.master, SYNC_ZONE, 'gss-host')
+            assert ip in show.stdout_text
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                ['ipa', 'host-del', hostname, '--updatedns'], raiseonerr=False
+            )
+            tasks.del_dns_record(
+                self.master, SYNC_ZONE, 'gss-host',
+                del_all=True, raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-f', keytab, nsupdate_file], raiseonerr=False
+            )
