@@ -20,8 +20,11 @@ import pytest
 from subprocess import CalledProcessError
 
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
-from datetime import datetime, timedelta
+from cryptography.x509.oid import NameOID
+from datetime import datetime, timedelta, timezone
 
 from ipalib.constants import IPAAPI_USER
 from ipalib.errors import DatabaseError
@@ -362,6 +365,82 @@ class TestIPACommand(IntegrationTest):
         )
         assert '1 certificate matched' in result.stdout_text
         self.master.run_command(['ipa', 'user-del', user])
+
+    def test_cert_find_external_user_sizelimit(self):
+        """Externally issued user certificates honor sizelimit 0.
+
+        sizelimit 0 means unlimited and is what the Web UI sends for
+        Identity -> Users -> Account Settings -> Certificates. The same
+        user with two certificates from an external CA must be returned
+        for the default search and for sizelimit 0, 2, and 100.
+        sizelimit 1 returns one of those certificates.
+        """
+        user = 'extcertuser'
+        cns = ('external-1', 'external-2')
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend(),
+        )
+        now = datetime.now(timezone.utc)
+        encoded = []
+        for index, cn in enumerate(cns, start=1):
+            name = x509.Name([
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'External CA'),
+                x509.NameAttribute(NameOID.COMMON_NAME, cn),
+            ])
+            cert = (
+                x509.CertificateBuilder()
+                .subject_name(name)
+                .issuer_name(name)
+                .public_key(key.public_key())
+                .serial_number(10000 + index)
+                .not_valid_before(now - timedelta(days=1))
+                .not_valid_after(now + timedelta(days=30))
+                .sign(key, hashes.SHA256(), default_backend())
+            )
+            encoded.append(base64.b64encode(
+                cert.public_bytes(serialization.Encoding.DER)
+            ).decode('ascii'))
+
+        tasks.kinit_admin(self.master)
+        tasks.user_del(self.master, user, raiseonerr=False)
+        tasks.user_add(self.master, user, first='Ext', last='Cert')
+        try:
+            self.master.run_command(
+                ['ipa', 'user-mod', user, '--certificate', encoded[0],
+                 '--certificate', encoded[1]]
+            )
+
+            def run_find(sizelimit=None, show_all=False):
+                cmd = ['ipa', 'cert-find', '--users', user]
+                if show_all:
+                    cmd.append('--all')
+                if sizelimit is not None:
+                    cmd.extend(['--sizelimit', str(sizelimit)])
+                return self.master.run_command(cmd)
+
+            for sizelimit in (None, 0, 2, 100):
+                result = run_find(sizelimit, show_all=True)
+                assert '2 certificates matched' in result.stdout_text
+                for cn in cns:
+                    assert cn in result.stdout_text
+                assert 'Serial number: 10001' in result.stdout_text
+                assert 'Serial number: 10002' in result.stdout_text
+
+            # Unlimited search without --all.
+            result = run_find(0)
+            assert '2 certificates matched' in result.stdout_text
+
+            result = run_find(1, show_all=True)
+            assert '1 certificate matched' in result.stdout_text
+            shown = [
+                serial for serial in ('10001', '10002')
+                if 'Serial number: %s' % serial in result.stdout_text
+            ]
+            assert len(shown) == 1
+        finally:
+            tasks.user_del(self.master, user, raiseonerr=False)
 
     def test_add_permission_failure_issue5923(self):
         # https://codeberg.org/freeipa/freeipa/issues/5923
