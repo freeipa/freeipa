@@ -41,7 +41,7 @@ Produce full debugging output.
 Delegate the user's TGT to the IPA server
 .TP
 \fB\-e\fR \fIKEY=VAL\fR
-Set environmental variable \fIKEY\fR to the value \fIVAL\fR. This option overrides configuration files.
+Set environment variable \fIKEY\fR to the value \fIVAL\fR. This option overrides configuration files.
 .TP
 \fB\-h\fR, \fB\-\-help\fR
 Display a help message with a list of options.
@@ -64,7 +64,7 @@ Produce verbose output. A second -v pretty-prints the JSON request and response.
 \fB\-\-version\fR
 Display the IPA version and API version.
 .SH "COMMANDS"
-The principal function of the CLI is to execute administrative commands specified by the \fICOMMAND\fR argument. The majority of commands are executed remotely over XML\-RPC on a IPA server listed in the configuration file (see FILES section of this manual page).
+The principal function of the CLI is to execute administrative commands specified by the \fICOMMAND\fR argument. The majority of commands are executed remotely over XML\-RPC on an IPA server listed in the configuration file (see FILES section of this manual page).
 
 From the implementation perspective, the CLI distinguishes two types of commands \- built\-ins and plugin provided.
 
@@ -101,7 +101,7 @@ Search for existing objects.
 .LP
 The above types of commands except \fBfind\fR take the objects primary key (e.g. user name for users) as their only positional argument unless there can be only one object of the given type. They can also take a number of options (some of which might be required in the case of \fBadd\fR) that represent the objects attributes.
 
-\fBfind\fR commands take an optional criteria string as their only positional argument. If present, all objects with an attribute that contains the criteria string are displayed. If an option representing an attribute is set, only object with the attribute exactly matching the specified value are displayed. Options with empty values are ignored. Without parameters all objects of the corresponding type are displayed.
+\fBfind\fR commands take an optional criteria string as their only positional argument. If present, all objects with an attribute that contains the criteria string are displayed. If an option representing an attribute is set, only objects with the attribute exactly matching the specified value are displayed. Options with empty values are ignored. Without parameters all objects of the corresponding type are displayed.
 
 For IPA objects with attributes that can contain references to other objects (e.g. groups), the following action are usually available:
 .TP
@@ -113,7 +113,7 @@ Remove references to other objects.
 .LP
 The above types of commands take the objects primary key as their only positional argument unless there can be only one object of the given type. They also take a number of options that represent lists of other object primary keys. Each of these options represent one type of object.
 
-For some types of objects, these commands might need to take more than one primary key. This applies to IPA objects organized in hierarchies where the parent object needs to be identified first. Parent primary keys are always aligned to the left (higher in the hierarchy = more to the left). For example the automount IPA plugin enables users to manage automount maps per location, as a result all automount commands take an automountlocation primary key as their first positional argument.
+For some types of objects, these commands might need to take more than one primary key. This applies to IPA objects organized in hierarchies where the parent object needs to be identified first. Parent primary keys are always aligned to the left (higher in the hierarchy = more to the left). For example the automount IPA plugin enables users to manage automount maps per location, as a result, all automount commands take an automountlocation primary key as their first positional argument.
 
 All commands that display objects have three special options for controlling output:
 .TP
@@ -171,7 +171,7 @@ a list of arguments and options passed to the IPA API command, provided in JSON
 format. Credentials are filtered out.
 
 .LP
-All explicitly requested operations logged. Internal operations, initiated as
+All explicitly requested operations are logged. Internal operations, initiated as
 part of execution of the explicitly requested IPA API calls, aren't logged. For
 HTTP end-point operations will be logged as performed by the '/mod_wsgi'
 executable binary.  Remaining details can be inspected through the systemd
