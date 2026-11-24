@@ -23,8 +23,14 @@ from __future__ import print_function, absolute_import
 
 import base64
 import os
+from datetime import datetime, timedelta, timezone
 
 import pytest
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
@@ -42,6 +48,40 @@ sn = None
 _DOMAIN = api.env.domain
 _EXP_CRL_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ipa/crl/MasterCRL.bin'])
 _EXP_OCSP_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ca/ocsp'])
+
+
+def _external_user_certs():
+    """Two certificates issued by an external CA, not by Dogtag."""
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend(),
+    )
+    now = datetime.now(timezone.utc)
+    certs = []
+    for index in (1, 2):
+        name = x509.Name([
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'External CA'),
+            x509.NameAttribute(
+                NameOID.COMMON_NAME, 'external-%d' % index),
+        ])
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(name)
+            .issuer_name(name)
+            .public_key(key.public_key())
+            .serial_number(10000 + index)
+            .not_valid_before(now - timedelta(days=1))
+            .not_valid_after(now + timedelta(days=30))
+            .add_extension(
+                x509.BasicConstraints(ca=False, path_length=None),
+                critical=True,
+            )
+            .sign(key, hashes.SHA256(), default_backend())
+        )
+        certs.append(cert)
+    return certs
+
 
 def is_db_configured():
     """
@@ -456,6 +496,51 @@ class test_cert_find(XMLRPC_test):
         """
         with pytest.raises(errors.ConversionError):
             api.Command['cert_find'](issuedon_from='xyz')
+
+    def test_0032_external_user_certs_sizelimit(self):
+        """External user certificates are returned for sizelimit 0.
+
+        sizelimit 0 is unlimited. The Web UI loads a user's certificates
+        with cert_find(user=..., all=True, sizelimit=0). A CA search that
+        finds nothing for that user must not drop the LDAP copies.
+        """
+        uid = 'extcertuser'
+        certs = _external_user_certs()
+        encoded = [
+            base64.b64encode(
+                cert.public_bytes(serialization.Encoding.DER)
+            ).decode('ascii')
+            for cert in certs
+        ]
+        expected = {str(cert.serial_number) for cert in certs}
+        try:
+            try:
+                api.Command.user_del(uid)
+            except errors.NotFound:
+                pass
+            api.Command.user_add(uid, givenname='Ext', sn='Cert')
+            api.Command.user_mod(uid, usercertificate=encoded)
+            for extra in ({}, {'sizelimit': 0}, {'sizelimit': 2},
+                          {'sizelimit': 100}):
+                res = api.Command.cert_find(user=uid, all=True, **extra)
+                found = {
+                    str(obj['serial_number']) for obj in res['result']
+                }
+                assert found == expected
+                assert res['count'] == 2
+                assert not res['truncated']
+                for obj in res['result']:
+                    assert list(obj['owner_user']) == [uid]
+            res = api.Command.cert_find(user=uid, all=True, sizelimit=1)
+            assert res['count'] == 1
+            assert res['truncated']
+            assert str(res['result'][0]['serial_number']) in expected
+            assert list(res['result'][0]['owner_user']) == [uid]
+        finally:
+            try:
+                api.Command.user_del(uid)
+            except errors.NotFound:
+                pass
 
 
 @pytest.mark.tier1
