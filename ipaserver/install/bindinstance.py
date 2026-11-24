@@ -883,13 +883,23 @@ class BindInstance(service.Service):
             named_version = tasks.parse_ipa_version(
                 result.output.split()[1]
             )
-        except Exception:
-            raise RuntimeError("Couldn't parse BIND version")
+        except FileNotFoundError:
+            # BIND is not installed on this machine, e.g. when templating
+            # is done outside of an IPA server (integration test runner).
+            # Assume a recent BIND version, where the delegation-only
+            # category no longer exists.
+            logger.debug("%s not found, assuming BIND >= 9.20", paths.NAMED)
+            named_version = None
+        except Exception as e:
+            raise RuntimeError("Couldn't parse BIND version") from e
 
-        if named_version and named_version >= tasks.parse_ipa_version("9.20"):
-            delegation_only_category = ""
-        else:
+        if (
+            named_version is not None
+            and named_version < tasks.parse_ipa_version("9.20")
+        ):
             delegation_only_category = "category delegation-only { named; };"
+        else:
+            delegation_only_category = ""
 
         if self.dns_over_tls:
             named_tls_conf = textwrap.dedent("""\
