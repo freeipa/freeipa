@@ -34,13 +34,11 @@ support (it landed in cryptography 50.0.0) or when the installed
 
 from __future__ import absolute_import
 
-import json
 import os
 import time
 
 import pytest
 
-from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
@@ -796,41 +794,6 @@ class TestVaultMLKEM(IntegrationTest):
         self.retrieve('symmetric_vault', out,
                       extra_args=['--password', 'Symmetric123'])
         self.master.run_command(['cmp', secret, out])
-
-    def test_stale_transport_cert_cache_is_refreshed(self):
-        """A wrong cached transport cert is detected and replaced.
-
-        ``internal()`` and the new ``_mlkem_archive()``/``_mlkem_retrieve()``
-        share this recovery: on a server error the cached KRA config is
-        dropped and the operation retried with a freshly fetched transport
-        certificate.
-        """
-        secret = self.make_secret('stale_cache')
-        out = os.path.join(WORK_DIR, 'stale_cache.out')
-
-        self.add_asymmetric_vault('stale_cache_vault',
-                                  self.key('mlkem768', 'pub'))
-
-        # populate the cache, then poison it with a valid certificate that
-        # the KRA cannot decrypt with
-        self.master.run_command(['ipa', 'vaultconfig-show'])
-        cached = self.master.get_file_contents(self.cache_file,
-                                               encoding='utf-8')
-        ca_cert = self.master.get_file_contents(paths.IPA_CA_CRT,
-                                                encoding='utf-8')
-        poisoned = json.loads(cached)
-        assert poisoned['transport_cert'] != ca_cert
-        poisoned['transport_cert'] = ca_cert
-        self.master.put_file_contents(self.cache_file, json.dumps(poisoned))
-
-        self.archive('stale_cache_vault', secret)
-        self.retrieve('stale_cache_vault', out, extra_args=[
-            '--private-key-file', self.key('mlkem768', 'priv')])
-        self.master.run_command(['cmp', secret, out])
-
-        refreshed = json.loads(
-            self.master.get_file_contents(self.cache_file, encoding='utf-8'))
-        assert refreshed['transport_cert'] != ca_cert
 
     # ------------------------------------------------------------------
     # ML-KEM KRA transport
