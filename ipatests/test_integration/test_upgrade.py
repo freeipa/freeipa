@@ -18,22 +18,25 @@ import pytest
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
-from ipapython.ipautil import template_str
-from ipaserver.install import bindinstance
 from ipaserver.install.sysupgrade import STATEFILE_FILE
 from ipalib.constants import DEFAULT_CONFIG
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
+
+bind_template_script = textwrap.dedent('''\n
+from ipapython.ipautil import template_str
+from ipaserver.install import bindinstance
+
 # old template without comments for testing
-# and "dnssec-validation no"
+# and "dnssec-validation no
 OLD_NAMED_TEMPLATE = """
-options {
-        listen-on-v6 {any;};
+options {{
+        listen-on-v6 {{any;}};
         directory "$NAMED_VAR_DIR"; // the default
-        dump-file               "${NAMED_DATA_DIR}cache_dump.db";
-        statistics-file         "${NAMED_DATA_DIR}named_stats.txt";
-        memstatistics-file      "${NAMED_DATA_DIR}named_mem_stats.txt";
+        dump-file               "${{NAMED_DATA_DIR}}cache_dump.db";
+        statistics-file         "${{NAMED_DATA_DIR}}named_stats.txt";
+        memstatistics-file      "${{NAMED_DATA_DIR}}named_mem_stats.txt";
         tkey-gssapi-keytab "$NAMED_KEYTAB";
         pid-file "$NAMED_PID";
         dnssec-enable yes;
@@ -41,15 +44,15 @@ options {
         bindkeys-file "$BINDKEYS_FILE";
         managed-keys-directory "$MANAGED_KEYS_DIR";
         $INCLUDE_CRYPTO_POLICY
-};
+}};
 
-logging {
-        channel default_debug {
-                file "${NAMED_DATA_DIR}named.run";
+logging {{
+        channel default_debug {{
+                file "${{NAMED_DATA_DIR}}named.run";
                 severity dynamic;
                 print-time yes;
-        };
-};
+        }};
+}};
 
 include "$RFC1912_ZONES";
 include "$ROOT_KEY";
@@ -57,29 +60,40 @@ include "$ROOT_KEY";
 /* WARNING: This part of the config file is IPA-managed.
  * Modifications may break IPA setup or upgrades.
  */
-dyndb "ipa" "$BIND_LDAP_SO" {
+dyndb "ipa" "$BIND_LDAP_SO" {{
         uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
         base "cn=dns,$SUFFIX";
         server_id "$FQDN";
         auth_method "sasl";
         sasl_mech "GSSAPI";
         sasl_user "DNS/$FQDN";
-};
+}};
 /* End of IPA-managed part. */
 """
 
+bind = bindinstance.BindInstance()
+bind.setup_templating(
+    fqdn="{hostname}",
+    realm_name="{realm}",
+    domain_name="{domain}",
+)
+sub_dict = bind.sub_dict.copy()
+sub_dict.update(BINDKEYS_FILE="/etc/named.iscdlv.key")
+
+print(template_str(OLD_NAMED_TEMPLATE, sub_dict))
+''')
+
 
 def named_test_template(host):
-    # create bind instance to get a substitution dict
-    bind = bindinstance.BindInstance()
-    bind.setup_templating(
-        fqdn=host.hostname,
-        realm_name=host.domain.realm,
-        domain_name=host.domain.name,
-    )
-    sub_dict = bind.sub_dict.copy()
-    sub_dict.update(BINDKEYS_FILE="/etc/named.iscdlv.key")
-    return template_str(OLD_NAMED_TEMPLATE, sub_dict)
+
+    script = bind_template_script.format(hostname=host.hostname,
+                                         realm=host.domain.realm,
+                                         domain=host.domain.name)
+
+    cmd = host.run_command([
+        'python3', '-c', script
+    ])
+    return cmd.stdout_text
 
 
 def clear_sysupgrade(host, *sections):
