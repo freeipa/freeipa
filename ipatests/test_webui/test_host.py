@@ -36,6 +36,7 @@ import ipatests.test_webui.data_host as host
 import pytest
 
 try:
+    from selenium.common.exceptions import StaleElementReferenceException
     from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.action_chains import ActionChains
@@ -685,6 +686,109 @@ class test_host(host_tasks):
         # cleanup
         self.delete(ENTITY, [self.data2])
 
+    def close_error_dialog(self):
+        """Close an error dialog and the certificate dialog under it.
+
+        Cancel hides the error dialog and may show the certificate
+        dialog again. The modal backdrop stays until that animation
+        ends, and it still receives clicks.
+        """
+        self.dialog_button_click('cancel', self.get_last_error_dialog())
+        for _i in range(30):
+            if self._error_dialog_visible():
+                self.wait(0.2)
+                continue
+            if self._cancel_visible_dialog():
+                self.wait(0.2)
+                continue
+            if (not self._modal_backdrop_present()
+                    and not self._dialog_nodes()):
+                return
+            self.wait(0.2)
+        self._click_hidden_cancel()
+        self._remove_leftover_modals()
+
+    def _error_dialog_visible(self):
+        try:
+            dialog = self.get_last_error_dialog()
+            return bool(dialog is not None and dialog.is_displayed())
+        except StaleElementReferenceException:
+            return True
+
+    def _dialog_nodes(self):
+        try:
+            return bool(self.get_dialogs())
+        except StaleElementReferenceException:
+            return True
+
+    def _modal_backdrop_present(self):
+        backdrops = self.find(
+            '.modal-backdrop', By.CSS_SELECTOR, many=True)
+        return bool(backdrops)
+
+    def _cancel_visible_dialog(self):
+        """Cancel a displayed dialog other than the error dialog."""
+        try:
+            dialogs = self.get_dialogs() or []
+        except StaleElementReferenceException:
+            return False
+        for dialog in reversed(dialogs):
+            try:
+                if dialog.get_attribute('data-name') == 'error_dialog':
+                    continue
+                if not dialog.is_displayed():
+                    continue
+                buttons = dialog.find_elements(
+                    By.CSS_SELECTOR,
+                    ".rcue-dialog-buttons button[name='cancel']")
+                shown = [
+                    button for button in buttons if button.is_displayed()]
+            except StaleElementReferenceException:
+                continue
+            if not shown:
+                continue
+            self.dialog_button_click('cancel', dialog)
+            return True
+        return False
+
+    def _click_hidden_cancel(self):
+        try:
+            dialogs = self.get_dialogs() or []
+        except StaleElementReferenceException:
+            return
+        for dialog in reversed(dialogs):
+            try:
+                if dialog.get_attribute('data-name') == 'error_dialog':
+                    continue
+                buttons = dialog.find_elements(
+                    By.CSS_SELECTOR,
+                    ".rcue-dialog-buttons button[name='cancel']")
+                if not buttons:
+                    continue
+                self.driver.execute_script(
+                    'arguments[0].click();', buttons[0])
+                return
+            except StaleElementReferenceException:
+                continue
+
+    def _remove_leftover_modals(self):
+        """Drop a backdrop whose fade-out never finished."""
+        self.wait(0.5)
+        if (not self._modal_backdrop_present()
+                and not self._dialog_nodes()):
+            return
+        script = (
+            "var nodes = document.querySelectorAll("
+            "'.modal-backdrop, .modal');"
+            "for (var i = 0; i < nodes.length; i++) {"
+            "  if (nodes[i].parentNode) {"
+            "    nodes[i].parentNode.removeChild(nodes[i]);"
+            "  }"
+            "}"
+            "document.body.classList.remove('modal-open');"
+        )
+        self.driver.execute_script(script)
+
     @screenshot
     def test_negative_cert(self):
         """ Test negative CSR """
@@ -712,8 +816,7 @@ class test_host(host_tasks):
         dialog_info = self.get_dialog_info()
         self.wait()
         if host.csr_invalid_error in dialog_info['text']:
-            self.dialog_button_click('cancel')
-            self.dialog_button_click('cancel')
+            self.close_error_dialog()
 
         # other hostname CSR
         self.action_list_action('request_cert', confirm=False)
@@ -722,8 +825,7 @@ class test_host(host_tasks):
         self.dialog_button_click('issue')
         dialog_info = self.get_dialog_info()
         if host.csr_other_host_error in dialog_info['text']:
-            self.dialog_button_click('cancel')
-            self.dialog_button_click('cancel')
+            self.close_error_dialog()
 
         # cleanup
         self.delete(ENTITY, [self.data2])
