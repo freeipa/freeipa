@@ -1,5 +1,5 @@
 #
-# VERSION 41 - DO NOT REMOVE THIS LINE
+# VERSION 42 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -221,7 +221,9 @@ Alias /ipa/ui "/usr/share/ipa/ui"
   Require all granted
   ExpiresActive On
   ExpiresDefault "access plus 1 year"
-  <FilesMatch "(index.html|loader.js|login.html|reset_password.html)">
+  # HTML entry points and the unhashed loader must revalidate so upgrades
+  # are picked up. sync_otp.html is a standalone entry like reset_password.
+  <FilesMatch "(index.html|loader.js|reset_password.html|sync_otp.html)">
         ExpiresDefault "access plus 0 seconds"
   </FilesMatch>
 </Directory>
@@ -233,11 +235,20 @@ Alias /ipa/modern-ui "/usr/share/ipa/modern-ui"
   AllowOverride None
   Satisfy Any
   Require all granted
+  # Unhashed root files (index.html, favicon.ico)
+  ExpiresActive On
+  ExpiresDefault "access plus 0 seconds"
   RewriteEngine On
   RewriteRule ^(.*)/assets/(.*)$$ assets/$$2 [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.html [QSA,L]
   Header set Content-Security-Policy "upgrade-insecure-requests; frame-ancestors 'none'; default-src 'none'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; style-src 'self'; script-src 'self'"
+</Directory>
+
+# Vite content-hashes files under assets/; cache those aggressively.
+<Directory "/usr/share/ipa/modern-ui/assets">
+  ExpiresActive On
+  ExpiresDefault "access plus 1 year"
 </Directory>
 
 #  Simple wsgi scripts required by ui
