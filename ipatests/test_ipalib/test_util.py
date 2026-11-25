@@ -126,9 +126,12 @@ def test_validate_principal_chars_invalid(principal_str):
 @pytest.mark.parametrize('givenname,sn,expected', [
     ('John', 'Doe', 'JDoe'),
     ('Johan', 'Van der Meer', 'JVanderMeer'),
-    ('Anselmo', 'Luján Espósito', 'ALujánEspósito'),
+    ('Anselmo', 'Luján Espósito', 'ALujanEsposito'),
     ('Mary', 'Ann\tSmith', 'MAnnSmith'),
     (' Johan ', ' Van der Meer ', 'JVanderMeer'),
+    ('John', "O'Brien", 'JOBrien'),
+    ('John', '', 'J'),
+    ('John', '\t\n', 'J'),
 ])
 def test_default_user_login(givenname, sn, expected):
     assert default_user_login(givenname, sn) == expected
@@ -143,6 +146,7 @@ def test_default_user_login(givenname, sn, expected):
     ('\tJohan', 'Doe', 'JD'),
     ('John', '\tDoe', 'JD'),
     ('Mary Ann', 'Smith', 'MS'),
+    ('John', "O'Brien", 'JO'),
 ])
 def test_default_user_initials(givenname, sn, expected):
     assert default_user_initials(givenname, sn) == expected
@@ -161,9 +165,7 @@ def test_default_user_initials_empty_after_strip(givenname, sn):
 
 @pytest.mark.parametrize('givenname,sn', [
     ('', 'Doe'),
-    ('John', ''),
     ('   ', 'Doe'),
-    ('John', '\t\n'),
 ])
 def test_default_user_login_empty_after_strip(givenname, sn):
     with pytest.raises(IndexError):

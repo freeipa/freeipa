@@ -37,6 +37,7 @@ import sys
 import ssl
 import shutil
 import subprocess
+import unicodedata
 
 import netaddr
 from dns import rdatatype
@@ -124,21 +125,42 @@ def has_soa_or_ns_record(domain):
 
 
 def _strip_name_whitespace(name):
-    """Remove all whitespace from a name used to derive user defaults."""
-    return "".join(name.split())
+    """Remove whitespace and normalize to ASCII for user defaults.
+
+    This matches the WebUI sanitization logic:
+    1. Unicode normalization (NFKD) to decompose accented characters
+    2. ASCII encoding with 'ignore' to drop diacritics
+    3. Strip characters outside [A-Za-z0-9._-]
+
+    Examples:
+        "Van der Meer" → "VanderMeer"
+        "Luján Espósito" → "LujanEsposito"
+        "O'Brien" → "OBrien"
+    """
+    # Remove whitespace
+    name = "".join(name.split())
+
+    # Normalize unicode (NFKD = decompose accents from base chars)
+    name = unicodedata.normalize('NFKD', name)
+
+    # Encode to ASCII, dropping non-ASCII characters (like combining diacritics)
+    name = name.encode('ascii', 'ignore').decode('ascii')
+
+    # Strip anything not in [A-Za-z0-9._-]
+    name = re.sub(r'[^A-Za-z0-9._-]', '', name)
+
+    return name
 
 
 def default_user_login(givenname, sn):
     """Generate a default user login from first and last name.
 
     The default login is the first letter of *givenname* followed by
-    *sn*. All whitespace is removed so names such as ``Van der Meer``
-    produce a valid login (``jvandermeer`` after normalization).
+    *sn*. All whitespace is removed and non-ASCII characters are
+    normalized to ASCII (e.g., "Luján" → "Lujan", "O'Brien" → "OBrien")
+    to comply with PATTERN_GROUPUSER_NAME (ASCII-only).
 
-    Non-ASCII letters (including accents) are preserved here. User login
-    validation still uses PATTERN_GROUPUSER_NAME, which allows only
-    ASCII letters, so names like ``Luján Espósito`` cannot use an
-    auto-generated uid until that pattern is extended.
+    This matches the WebUI sanitization behavior.
     """
     givenname = _strip_name_whitespace(givenname)
     sn = _strip_name_whitespace(sn)
