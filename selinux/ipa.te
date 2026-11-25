@@ -464,6 +464,19 @@ optional_policy(`
 	bind_search_cache(ipa_dnskey_t)
 ')
 
+# Newer selinux-policy (RHEL-191263) labels /var/named(/.*)? as
+# named_cache_t instead of named_zone_t, including the bind-dyndb-ldap
+# working directory /var/named/dyndb-ldap/ipa. ipa-dnskeysyncd and the
+# dnssec-keyfromlabel it runs create, rename and remove the per-zone
+# key directories there.
+optional_policy(`
+    gen_require(`
+        type named_cache_t;
+    ')
+    bind_manage_cache(ipa_dnskey_t)
+    manage_dirs_pattern(ipa_dnskey_t, named_cache_t, named_cache_t)
+')
+
 optional_policy(`
 	dirsrv_stream_connect(ipa_dnskey_t)
 ')
@@ -536,6 +549,15 @@ optional_policy(`
 
 optional_policy(`
     ldap_stream_connect(ipa_ods_exporter_t)
+')
+
+# sd_listen_fds() in systemd >= 259 verifies $LISTEN_PIDFDID, which
+# stats the pidfs filesystem
+optional_policy(`
+    gen_require(`
+        type pidfs_t;
+    ')
+    allow ipa_ods_exporter_t pidfs_t:filesystem getattr;
 ')
 
 ########################################
