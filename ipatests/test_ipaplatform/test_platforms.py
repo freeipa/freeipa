@@ -22,6 +22,21 @@ PLATFORMS = [
 ]
 
 
+@pytest.mark.parametrize("name, policy", [
+    ("base", None),
+    ("redhat", "/etc/krb5.conf.d/crypto-policies"),
+    ("fedora", "/etc/krb5.conf.d/crypto-policies"),
+    ("nixos", None),
+])
+def test_kerberos_crypto_policy_path(name, policy):
+    module = import_module(f"ipaplatform.{name}.paths")
+    # The base namespace has no paths instance.
+    namespace = (
+        module.BasePathNamespace if name == "base" else module.paths
+    )
+    assert namespace.CRYPTO_POLICY_KRB5_FILE == policy
+
+
 @pytest.mark.parametrize("name", PLATFORMS)
 def test_import_platform(name):
     constants = import_module(f"ipaplatform.{name}.constants")

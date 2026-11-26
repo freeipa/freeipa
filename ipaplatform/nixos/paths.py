@@ -11,6 +11,7 @@ from ipaplatform.fedora.paths import FedoraPathNamespace
 
 
 class NixOSPathNamespace(FedoraPathNamespace):
+    CRYPTO_POLICY_KRB5_FILE = None
     SBIN_IPA_JOIN = "@out@/bin/ipa-join"
     IPA_GETCERT = "@out@/bin/ipa-getcert"
     IPA_RMKEYTAB = "@out@/bin/ipa-rmkeytab"
@@ -18,6 +19,7 @@ class NixOSPathNamespace(FedoraPathNamespace):
     NSUPDATE = "@bind@/bin/nsupdate"
     BIN_CURL = "@curl@/bin/curl"
     KINIT = "@kerberos@/bin/kinit"
+    KLIST = "@kerberos@/bin/klist"
     KDESTROY = "@kerberos@/bin/kdestroy"
 
 
