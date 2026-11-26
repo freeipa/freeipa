@@ -37,6 +37,7 @@ import sys
 import ssl
 import shutil
 import subprocess
+import unicodedata
 
 import netaddr
 from dns import rdatatype
@@ -121,6 +122,62 @@ def has_soa_or_ns_record(domain):
         ns_record_found = False
 
     return soa_record_found or ns_record_found
+
+
+def _strip_name_whitespace(name):
+    """Remove whitespace and normalize to ASCII for user defaults.
+
+    This matches the WebUI sanitization logic:
+    1. Unicode normalization (NFKD) to decompose accented characters
+    2. ASCII encoding with 'ignore' to drop diacritics
+    3. Strip characters outside [A-Za-z0-9._-]
+
+    Examples:
+        "Van der Meer" → "VanderMeer"
+        "Luján Espósito" → "LujanEsposito"
+        "O'Brien" → "OBrien"
+    """
+    # Remove whitespace
+    name = "".join(name.split())
+
+    # Normalize unicode (NFKD = decompose accents from base chars)
+    name = unicodedata.normalize('NFKD', name)
+
+    # Encode to ASCII, dropping non-ASCII characters (like combining diacritics)
+    name = name.encode('ascii', 'ignore').decode('ascii')
+
+    # Strip anything not in [A-Za-z0-9._-]
+    name = re.sub(r'[^A-Za-z0-9._-]', '', name)
+
+    return name
+
+
+def default_user_login(givenname, sn):
+    """Generate a default user login from first and last name.
+
+    The default login is the first letter of *givenname* followed by
+    *sn*. All whitespace is removed and non-ASCII characters are
+    normalized to ASCII (e.g., "Luján" → "Lujan", "O'Brien" → "OBrien")
+    to comply with PATTERN_GROUPUSER_NAME (ASCII-only).
+
+    This matches the WebUI sanitization behavior.
+    """
+    givenname = _strip_name_whitespace(givenname)
+    sn = _strip_name_whitespace(sn)
+    return givenname[0] + sn
+
+
+def default_user_initials(givenname, sn):
+    """Generate default initials from first and last name.
+
+    Whitespace is stripped the same way as in :func:`default_user_login`
+    so a leading space is not used as an initial. An empty name after
+    stripping raises IndexError, matching the previous lambda so
+    DefaultFrom can return None.
+    """
+    givenname = _strip_name_whitespace(givenname)
+    sn = _strip_name_whitespace(sn)
+    return '%c%c' % (givenname[0], sn[0])
 
 
 def normalize_name(name):
