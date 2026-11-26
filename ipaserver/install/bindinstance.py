@@ -897,15 +897,23 @@ class BindInstance(service.Service):
         else:
             crypto_policy = "// not available"
 
-        try:
-            # Example expected output from `named -v`:
-            # BIND 9.18.50 (Extended Support Version) <id:>
-            result = ipautil.run([paths.NAMED, "-v"], capture_output=True)
-            named_version = tasks.parse_ipa_version(
-                result.output.split()[1]
-            )
-        except Exception:
-            raise RuntimeError("Couldn't parse BIND version")
+        named_version = None
+        if os.path.exists(paths.NAMED):
+            try:
+                # Example expected output from `named -v`:
+                # BIND 9.18.50 (Extended Support Version) <id:>
+                result = ipautil.run([paths.NAMED, "-v"], capture_output=True)
+                named_version = tasks.parse_ipa_version(
+                    result.output.split()[1]
+                )
+            except Exception:
+                raise RuntimeError("Couldn't parse BIND version")
+        else:
+            # BIND is not installed on servers without the DNS role.
+            # ipa-server-upgrade still sets up templating for them, but the
+            # named configuration that depends on the version is not
+            # written there.
+            logger.debug("%s not found, BIND version unknown", paths.NAMED)
 
         if named_version and named_version >= tasks.parse_ipa_version("9.20"):
             delegation_only_category = ""
