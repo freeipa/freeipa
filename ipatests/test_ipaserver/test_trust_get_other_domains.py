@@ -10,6 +10,30 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.plugins.trust import trust as trust_object
 from ipaserver.plugins.trust import trust_mod as trust_mod_class
+from samba.dcerpc import drsblobs, lsa, security
+from samba.ndr import ndr_pack, ndr_unpack
+
+
+def forest_blob():
+    info = drsblobs.ForestTrustInfo()
+    info.version = 1
+    record = drsblobs.ForestTrustInfoRecord()
+    record.type = lsa.LSA_FOREST_TRUST_DOMAIN_INFO
+    record.flags = 2
+    record.timestamp = 123
+    record.data.sid = security.dom_sid('S-1-5-21-1-2-3')
+    record.data.dns_name.string = 'child.a.test'
+    record.data.netbios_name.string = 'CHILD'
+    armor = drsblobs.ForestTrustInfoRecordArmor()
+    armor.record = record
+    info.records = [armor]
+    info.count = 1
+    return ndr_pack(info)
+
+
+def records(blob):
+    return [armor.record for armor in
+            ndr_unpack(drsblobs.ForestTrustInfo, blob).records]
 
 
 class FakeEntry(dict):
@@ -174,3 +198,102 @@ class TestTrustModCollisionValidation:
 
         assert result_dn is dn
         assert 'ipanttrustforesttrustinfo' in e_attrs
+
+    @pytest.mark.parametrize('attribute,kind', [
+        ('ipantadditionalsuffixes', lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME),
+        ('ipanttrusttlnexclusions',
+         lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX),
+    ])
+    def test_removing_last_value_updates_blob(self, attribute, kind):
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        suffixes = (['old.test'] if
+                    kind == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME else [])
+        exclusions = (['old.test'] if
+                      kind == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX else [])
+        current = {attribute: ['old.test'], 'ipanttrustforesttrustinfo': [
+            ipaserver.dcerpc.build_forest_trust_info_blob(
+                'a.test', suffixes, exclusions)]}
+        cmd, ldap = self._make_trust_mod([], current)
+        attrs = {attribute: None}
+        cmd.pre_callback(ldap, dn, attrs, [])
+        remaining = records(attrs['ipanttrustforesttrustinfo'][0])
+        assert not any(r.type == kind and r.data.string == 'old.test'
+                       for r in remaining)
+
+    def test_namespace_update_requires_samba(self, monkeypatch):
+        monkeypatch.setattr(trust_plugin_module, '_bindings_installed', False)
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        cmd, ldap = self._make_trust_mod([], {})
+        with pytest.raises(errors.NotFound):
+            cmd.pre_callback(
+                ldap, dn, {'ipanttrusttlnexclusions': ['excluded.test']}, [])
+
+    @pytest.mark.parametrize('options', [
+        {'ipantadditionalsuffixes': ['a.test'],
+         'add_upn_suffix': ('b.test',)},
+        {'ipanttrusttlnexclusions': [], 'del_tln_exclusion': ('a.test',)},
+    ])
+    def test_replace_and_incremental_options_conflict(self, options):
+        cmd, _ldap = self._make_trust_mod([], {})
+        with pytest.raises(errors.MutuallyExclusiveError):
+            cmd.execute('a.test', **options)
+
+    def test_mod_preserves_domain_records_and_updates_exclusions(self):
+        dn = DN('cn=a.test,cn=ad,cn=trusts,dc=ipa,dc=test')
+        existing = ipaserver.dcerpc.build_forest_trust_info_blob(
+            'a.test', ['old.test'], ['old-excluded.test'])
+        info = ndr_unpack(drsblobs.ForestTrustInfo, existing)
+        original_records = list(info.records) + list(
+            ndr_unpack(drsblobs.ForestTrustInfo, forest_blob()).records)
+        info.count = len(original_records)
+        info.records = original_records
+        current = {
+            'ipantadditionalsuffixes': ['old.test'],
+            'ipanttrusttlnexclusions': ['old-excluded.test'],
+            'ipanttrustforesttrustinfo': [ndr_pack(info)],
+        }
+        cmd, ldap = self._make_trust_mod([], current)
+        attrs = {'ipantadditionalsuffixes': ['new.test'],
+                 'ipanttrusttlnexclusions': ['new-excluded.test']}
+        cmd.pre_callback(ldap, dn, attrs, [])
+        result = records(attrs['ipanttrustforesttrustinfo'][0])
+        assert [(r.type, r.data.string) for r in result
+                if r.type != lsa.LSA_FOREST_TRUST_DOMAIN_INFO] == [
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'a.test'),
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME, 'new.test'),
+            (lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX, 'new-excluded.test'),
+        ]
+        domain = next(r for r in result
+                      if r.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO)
+        assert (domain.flags, domain.timestamp, str(domain.data.sid),
+                domain.data.dns_name.string, domain.data.netbios_name.string
+                ) == (2, 123, 'S-1-5-21-1-2-3', 'child.a.test', 'CHILD')
+
+
+def test_refresh_preserves_local_exclusions_and_remote_records(monkeypatch):
+    monkeypatch.setattr(trust_plugin_module, 'ipaserver', ipaserver,
+                        raising=False)
+    api = mock.MagicMock()
+    api.Command.idrange_show.return_value = {
+        'result': {'iparangetype': ['ipa-ad-trust-posix']}}
+    entry = {
+        'ipantadditionalsuffixes': ['local.test'],
+        'ipanttrusttlnexclusions': ['excluded.test'],
+    }
+    api.Backend.ldap2.get_entry.return_value = entry
+    domains = {
+        'suffixes': {}, 'domains': {}, 'ftinfo_data': forest_blob(),
+        'exclusions': ['EXCLUDED.test', 'remote.test'],
+    }
+    trust_plugin_module.add_new_domains_from_trust(
+        api, None, {'cn': ['a.test'], 'ipanttrustattributes': ['1']},
+        domains)
+    result = records(entry['ipanttrustforesttrustinfo'][0])
+    assert any(r.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO
+               and r.data.netbios_name.string == 'CHILD' for r in result)
+    assert any(r.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+               and r.data.string == 'excluded.test' for r in result)
+    assert entry['ipanttrusttlnexclusions'] == [
+        'excluded.test', 'remote.test']
+    assert any(r.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+               and r.data.string == 'remote.test' for r in result)

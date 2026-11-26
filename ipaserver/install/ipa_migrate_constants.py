@@ -115,6 +115,7 @@ AD_TRUST_ATTRS = [  # ipaNTTrustedDomain objectclass
     'ipantsidblacklistincoming',
     'ipantsidblacklistoutgoing',
     'ipantadditionalsuffixes',
+    'ipanttrusttlnexclusions',
 ]
 
 # Do not log the values of these attributes
