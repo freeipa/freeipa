@@ -44,3 +44,22 @@ def test_get_base_dn_reports_search_failure(exc):
 
     msg = migrate.handle_error.call_args[0][0]
     assert msg.startswith("Failed to search Root DSE on remote server: ")
+
+
+@pytest.mark.parametrize("schema, stops", [(None, True), (object(), False)])
+def test_connect_to_local_ds_requires_schema(schema, stops):
+    migrate = IPAMigrate.__new__(IPAMigrate)
+    migrate.ldapiuri = "ldapi://%2Frun%2Fslapd-EXAMPLE-TEST.socket"
+    migrate.handle_error = mock.Mock(side_effect=Stop)
+
+    with mock.patch("ipaserver.install.ipa_migrate.LDAPClient") as client:
+        client.return_value.schema = schema
+        if stops:
+            with pytest.raises(Stop):
+                migrate.connect_to_local_ds()
+            migrate.handle_error.assert_called_once_with(
+                "Failed to read the local server schema"
+            )
+        else:
+            migrate.connect_to_local_ds()
+            migrate.handle_error.assert_not_called()

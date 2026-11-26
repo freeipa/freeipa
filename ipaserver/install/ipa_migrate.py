@@ -862,9 +862,8 @@ class IPAMigrate():
         try:
             ds_conn = LDAPClient(self.ldapiuri, force_schema_updates=True)
             ds_conn.external_bind()
-            # Fetch and cache the schema now. Assigned to a named
-            # variable so pylint doesn't flag a pointless statement.
-            _schema = ds_conn.schema
+            if ds_conn.schema is None:
+                self.handle_error("Failed to read the local server schema")
         except errors.NetworkError:
             self.handle_error(
                 "Local server is not running, or is unreachable.")
