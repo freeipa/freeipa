@@ -47,6 +47,8 @@
 
 #include "util.h"
 
+int ipa_range_check_init(Slapi_PBlock *pb);
+
 #define IPA_CN "cn"
 #define IPA_BASE_ID "ipaBaseID"
 #define IPA_ID_RANGE_SIZE "ipaIDRangeSize"

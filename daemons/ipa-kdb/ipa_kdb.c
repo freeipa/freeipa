@@ -712,7 +712,6 @@ static krb5_error_code ipadb_fini_module(krb5_context kcontext)
 
     ipactx = ipadb_get_context(kcontext);
     ipadb_context_free(kcontext, &ipactx);
-    talloc_free(talloc_autofree_context());
 
     return 0;
 }

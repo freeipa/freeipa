@@ -56,6 +56,8 @@
 
 #include <plstr.h>
 
+int ipa_otp_counter_init(Slapi_PBlock *pb);
+
 #define COUNTER_UNSET LLONG_MIN
 
 static void *plugin_id;

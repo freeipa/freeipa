@@ -42,6 +42,8 @@
 #include "../libotp/otp_config.h"
 #include "ipa_asn1.h"
 
+int ipapwd_init(Slapi_PBlock *pb);
+
 /*
  * Password Modify - LDAP Extended Operation.
  * RFC 3062
@@ -1863,26 +1865,6 @@ free_and_return:
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
-}
-
-/* Copied from ipamo_string2filter()
- *
- * ipapwd_string2filter()
- *
- * For some reason slapi_str2filter writes to its input
- * which means you cannot pass in a string constant
- * so this is a fix up function for that
- */
-Slapi_Filter *ipapwd_string2filter(char *strfilter)
-{
-	Slapi_Filter *ret = NULL;
-	char *idontbelieveit = slapi_ch_strdup(strfilter);
-
-	ret = slapi_str2filter(idontbelieveit);
-
-	slapi_ch_free_string(&idontbelieveit);
-
-	return ret;
 }
 
 /* Init data structs */

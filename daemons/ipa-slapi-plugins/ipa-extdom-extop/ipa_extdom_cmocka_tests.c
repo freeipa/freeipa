@@ -89,7 +89,7 @@ struct nss_ops_ctx {
                                       int *errnop);
 };
 
-int cmocka_extdom_init_context(struct nss_ops_ctx **nss_context)
+static int cmocka_extdom_init_context(struct nss_ops_ctx **nss_context)
 {
     struct nss_ops_ctx *ctx = NULL;
 
@@ -142,7 +142,7 @@ fail:
     return -1;
 }
 
-void test_getpwnam_r_wrapper(void **state)
+static void test_getpwnam_r_wrapper(void **state)
 {
     int ret;
     struct passwd pwd;
@@ -202,7 +202,7 @@ void test_getpwnam_r_wrapper(void **state)
     free(buf);
 }
 
-void test_getpwuid_r_wrapper(void **state)
+static void test_getpwuid_r_wrapper(void **state)
 {
     int ret;
     struct passwd pwd;
@@ -257,7 +257,7 @@ void test_getpwuid_r_wrapper(void **state)
     free(buf);
 }
 
-void test_getgrnam_r_wrapper(void **state)
+static void test_getgrnam_r_wrapper(void **state)
 {
     int ret;
     struct group grp;
@@ -310,7 +310,7 @@ void test_getgrnam_r_wrapper(void **state)
     free(buf);
 }
 
-void test_getgrgid_r_wrapper(void **state)
+static void test_getgrgid_r_wrapper(void **state)
 {
     int ret;
     struct group grp;
@@ -362,7 +362,7 @@ void test_getgrgid_r_wrapper(void **state)
     free(buf);
 }
 
-void test_get_user_grouplist(void **state)
+static void test_get_user_grouplist(void **state)
 {
     int ret;
     size_t ngroups;
@@ -416,13 +416,13 @@ static int  extdom_req_setup(void **state)
 {
     struct test_data *test_data;
 
-    test_data = calloc(sizeof(struct test_data), 1);
+    test_data = calloc(1, sizeof(struct test_data));
     assert_non_null(test_data);
 
-    test_data->req = calloc(sizeof(struct extdom_req), 1);
+    test_data->req = calloc(1, sizeof(struct extdom_req));
     assert_non_null(test_data->req);
 
-    test_data->ctx = calloc(sizeof(struct ipa_extdom_ctx), 1);
+    test_data->ctx = calloc(1, sizeof(struct ipa_extdom_ctx));
     assert_non_null(test_data->ctx);
 
     test_data->ctx->max_nss_buf_size = MAX_BUF;
@@ -455,7 +455,7 @@ static int  extdom_req_teardown(void **state)
     return 0;
 }
 
-void test_set_err_msg(void **state)
+static void test_set_err_msg(void **state)
 {
     struct extdom_req *req;
     struct test_data *test_data;
@@ -490,7 +490,7 @@ enum nss_status getgrgid_r_timeout(gid_t gid, struct group *result,
     return NSS_STATUS_UNAVAIL;
 }
 
-void test_pack_ber_user_timeout(void **state)
+static void test_pack_ber_user_timeout(void **state)
 {
     int ret;
     struct berval *resp_val = NULL;
@@ -524,7 +524,7 @@ char res_gid[] = {0x30, 0x1e, 0x0a, 0x01, 0x04, 0x30, 0x19, 0x04, 0x06, 0x44, \
                   0x74, 0x5f, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x02, 0x03, 0x00, \
                   0xd4, 0x31};
 
-void test_encode(void **state)
+static void test_encode(void **state)
 {
     int ret;
     struct berval *resp_val;
@@ -577,7 +577,7 @@ char req_gid[] = {0x30, 0x15, 0x0a, 0x01, 0x04, 0x0a, 0x01, 0x01, 0x30, 0x0d, \
                   0x04, 0x06, 0x44, 0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x02, 0x03, \
                   0x00, 0xd4, 0x31};
 
-void test_decode(void **state)
+static void test_decode(void **state)
 {
     struct berval req_val;
     struct extdom_req *req;
