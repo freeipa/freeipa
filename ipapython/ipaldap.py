@@ -1586,8 +1586,35 @@ class LDAPClient:
                                once (default False)
         :type paged_critical: bool
         """
-        # The paging logic below mirrors find_entries(), which is not built
-        # on iter_entries() yet: keep the two in sync.
+        found, truncated = yield from self._search_entries(
+            base_dn, scope, filter, attrs_list, get_effective_rights,
+            time_limit, size_limit, paged_search, page_size, paged_critical)
+
+        try:
+            self.handle_truncated_result(truncated)
+        except errors.LimitsExceeded as e:
+            logger.error(
+                "%s while getting entries (base DN: %s, filter: %s)",
+                e, base_dn, filter
+            )
+            raise
+
+        if not found:
+            raise errors.EmptyResult(reason='no matching entry found')
+
+    def _search_entries(self, base_dn, scope, filter, attrs_list,
+                        get_effective_rights, time_limit, size_limit,
+                        paged_search, page_size, paged_critical):
+        """Yield matching entries; return (found, truncated).
+
+        The generator behind iter_entries() and find_entries(). It does
+        not raise when a server limit stops the search, it returns the
+        TRUNCATED_* marker for the caller to report: logging it here would
+        write an error for every truncated find_entries() search.
+
+        None for time_limit, size_limit or page_size is iter_entries()'s
+        defaulting.
+        """
         assert isinstance(base_dn, DN)
         filterstr = filter or '(objectClass=*)'
 
@@ -1607,7 +1634,8 @@ class LDAPClient:
             if page_size == 0:
                 paged_search = False
         else:
-            assert page_size > 0
+            # find_entries() passes 0 with paged_search False
+            assert page_size > 0 or not paged_search
 
         base_sctrls = []
         if get_effective_rights:
@@ -1666,17 +1694,7 @@ class LDAPClient:
                 self._cancel_paged_search(search, cookie)
             raise
 
-        try:
-            self.handle_truncated_result(truncated)
-        except errors.LimitsExceeded as e:
-            logger.error(
-                "%s while getting entries (base DN: %s, filter: %s)",
-                e, base_dn, filter
-            )
-            raise
-
-        if not found:
-            raise errors.EmptyResult(reason='no matching entry found')
+        return found, truncated
 
     def _search_page(self, search, sctrls):
         """Send a search request and read all of its results.
@@ -1763,80 +1781,20 @@ class LDAPClient:
         if attrs_list:
             attrs_list = [a.lower() for a in set(attrs_list)]
 
-        base_sctrls = []
-        if get_effective_rights:
-            base_sctrls.append(self.__get_effective_rights_control())
-
-        cookie = ''
         page_size = (size_limit if size_limit > 0 else 2000) - 1
         if page_size == 0:
             paged_search = False
 
-        # pass arguments to python-ldap
-        with self.error_handler():
-            while True:
-                if paged_search:
-                    sctrls = base_sctrls + [
-                        SimplePagedResultsControl(0, page_size, cookie)
-                    ]
-                else:
-                    sctrls = base_sctrls or None
-
-                try:
-                    id = self.conn.search_ext(
-                        str(base_dn), scope, filter, attrs_list,
-                        serverctrls=sctrls, timeout=time_limit,
-                        sizelimit=size_limit
-                    )
-                    while True:
-                        result = self.conn.result3(id, 0)
-                        objtype, res_list, _res_id, res_ctrls = result
-                        if objtype == ldap.RES_SEARCH_RESULT:
-                            break
-                        res_list = self._convert_result(res_list)
-                        if res_list:
-                            res.append(res_list[0])
-
-                    if paged_search:
-                        # Get cookie for the next page
-                        for ctrl in res_ctrls:
-                            if isinstance(ctrl, SimplePagedResultsControl):
-                                cookie = ctrl.cookie
-                                break
-                        else:
-                            cookie = ''
-                except ldap.ADMINLIMIT_EXCEEDED:
-                    truncated = TRUNCATED_ADMIN_LIMIT
-                    break
-                except ldap.SIZELIMIT_EXCEEDED:
-                    truncated = TRUNCATED_SIZE_LIMIT
-                    break
-                except ldap.TIMELIMIT_EXCEEDED:
-                    truncated = TRUNCATED_TIME_LIMIT
-                    break
-                except ldap.LDAPError as e:
-                    # If paged search is in progress, try to cancel it
-                    if paged_search and cookie:
-                        sctrls = [SimplePagedResultsControl(0, 0, cookie)]
-                        try:
-                            self.conn.search_ext_s(
-                                str(base_dn), scope, filter, attrs_list,
-                                serverctrls=sctrls, timeout=time_limit,
-                                sizelimit=size_limit)
-                        except ldap.LDAPError as e2:
-                            logger.warning(
-                                "Error cancelling paged search: %s", e2)
-                        cookie = ''
-
-                    try:
-                        raise e
-                    except (ldap.ADMINLIMIT_EXCEEDED, ldap.TIMELIMIT_EXCEEDED,
-                            ldap.SIZELIMIT_EXCEEDED):
-                        truncated = True
-                        break
-
-                if not paged_search or not cookie:
-                    break
+        entries = self._search_entries(
+            base_dn, scope, filter, attrs_list, get_effective_rights,
+            time_limit, size_limit, paged_search, page_size, False)
+        # The generator returns (found, truncated); a for loop drops it
+        while True:
+            try:
+                res.append(next(entries))
+            except StopIteration as stop:
+                truncated = stop.value[1]
+                break
 
         if not res and not truncated:
             raise errors.EmptyResult(reason='no matching entry found')
