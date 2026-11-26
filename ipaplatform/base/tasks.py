@@ -567,12 +567,12 @@ class BaseTaskNamespace:
                 'aes256-sha2:normal', 'aes128-sha2:normal',
                 'aes256-cts:special', 'aes128-cts:special',
                 'aes256-cts:normal', 'aes128-cts:normal',
-                'camellia256-cts:special', 'camellia128-cts:special',
-                'camellia256-cts:normal', 'camellia128-cts:normal')
+                'camellia256-cts-cmac:special', 'camellia128-cts-cmac:special',
+                'camellia256-cts-cmac:normal', 'camellia128-cts-cmac:normal')
 
     # Encryption types used in the past, not supported anymore
     def get_removed_supported_enctypes(self):
-        return ('des3-hmac-sha1:special', )
+        return ('des3-hmac-sha1:special', 'des3-hmac-sha1:normal')
 
     # Encryption types used by default when generating Kerberos keys
     def get_default_enctypes(self):
