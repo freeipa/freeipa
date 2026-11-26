@@ -1874,7 +1874,10 @@ Search for existing certificates.
 
             result[issuer, serial_number] = obj
 
-        return result, False, len(ca_objs) >= len(result)
+        # _ca_search only queries Dogtag and cannot return
+        # externally-issued certificates stored in LDAP, so it is
+        # never complete on its own.
+        return result, False, False
 
     def _ldap_search(self, all, pkey_only, no_members, current_result,
                      **options):
