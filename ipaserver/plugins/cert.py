@@ -1804,9 +1804,20 @@ Search for existing certificates.
             if options['sizelimit'] > 0:
                 ra_options['sizelimit'] = options['sizelimit']
         else:
-            ra_options['sizelimit'] = self.api.Backend.ldap2.size_limit
+            size_limit = self.api.Backend.ldap2.size_limit
+            if size_limit > 0:
+                ra_options['sizelimit'] = size_limit
 
         result = collections.OrderedDict()
+
+        # sizelimit only caps the CA response. 0 means unlimited and is
+        # omitted above. Decide completeness before the subject
+        # optimization below: that optimization narrows the Dogtag query
+        # and does not see certificates issued by an external CA. Those
+        # certificates are stored in LDAP. Marking this search complete
+        # drops them, which is what cert_find(user=..., sizelimit=0) did.
+        # sizelimit 0 is what the Web UI sends.
+        complete = any(key != 'sizelimit' for key in ra_options)
 
         # workaround for RHBZ#1669012 and RHBZ#1695685
         # Improve performance for service, host and user case by also
@@ -1815,7 +1826,8 @@ Search for existing certificates.
         # no ra_options are set and exactly one service, host, or user is
         # supplied.
         # IPA enforces that subject CN is either a hostname or a username.
-        # The complete flag is left to False to catch overrides.
+        # The complete flag is left False so LDAP can still supply
+        # externally issued certificates.
         if not ra_options:
             services = options.get('service', ())
             hosts = options.get('host', ())
@@ -1874,7 +1886,7 @@ Search for existing certificates.
 
             result[issuer, serial_number] = obj
 
-        return result, False, len(ca_objs) >= len(result)
+        return result, False, complete
 
     def _ldap_search(self, all, pkey_only, no_members, current_result,
                      **options):
@@ -1996,8 +2008,11 @@ Search for existing certificates.
         searches = [self._cert_search]
         if ca_enabled and self._ca_search_allowed():
             searches.append(self._ca_search)
-        # If we set any search option, we skip the LDAP search
-        # ideally we would want to perform narrowing search there as well
+        # CA search options describe certificates issued by IPA CAs.
+        # Owner options (user, host, service) must still search LDAP:
+        # externally issued certificates are stored on the owner entry
+        # and are not in Dogtag. The plural names previously listed here
+        # did not match those option names.
         if not any(name in options for name in [
                    'issuer', 'revocation_reason',
                    'cacn', 'subject',
@@ -2006,9 +2021,7 @@ Search for existing certificates.
                    'validnotbefore_from', 'validnotbefore_to',
                    'issuedon_from', 'issuedon_to',
                    'revokedon_from', 'revokedon_to',
-                   'status', 'users', 'no_users',
-                   'hosts', 'no_hosts',
-                   'services', 'no_services']):
+                   'status']):
             searches.append(self._ldap_search)
 
         for sub_search in searches:
