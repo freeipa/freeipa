@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api
+from ipalib import api, errors
 from ipalib import Str
 from ipalib.plugable import Registry
 from .baseldap import LDAPObject, LDAPCreate, LDAPDelete
 from .baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
 
 from ipalib import _, ngettext
+from ipapython.dn import DN
 
 __doc__ = _("""
 HBAC Services
@@ -125,6 +126,54 @@ class hbacsvc_del(LDAPDelete):
     __doc__ = _('Delete an existing HBAC service.')
 
     msg_summary = _('Deleted HBAC service "%(value)s"')
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        # Refuse delete while the service is still referenced from an HBAC
+        # rule memberservice list - either directly or via an hbacsvcgroup
+        # that is listed on a rule. Without this, referential integrity
+        # silently drops the service from the group and makes the rule more
+        # restrictive.
+        member_dns = [dn]
+        group_filter = ldap.combine_filters(
+            (ldap.make_filter_from_attr(
+                'objectClass', 'ipahbacservicegroup'),
+             ldap.make_filter_from_attr('member', dn)),
+            ldap.MATCH_ALL)
+        try:
+            groups, _truncated = ldap.find_entries(
+                group_filter, [],
+                base_dn=DN(api.env.container_hbacservicegroup,
+                           api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            member_dns.extend(entry.dn for entry in groups)
+
+        filter = ldap.combine_filters(
+            (ldap.make_filter_from_attr(
+                'memberservice', member_dns, rules=ldap.MATCH_ANY),
+             ldap.make_filter_from_attr('objectClass', 'ipahbacrule')),
+            ldap.MATCH_ALL)
+        dependent_hbacrules = []
+        try:
+            entries, _truncated = ldap.find_entries(
+                filter, ['cn'],
+                base_dn=DN(api.env.container_hbac, api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            for entry_attrs in entries:
+                [cn] = entry_attrs['cn']
+                dependent_hbacrules.append(cn)
+
+        # Deduplicate in case the same rule matched more than once.
+        dependent_hbacrules = list(dict.fromkeys(dependent_hbacrules))
+
+        if dependent_hbacrules:
+            raise errors.DependentEntry(
+                key=keys[0], label='hbacrule',
+                dependent=', '.join(dependent_hbacrules))
+        return dn
 
 
 
