@@ -33,6 +33,7 @@ FreeIPA design documentation
    client-install-pkinit.md
    passkeys.md
    prci_checker.md
+   ci_modernization.md
    rbcd.md
    id-mapping.md
    audit-ipa-api.md
