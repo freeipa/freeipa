@@ -994,7 +994,13 @@ class IPAMigrate():
                 # If we got here there is no userroot
                 self.handle_error(
                     "Failed to get database base DN as it does not exist")
-        except errors.DatabaseError as e:
+        except (
+            errors.NotFound,
+            errors.NetworkError,
+            errors.DatabaseError,
+            errors.LimitsExceeded,
+            errors.ACIError
+        ) as e:
             self.handle_error(
                 f"Failed to search Root DSE on remote server: {e}")
 
