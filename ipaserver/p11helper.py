@@ -1047,7 +1047,7 @@ class P11_Helper:
                                   pub_cka_copyable=True, pub_cka_derive=False,
                                   pub_cka_encrypt=False,
                                   pub_cka_modifiable=True,
-                                  pub_cka_private=True, pub_cka_trusted=False,
+                                  pub_cka_private=True,
                                   pub_cka_verify=False,
                                   pub_cka_verify_recover=False,
                                   pub_cka_wrap=True,
@@ -1077,7 +1077,6 @@ class P11_Helper:
             pub_cka_encrypt,
             pub_cka_modifiable,
             pub_cka_private,
-            pub_cka_trusted,
             pub_cka_verify,
             pub_cka_verify_recover,
             pub_cka_wrap,
@@ -1119,7 +1118,7 @@ class P11_Helper:
 
         # Process keyword boolean arguments
         (_pub_cka_copyable_ptr, pub_cka_derive_ptr, pub_cka_encrypt_ptr,
-         pub_cka_modifiable_ptr, pub_cka_private_ptr, pub_cka_trusted_ptr,
+         pub_cka_modifiable_ptr, pub_cka_private_ptr,
          pub_cka_verify_ptr, pub_cka_verify_recover_ptr, pub_cka_wrap_ptr,
          ) = convert_py2bool(attrs_pub)
         (priv_cka_always_authenticate_ptr, _priv_cka_copyable_ptr,
@@ -1140,7 +1139,6 @@ class P11_Helper:
             (CKA_ENCRYPT, pub_cka_encrypt_ptr, sizeof(CK_BBOOL)),
             (CKA_MODIFIABLE, pub_cka_modifiable_ptr, sizeof(CK_BBOOL)),
             (CKA_PRIVATE, pub_cka_private_ptr, sizeof(CK_BBOOL)),
-            (CKA_TRUSTED, pub_cka_trusted_ptr, sizeof(CK_BBOOL)),
             (CKA_VERIFY, pub_cka_verify_ptr, sizeof(CK_BBOOL)),
             (CKA_VERIFY_RECOVER, pub_cka_verify_recover_ptr, sizeof(CK_BBOOL)),
             (CKA_WRAP, pub_cka_wrap_ptr, sizeof(CK_BBOOL)),
@@ -1358,7 +1356,7 @@ class P11_Helper:
 
     def _import_RSA_public_key(self, label, label_length, id, id_length, pkey,
                                cka_copyable, cka_derive, cka_encrypt,
-                               cka_modifiable, cka_private, cka_trusted,
+                               cka_modifiable, cka_private,
                                cka_verify, cka_verify_recover, cka_wrap):
         """
         Import RSA public key
@@ -1395,7 +1393,6 @@ class P11_Helper:
             (CKA_ENCRYPT, cka_encrypt, sizeof(CK_BBOOL)),
             (CKA_MODIFIABLE, cka_modifiable, sizeof(CK_BBOOL)),
             (CKA_PRIVATE, cka_private, sizeof(CK_BBOOL)),
-            (CKA_TRUSTED, cka_trusted, sizeof(CK_BBOOL)),
             (CKA_VERIFY, cka_verify, sizeof(CK_BBOOL)),
             (CKA_VERIFY_RECOVER, cka_verify_recover, sizeof(CK_BBOOL)),
             (CKA_WRAP, cka_wrap, sizeof(CK_BBOOL)),
@@ -1412,7 +1409,7 @@ class P11_Helper:
     def import_public_key(self, label, id, data, cka_copyable=True,
                           cka_derive=False, cka_encrypt=False,
                           cka_modifiable=True, cka_private=True,
-                          cka_trusted=False, cka_verify=True,
+                          cka_verify=True,
                           cka_verify_recover=True, cka_wrap=False):
         """
         Import RSA public key
@@ -1432,7 +1429,6 @@ class P11_Helper:
             cka_encrypt,
             cka_modifiable,
             cka_private,
-            cka_trusted,
             cka_verify,
             cka_verify_recover,
             cka_wrap,
@@ -1445,7 +1441,7 @@ class P11_Helper:
 
         # Process keyword boolean arguments
         (cka_copyable_ptr, cka_derive_ptr, cka_encrypt_ptr, cka_modifiable_ptr,
-         cka_private_ptr, cka_trusted_ptr, cka_verify_ptr,
+         cka_private_ptr, cka_verify_ptr,
          cka_verify_recover_ptr, cka_wrap_ptr,) = convert_py2bool(attrs_pub)
 
         # decode from ASN1 DER
@@ -1461,7 +1457,6 @@ class P11_Helper:
                                               cka_encrypt_ptr,
                                               cka_modifiable_ptr,
                                               cka_private_ptr,
-                                              cka_trusted_ptr,
                                               cka_verify_ptr,
                                               cka_verify_recover_ptr,
                                               cka_wrap_ptr)
@@ -1706,7 +1701,6 @@ class P11_Helper:
                     CKA_SIGN,
                     CKA_SIGN_RECOVER,
                     CKA_TOKEN,
-                    CKA_TRUSTED,
                     CKA_UNWRAP,
                     CKA_VERIFY,
                     CKA_VERIFY_RECOVER,
