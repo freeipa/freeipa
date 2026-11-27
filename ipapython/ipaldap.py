@@ -865,9 +865,10 @@ class LDAPClient:
 
         if not self._has_schema:
             try:
-                schema = schema_cache.get_schema(
-                    self.ldap_uri, self.conn,
-                    force_update=self._force_schema_updates)
+                with self.error_handler():
+                    schema = schema_cache.get_schema(
+                        self.ldap_uri, self.conn,
+                        force_update=self._force_schema_updates)
             except (errors.ExecutionError, IndexError):
                 schema = None
 
@@ -964,6 +965,62 @@ class LDAPClient:
         if val.tzinfo is not None:
             val = val.astimezone(timezone.utc)
         return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+
+    def is_attribute_operational(self, name_or_oid):
+        """Check if the attribute is operational."""
+        schema = self._get_schema()
+        if schema is not None:
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None:
+                return obj.usage == 1
+
+        return None
+
+    def get_attribute_equality_rule(self, name_or_oid):
+        """Return the equality matching rule for the attribute."""
+        schema = self._get_schema()
+        if schema is not None:
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None:
+                # An attribute type has at most one SUP (RFC 4512), so this
+                # is a chain: visited only stops a loop in a broken schema
+                visited = set()
+                while obj is not None:
+                    if obj.oid in visited:
+                        break
+                    visited.add(obj.oid)
+
+                    if obj.equality:
+                        return obj.equality
+
+                    if obj.sup and len(obj.sup) > 0:
+                        obj = schema.get_obj(
+                            ldap.schema.AttributeType,
+                            obj.sup[0])
+                    else:
+                        break
+
+        return None
+
+    def get_schema_ldap_entry(self):
+        """Return the schema subentry as a dictionary."""
+        schema = self._get_schema()
+        if schema is not None:
+            return schema.ldap_entry()
+
+        return None
+
+    def add_schema_element(self, element_type, value):
+        """Add a schema element (attributeTypes, objectClasses, etc.)."""
+        with self.error_handler():
+            self.conn.modify_ext_s(
+                "cn=schema", [(
+                    ldap.MOD_ADD,
+                    element_type,
+                    value if isinstance(value, bytes)
+                    else value.encode('utf-8')
+                )]
+            )
 
     def encode(self, val):
         """
@@ -1478,6 +1535,203 @@ class LDAPClient:
 
         return entries
 
+    def iter_entries(self, base_dn, scope=ldap.SCOPE_SUBTREE, filter=None,
+                     attrs_list=None, get_effective_rights=False,
+                     time_limit=None, size_limit=None, paged_search=True,
+                     page_size=None, paged_critical=False):
+        """Iterate over matching entries, one page at a time.
+
+        Streaming counterpart of get_entries(): it finds the same entries,
+        but yields them as each page of a paged search arrives instead of
+        returning them all in a list. Only one page of entries is held in
+        memory at a time, which makes it suitable for searches that can
+        match more entries than fit comfortably in memory.
+
+        This is a generator: nothing is sent to the server before the first
+        entry is requested, and errors are raised during the iteration. If
+        the iteration is abandoned before the last page (for example with
+        break), the paged search is cancelled on the server when the
+        generator is closed.
+
+        :raises: errors.NotFound if result set is empty
+                                 or base_dn doesn't exist
+        :raises: errors.LimitsExceeded if the search is truncated by the
+                 server, after the entries received before the limit was
+                 hit have been yielded
+
+        :param base_dn: dn of the entry at which to start the search
+        :type base_dn: DN
+        :param scope: search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
+        :type scope: int
+        :param filter: LDAP filter to apply
+        :type filter: str
+        :param attrs_list: list of attributes to return, all if None (default)
+        :type attrs_list: list of str
+        :param get_effective_rights: use GetEffectiveRights control
+        :type get_effective_rights: bool
+        :param time_limit: time limit in seconds (default unlimited)
+        :type time_limit: int or float
+        :param size_limit: size (number of entries returned) limit
+                           (default unlimited)
+        :type size_limit: int
+        :param paged_search: search using paged results control (default
+                             True), otherwise all entries come in one page
+        :type paged_search: bool
+        :param page_size: number of entries per page (default: one less
+                          than size_limit, or 1999 if there is no size limit)
+        :type page_size: int
+        :param paged_critical: make the paged results control critical, so
+                               that the search fails if the server does not
+                               support it instead of returning everything at
+                               once (default False)
+        :type paged_critical: bool
+        """
+        found, truncated = yield from self._search_entries(
+            base_dn, scope, filter, attrs_list, get_effective_rights,
+            time_limit, size_limit, paged_search, page_size, paged_critical)
+
+        try:
+            self.handle_truncated_result(truncated)
+        except errors.LimitsExceeded as e:
+            logger.error(
+                "%s while getting entries (base DN: %s, filter: %s)",
+                e, base_dn, filter
+            )
+            raise
+
+        if not found:
+            raise errors.EmptyResult(reason='no matching entry found')
+
+    def _search_entries(self, base_dn, scope, filter, attrs_list,
+                        get_effective_rights, time_limit, size_limit,
+                        paged_search, page_size, paged_critical):
+        """Yield matching entries; return (found, truncated).
+
+        The generator behind iter_entries() and find_entries(). It does
+        not raise when a server limit stops the search, it returns the
+        TRUNCATED_* marker for the caller to report: logging it here would
+        write an error for every truncated find_entries() search.
+
+        None for time_limit, size_limit or page_size is iter_entries()'s
+        defaulting.
+        """
+        assert isinstance(base_dn, DN)
+        filterstr = filter or '(objectClass=*)'
+
+        if time_limit is None:
+            time_limit = self.time_limit
+        if time_limit == 0:
+            # 0 means unlimited in IPA, python-ldap wants -1
+            time_limit = -1.0
+
+        if size_limit is None:
+            # ldap2 can hold a float here
+            size_limit = int(self.size_limit)
+        assert isinstance(size_limit, int)
+
+        if page_size is None:
+            page_size = (size_limit if size_limit > 0 else 2000) - 1
+            if page_size == 0:
+                paged_search = False
+        else:
+            # find_entries() passes 0 with paged_search False
+            assert page_size > 0 or not paged_search
+
+        base_sctrls = []
+        if get_effective_rights:
+            base_sctrls.append(self.__get_effective_rights_control())
+
+        search = dict(base=str(base_dn), scope=scope, filterstr=filterstr,
+                      attrlist=attrs_list, timeout=time_limit,
+                      sizelimit=size_limit)
+        found = False
+        truncated = False
+        cookie = ''
+        try:
+            while True:
+                if paged_search:
+                    sctrls = base_sctrls + [
+                        SimplePagedResultsControl(
+                            paged_critical, page_size, cookie)
+                    ]
+                else:
+                    sctrls = base_sctrls or None
+
+                with self.error_handler():
+                    try:
+                        entries, res_ctrls, truncated = self._search_page(
+                            search, sctrls)
+                    except ldap.LDAPError:
+                        # If paged search is in progress, try to cancel it
+                        if cookie:
+                            self._cancel_paged_search(search, cookie)
+                        raise
+
+                # Get cookie for the next page
+                cookie = ''
+                if paged_search:
+                    for ctrl in res_ctrls:
+                        if isinstance(ctrl, SimplePagedResultsControl):
+                            cookie = ctrl.cookie
+                            break
+
+                if entries:
+                    found = True
+                # The page is complete: the connection is idle while the
+                # consumer works on it
+                yield from entries
+                # Let go of the page before reading the next one
+                del entries
+
+                if not cookie:
+                    break
+        except GeneratorExit:
+            # The consumer gave up before the last page: cancel the paged
+            # search, unless the connection is gone already (conn is None
+            # once the client is closed, and the property of a backend
+            # that is not connected raises AttributeError)
+            if cookie and getattr(self, 'conn', None) is not None:
+                self._cancel_paged_search(search, cookie)
+            raise
+
+        return found, truncated
+
+    def _search_page(self, search, sctrls):
+        """Send a search request and read all of its results.
+
+        Return (entries, res_ctrls, truncated): the entries received, the
+        response controls and False, or the TRUNCATED_* marker of the server
+        limit that stopped the search, in which case entries holds what was
+        received before the limit was hit and there are no response controls.
+
+        python-ldap errors other than server limits are not handled here.
+        """
+        entries = []
+        try:
+            msgid = self.conn.search_ext(serverctrls=sctrls, **search)
+            while True:
+                result = self.conn.result3(msgid, 0)
+                objtype, res_list, _res_id, res_ctrls = result
+                if objtype == ldap.RES_SEARCH_RESULT:
+                    return entries, res_ctrls, False
+                res_list = self._convert_result(res_list)
+                if res_list:
+                    entries.append(res_list[0])
+        except ldap.ADMINLIMIT_EXCEEDED:
+            return entries, [], TRUNCATED_ADMIN_LIMIT
+        except ldap.SIZELIMIT_EXCEEDED:
+            return entries, [], TRUNCATED_SIZE_LIMIT
+        except ldap.TIMELIMIT_EXCEEDED:
+            return entries, [], TRUNCATED_TIME_LIMIT
+
+    def _cancel_paged_search(self, search, cookie):
+        """Ask the server to drop a paged search, using a page size of 0."""
+        sctrls = [SimplePagedResultsControl(0, 0, cookie)]
+        try:
+            self.conn.search_ext_s(serverctrls=sctrls, **search)
+        except ldap.LDAPError as e:
+            logger.warning("Error cancelling paged search: %s", e)
+
     def find_entries(
             self, filter=None, attrs_list=None, base_dn=None,
             scope=ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
@@ -1527,80 +1781,20 @@ class LDAPClient:
         if attrs_list:
             attrs_list = [a.lower() for a in set(attrs_list)]
 
-        base_sctrls = []
-        if get_effective_rights:
-            base_sctrls.append(self.__get_effective_rights_control())
-
-        cookie = ''
         page_size = (size_limit if size_limit > 0 else 2000) - 1
         if page_size == 0:
             paged_search = False
 
-        # pass arguments to python-ldap
-        with self.error_handler():
-            while True:
-                if paged_search:
-                    sctrls = base_sctrls + [
-                        SimplePagedResultsControl(0, page_size, cookie)
-                    ]
-                else:
-                    sctrls = base_sctrls or None
-
-                try:
-                    id = self.conn.search_ext(
-                        str(base_dn), scope, filter, attrs_list,
-                        serverctrls=sctrls, timeout=time_limit,
-                        sizelimit=size_limit
-                    )
-                    while True:
-                        result = self.conn.result3(id, 0)
-                        objtype, res_list, _res_id, res_ctrls = result
-                        if objtype == ldap.RES_SEARCH_RESULT:
-                            break
-                        res_list = self._convert_result(res_list)
-                        if res_list:
-                            res.append(res_list[0])
-
-                    if paged_search:
-                        # Get cookie for the next page
-                        for ctrl in res_ctrls:
-                            if isinstance(ctrl, SimplePagedResultsControl):
-                                cookie = ctrl.cookie
-                                break
-                        else:
-                            cookie = ''
-                except ldap.ADMINLIMIT_EXCEEDED:
-                    truncated = TRUNCATED_ADMIN_LIMIT
-                    break
-                except ldap.SIZELIMIT_EXCEEDED:
-                    truncated = TRUNCATED_SIZE_LIMIT
-                    break
-                except ldap.TIMELIMIT_EXCEEDED:
-                    truncated = TRUNCATED_TIME_LIMIT
-                    break
-                except ldap.LDAPError as e:
-                    # If paged search is in progress, try to cancel it
-                    if paged_search and cookie:
-                        sctrls = [SimplePagedResultsControl(0, 0, cookie)]
-                        try:
-                            self.conn.search_ext_s(
-                                str(base_dn), scope, filter, attrs_list,
-                                serverctrls=sctrls, timeout=time_limit,
-                                sizelimit=size_limit)
-                        except ldap.LDAPError as e2:
-                            logger.warning(
-                                "Error cancelling paged search: %s", e2)
-                        cookie = ''
-
-                    try:
-                        raise e
-                    except (ldap.ADMINLIMIT_EXCEEDED, ldap.TIMELIMIT_EXCEEDED,
-                            ldap.SIZELIMIT_EXCEEDED):
-                        truncated = True
-                        break
-
-                if not paged_search or not cookie:
-                    break
+        entries = self._search_entries(
+            base_dn, scope, filter, attrs_list, get_effective_rights,
+            time_limit, size_limit, paged_search, page_size, False)
+        # The generator returns (found, truncated); a for loop drops it
+        while True:
+            try:
+                res.append(next(entries))
+            except StopIteration as stop:
+                truncated = stop.value[1]
+                break
 
         if not res and not truncated:
             raise errors.EmptyResult(reason='no matching entry found')
