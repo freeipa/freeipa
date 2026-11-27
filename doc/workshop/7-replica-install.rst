@@ -30,9 +30,9 @@ Now promote the client to server.  We will set up the replica
 *without* the CA or DNS role.  In a production deployment there
 should be at least one instance of these services in each data
 centre.  These roles can be configured later via
-``ipa-ca-install(1)`` and ``ipa-dns-install(1)``.
+:command:`ipa-ca-install(1)` and :command:`ipa-dns-install(1)`.
 
-::
+.. code-block:: console
 
   [replica]$ sudo ipa-replica-install
   Password for admin@IPADEMO.LOCAL:
@@ -47,14 +47,16 @@ centre.  These roles can be configured later via
 
 The rest of the replica installation process is almost identical to
 server installation.  One important difference is the initial
-replication of data to the new Directory Server instance::
+replication of data to the new Directory Server instance:
+
+.. code-block:: text
 
   [28/41]: setting up initial replication
   Starting replication, please wait until this has completed.
   Update in progress, 4 seconds elapsed
   Update succeeded
 
-After ``ipa-replica-install`` finishes, the replica is operational.
+After :command:`ipa-replica-install` finishes, the replica is operational.
 LDAP changes on any server will be replicated to all other servers.
 
 You can proceed to

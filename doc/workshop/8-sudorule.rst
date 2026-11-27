@@ -25,11 +25,15 @@ to run any command on any FreeIPA-enrolled machine, and to allow
 ``bob`` (who is merely a web server administrator) to control
 ``httpd`` on hosts that are ``webservers``.
 
-As of FreeIPA 4.6.90.pre2, you should enable SSSD's sudo responder by running::
+As of FreeIPA 4.6.90.pre2, you should enable SSSD's sudo responder by running:
+
+.. code-block:: console
 
   [client]$ sudo authselect enable-feature with-sudo
 
-Restart SSSD::
+Restart SSSD:
+
+.. code-block:: console
 
   [client]$ sudo systemctl restart sssd
 
@@ -37,8 +41,10 @@ Permitting ``alice`` to run all commmands
 -----------------------------------------
 
 Let's deal with ``alice`` first.  Before we do anything else, log in
-as ``alice`` and attempt to run the ``id`` command as ``root``.
-Observe that the action is denied::
+as ``alice`` and attempt to run the :command:`id` command as ``root``.
+Observe that the action is denied:
+
+.. code-block:: console
 
   [client]$ su -l alice
   Password:
@@ -51,7 +57,9 @@ Observe that the action is denied::
   logout
 
 Now define the ``sysadmin_sudo`` rule, which allows members of the
-``sysadmin`` User Group to to run any command on any host::
+``sysadmin`` User Group to to run any command on any host:
+
+.. code-block:: console
 
   [client]$ ipa sudorule-add sysadmin_sudo \
       --hostcat=all --runasusercat=all --runasgroupcat=all --cmdcat=all
@@ -65,7 +73,9 @@ Now define the ``sysadmin_sudo`` rule, which allows members of the
     RunAs User category: all
     RunAs Group category: all
 
-Next add the ``sysadmin`` User Group to the Sudo rule::
+Next add the ``sysadmin`` User Group to the Sudo rule:
+
+.. code-block:: console
 
   [client]$ ipa sudorule-add-user sysadmin_sudo --group sysadmin
     Rule name: sysadmin_sudo
@@ -79,7 +89,9 @@ Next add the ``sysadmin`` User Group to the Sudo rule::
   Number of members added 1
   -------------------------
 
-Now attempt to ``sudo id`` as ``alice`` again::
+Now attempt to :command:`sudo id` as ``alice`` again:
+
+.. code-block:: console
 
   [client]$ su -l alice
   Password:
@@ -89,7 +101,7 @@ Now attempt to ``sudo id`` as ``alice`` again::
   uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
 
 This time the action was allowed, and we can see from the output
-that ``alice`` indeed executed the ``id`` command as ``root``.
+that ``alice`` indeed executed the :command:`id` command as ``root``.
 
 **Note:** if the command is prevented there may be some stale cache
 entries.  Move on with the workshop and try again in 5 minutes.
@@ -107,7 +119,9 @@ member.  Add an ``hbacrule`` that allows ``bob`` to log into hosts
 that are members of the ``webservers`` Host Group using the ``sshd``
 service.
 
-Once this is done you should be able to login, but not use ``su -l``::
+Once this is done you should be able to login, but not use :command:`su -l`:
+
+.. code-block:: console
 
   [client]$ su -l bob
   Password:
@@ -116,30 +130,40 @@ Once this is done you should be able to login, but not use ``su -l``::
   Password:
   su: Permission denied
 
-Then, let's observe that ``bob`` currently cannot restart Apache::
+Then, let's observe that ``bob`` currently cannot restart Apache:
+
+.. code-block:: console
 
   [bob@client]$ sudo systemctl restart httpd
   [sudo] password for bob:
   sudo: PAM account management error: Permission denied
 
-Take note that the error is different from the one alice got, which was::
+Take note that the error is different from the one alice got, which was:
+
+.. code-block:: text
 
   alice is not allowed to run sudo on client.  This incident will be reported.
 
 While the HBAC rule alice uses (sysadmin_webservers) was created with
 "--servicecat=all", the HBAC rule for bob was created with sshd in mind,
-like this::
+like this:
+
+.. code-block:: console
 
   [server]$ ipa hbacrule-add-service webadmin_webservers --hbacsvcs=sshd
 
-As bob needs to run both ``su -l`` and ``sudo``, add both commands to
-the list of allowed services in your access control rule, for instance::
+As bob needs to run both :command:`su -l` and :command:`sudo`, add both commands to
+the list of allowed services in your access control rule, for instance:
+
+.. code-block:: console
 
   [server]$ ipa hbacrule-add-service webadmin_webservers \
       --hbacsvcs=sudo --hbacsvcs=su-l
 
 Now login and logout as bob. Not only bob should now be able to use
-``su -l``, but the error message from ``sudo`` should change::
+:command:`su -l`, but the error message from :command:`sudo` should change:
+
+.. code-block:: console
 
   [bob@client]$ sudo systemctl restart httpd
   [sudo] password for bob:
@@ -148,7 +172,7 @@ Now login and logout as bob. Not only bob should now be able to use
 Now define the ``webadmin_sudo`` rule.  Note that we *do not* use
 ``--hostcat=all`` or ``cmdcat=all`` this time.
 
-::
+.. code-block:: console
 
   [client]$ ipa sudorule-add webadmin_sudo \
       --runasusercat=all --runasgroupcat=all
@@ -161,7 +185,9 @@ Now define the ``webadmin_sudo`` rule.  Note that we *do not* use
     RunAs Group category: all
 
 
-Add the ``webadmin`` User Group and ``webservers`` Host Group to the rule::
+Add the ``webadmin`` User Group and ``webservers`` Host Group to the rule:
+
+.. code-block:: console
 
   [client]$ ipa sudorule-add-user webadmin_sudo --group webadmin
     Rule name: webadmin_sudo
@@ -185,7 +211,9 @@ Add the ``webadmin`` User Group and ``webservers`` Host Group to the rule::
   -------------------------
 
 Next, define *Sudo Commands* and a *Sudo Command Group* for
-web server administration::
+web server administration:
+
+.. code-block:: console
 
   [client]$ ipa sudocmd-add "/usr/bin/systemctl start httpd"
   ---------------------------------------------------
@@ -214,7 +242,9 @@ web server administration::
   Number of members added 2
   -------------------------
 
-Finally, add this new command group to the Sudo rule::
+Finally, add this new command group to the Sudo rule:
+
+.. code-block:: console
 
   [client]$ ipa sudorule-add-allow-command webadmin_sudo \
       --sudocmdgroups webadmin_cmds
@@ -230,7 +260,9 @@ Finally, add this new command group to the Sudo rule::
   -------------------------
 
 Now log in again as ``bob`` and observe that we have reached our goal: he can
-restart (or start) Apache, but not run other commands via ``sudo``::
+restart (or start) Apache, but not run other commands via :command:`sudo`:
+
+.. code-block:: console
 
   [client]$ su -l bob
   Password:

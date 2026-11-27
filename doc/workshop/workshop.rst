@@ -46,9 +46,9 @@ Editing files on VMs
 --------------------
 
 Parts of the workshop involve editing files on virtual
-machines.  The ``vi`` and GNU ``nano`` editors are available on the
-VMs.  If you are not familiar with ``vi`` or you are unsure of what to use, you
-should choose ``nano``.
+machines.  The :command:`vi` and GNU :command:`nano` editors are available on the
+VMs.  If you are not familiar with :command:`vi` or you are unsure of what to use, you
+should choose :command:`nano`.
 
 
 Example commands
@@ -57,7 +57,9 @@ Example commands
 This guide contains many examples of commands.  Some of the commands
 should be executed on your host, others on a particular guest VM.
 For clarity, commands are annotated with the host on which they are
-meant to be executed, as in these examples::
+meant to be executed, as in these examples:
+
+.. code-block:: console
 
   $ echo "Run it on virtualisation host (no annotation)"
 
@@ -74,7 +76,7 @@ Preparation
 Some preparation is needed prior to the workshop.  The workshop is
 designed to be carried out in a Vagrant_ environment that configures
 three networked virtual machines (VMs) with all software needed for
-the workshop.  **The goal of this preparation** is to ``vagrant up``
+the workshop.  **The goal of this preparation** is to :command:`vagrant up`
 the VMs.  After this preparation is completed you are ready to begin
 the workshop.
 
@@ -89,7 +91,7 @@ For the FreeIPA workshop you will need to:
 - Install **Vagrant** and **VirtualBox**. (On Fedora, you can use **libvirt**
   instead of VirtualBox).
 
-- Use Git to clone the repository containing the ``Vagrantfile``
+- Use Git to clone the repository containing the :file:`Vagrantfile`
 
 - Fetch the Vagrant *box* for the workshop
 
@@ -107,7 +109,9 @@ Fedora
 ^^^^^^
 
 If you intend to use the ``libvirt`` provider (recommended), install
-``vagrant-libvirt`` and ``vagrant-libvirt-doc``::
+``vagrant-libvirt`` and ``vagrant-libvirt-doc``:
+
+.. code-block:: console
 
   $ sudo dnf install -y vagrant-libvirt vagrant-libvirt-doc
 
@@ -116,12 +120,16 @@ Also ensure you have the latest versions of ``selinux-policy`` and
 
 Allow your regular user ID to start and stop Vagrant boxes using ``libvirt``.
 Add your user to ``libvirt`` group so you don't need to enter your administrator
-password everytime::
+password everytime:
+
+.. code-block:: console
 
   $ sudo gpasswd -a ${USER} libvirt
   $ newgrp libvirt
 
-Finally restart the services::
+Finally restart the services:
+
+.. code-block:: console
 
   $ systemctl restart libvirtd
 
@@ -129,13 +137,17 @@ More information: https://docs.fedoraproject.org/en-US/quick-docs/getting-starte
 
 Otherwise, you will use VirtualBox and the ``virtualbox`` provider.
 VirtualBox needs to build kernel modules, and that means that you must
-first install kernel headers and Dynamic Kernel Module Support::
+first install kernel headers and Dynamic Kernel Module Support:
+
+.. code-block:: console
 
   $ sudo dnf install -y vagrant kernel-devel dkms
 
 Next, install VirtualBox from the official VirtualBox package repository.
 Before using the repo, check that its contents match what appears
-in the transcript below (to make sure it wasn't tampered with)::
+in the transcript below (to make sure it wasn't tampered with):
+
+.. code-block:: console
 
   $ sudo curl -o /etc/yum.repos.d/virtualbox.repo \
     http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
@@ -151,7 +163,9 @@ in the transcript below (to make sure it wasn't tampered with)::
 
   $ sudo dnf install -y VirtualBox-6.1
 
-Finally, load the kernel modules (you may need to restart your system for this to work)::
+Finally, load the kernel modules (you may need to restart your system for this to work):
+
+.. code-block:: console
 
   $ sudo modprobe vboxdrv vboxnetadp
 
@@ -172,7 +186,9 @@ preferred package manager.
 Debian / Ubuntu
 ^^^^^^^^^^^^^^^
 
-Install Vagrant, Git and VirtualBox::
+Install Vagrant, Git and VirtualBox:
+
+.. code-block:: console
 
   $ sudo apt-get install -y vagrant git
   $ sudo apt-get install -y virtualbox-6.1
@@ -199,10 +215,10 @@ https://git-scm.com/download/win.
 Clone this repository
 ---------------------
 
-This repository contains the ``Vagrantfile`` that is used for the
+This repository contains the :file:`Vagrantfile` that is used for the
 workshop, which you will need locally.
 
-::
+.. code-block:: console
 
   $ git clone https://github.com/freeipa/freeipa.git
   $ cd freeipa/doc/workshop
@@ -214,7 +230,7 @@ Fetch Vagrant box
 Please fetch the Vagrant box prior to the workshop.  It is > 700MB
 so it may not be feasible to download it during the workshop.
 
-::
+.. code-block:: console
 
   $ vagrant box add freeipa/freeipa-workshop
 
@@ -226,16 +242,18 @@ Add hosts file entries
 only.  But if you want to access the FreeIPA Web UI or other web
 servers on the VMs from your browser, follow these instructions.*
 
-Add the following entries to your hosts file::
+Add the following entries to your hosts file:
+
+.. code-block:: text
 
   192.168.33.10   server.ipademo.local
   192.168.33.11   replica.ipademo.local
   192.168.33.20   client.ipademo.local
 
-On Unix systems (including Mac OS X), the hosts file is ``/etc/hosts``
+On Unix systems (including Mac OS X), the hosts file is :file:`/etc/hosts`
 (you need elevated permissions to edit it.)
 
-On Windows, edit ``C:\Windows\System32\system\drivers\etc\hosts`` as
+On Windows, edit :file:`C:\\Windows\\System32\\system\\drivers\\etc\\hosts` as
 *Administrator*.
 
 

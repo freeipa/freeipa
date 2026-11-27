@@ -18,13 +18,31 @@ login access to ``client.ipademo.local`` to members of the
 ``sysadmin`` user group.
 
 
+How does it work
+----------------
+
+When a user wants to run a service on a particular host, that action can be represented as combination of *user* operating a *service* on a *host* .
+Every allowed interaction is described by a 3-tuple of sets --- one set of *users*, one of *hosts* and one of *services*, for each rule.
+An action is allowed only when a rule matches it: the user is in the rule's users set, the host is in its hosts set, and the service is in its services set.
+
+So for example, given an action that involves Alice SSHing to the ``client`` host, an action that translates to (``alice``, ``client``, ``sshd``),
+the action is allowed if there is a rule for which all three statements are true:
+
+- ``alice`` is member of the rule's users,
+- ``client`` is member of the rule's hosts, and
+- ``sshd`` is member of the rule's services.
+
+The sets in question can be defined by means of groups, by listing individual entries, or by using ``all``, which is a set that always contains all elements.
+If this sounds too theoretical, don't worry, you will see it in action.
+
+
 Adding a host group
 -------------------
 
 Instead of defining the HBAC rule to directly talk about
 ``client.ipademo.local``, create a *Host Group* named ``webservers``
 and add ``client.ipademo.local`` to it.  You can do this via the Web
-UI or the ``ipa`` CLI program (don't forget to ``kinit admin``; see
+UI or the :command:`ipa` CLI program (don't forget to :command:`kinit admin`; see
 if you can work out what plugin provides the host group
 functionality).
 
@@ -40,7 +58,9 @@ HBAC rules are managed via the ``hbacrule`` plugin.  You can
 complete the following actions via the Web UI as well, but we will
 cover the CLI commands.
 
-List the existing HBAC rules::
+List the existing HBAC rules:
+
+.. code-block:: console
 
   [server]$ ipa hbacrule-find
   -------------------
@@ -66,7 +86,9 @@ Creating HBAC rules
 
 HBAC rules are built up incrementally.  The rule is created, then
 users or groups, hosts or hostgroups and HBAC services are added to
-the rule.  The following transcript details the process::
+the rule.  The following transcript details the process:
+
+.. code-block:: console
 
   [server]$ ipa hbacrule-add sysadmin_webservers
   -------------------------------------
@@ -103,15 +125,22 @@ the rule.  The following transcript details the process::
     Host Groups: webservers
 
 The ``--servicecat=all`` option applies this rule for all services on
-matching hosts.  It could have been set during the ``hbacrule-add``
+matching hosts.  It could have been set during the :command:`ipa hbacrule-add`
 command instead.
+
+.. tip::
+
+   When you make changes to the setup, it may take time to propagate to the enrolled systems.
+   You can use :command:`sudo sss_cache -E` to flush caches on the system you want to interact with.
 
 
 Testing HBAC rules
 ------------------
 
-You can test HBAC rule evaluation using the ``ipa hbactest``
-command::
+You can test HBAC rule evaluation using the :command:`ipa hbactest`
+command:
+
+.. code-block:: console
 
   [server]$ ipa hbactest --host client.ipademo.local --service sshd --user bob
   ---------------------
@@ -120,10 +149,16 @@ command::
     Not matched rules: sysadmin_webservers
 
 Poor ``bob``.  He won't be allowed in because he is not a member of
-the ``sysadmin`` group.  What is the result of ``ipa hbactest`` for
+the ``sysadmin`` group.  What is the result of :command:`ipa hbactest` for
 ``alice``?
 
-``kinit`` as ``bob`` and try to log in to the client::
+.. tip::
+
+   Remember that you can :ref:`switch between principals <switching_tickets>` without running :command:`kinit` all over again
+
+:command:`kinit` as ``bob`` and try to log in to the client:
+
+.. code-block:: console
 
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL:
@@ -132,7 +167,9 @@ the ``sysadmin`` group.  What is the result of ``ipa hbactest`` for
 
 The server refused to let ``bob`` in and closed the connection.
 
-Now try ``alice``::
+Now try ``alice``:
+
+.. code-block:: console
 
   [server]$ kinit alice
   Password for alice@IPADEMO.LOCAL:

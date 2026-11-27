@@ -17,29 +17,37 @@ Requirements
 Packer template
 ---------------
 
-Packer template ``packer-template-fedora.json`` requires Fedora 34 kickstart file
+Packer template :file:`packer-template-fedora.json` requires Fedora 34 kickstart file
 used by Fedora to build vagrant images:
 
-- Clone the repo and checkout latest Fedora release branch::
+- Clone the repo and checkout latest Fedora release branch:
 
-  $ git clone https://pagure.io/fedora-kickstarts.git
-  $ cd fedora-kickstarts
-  $ git checkout f34
+  .. code-block:: console
 
-- Install ``pykickstart`` package which provides ``ksflatten`` tool::
+    $ git clone https://pagure.io/fedora-kickstarts.git
+    $ cd fedora-kickstarts
+    $ git checkout f34
 
-  $ sudo dnf install pykickstart
+- Install ``pykickstart`` package which provides :command:`ksflatten` tool:
 
-- Generate the ``anaconda-ks.cfg`` file needed by flattening vagrant kickstart files
-  and putting it onto the same folder as the packer template file::
+  .. code-block:: console
 
-  $ ksflatten -c $FEDORA_KICKSTARTS_REPO/fedora-cloud-base-vagrant.ks > $FREEIPA_REPO/doc/workshop/anaconda-ks.cfg
+    $ sudo dnf install pykickstart
+
+- Generate the :file:`anaconda-ks.cfg` file needed by flattening vagrant kickstart files
+  and putting it onto the same folder as the packer template file:
+
+  .. code-block:: console
+
+    $ ksflatten -c $FEDORA_KICKSTARTS_REPO/fedora-cloud-base-vagrant.ks > $FREEIPA_REPO/doc/workshop/anaconda-ks.cfg
 
 
 Building the vagrant images
 -----------------------------
 
-Build the images::
+Build the images:
+
+.. code-block:: console
 
   $ cd $FREEIPA_REPO/doc/workshop
   $ BIN_PACKER build packer-template-fedora.json
