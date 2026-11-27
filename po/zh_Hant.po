@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.12.0.dev202405281307+git69c6a817c\n"
 "Report-Msgid-Bugs-To: https://codeberg.org/freeipa/freeipa/issues/new\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-11-26 07:24+0000\n"
+"PO-Revision-Date: 2026-11-27 09:00+0000\n"
 "Last-Translator: hsu zangmen <chzang55@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://"
 "translate.fedoraproject.org/projects/freeipa/master/zh_Hant/>\n"
@@ -12991,220 +12991,232 @@ msgid "Enter %(label)s again to verify: "
 msgstr ""
 
 msgid "Passwords do not match!"
-msgstr ""
+msgstr "密碼不符合！"
 
 msgid "No matching entries found"
-msgstr ""
+msgstr "未找到相符的項目"
 
 msgid "Topic or Command"
-msgstr ""
+msgstr "主題或指令"
 
 msgid "The topic or command name."
-msgstr ""
+msgstr "主題或指令名稱。"
 
 msgid "Topic commands:"
-msgstr ""
+msgstr "主題指令："
 
 msgid "To get command help, use:"
-msgstr ""
+msgstr "若要查看指令說明，請使用："
 
 msgid "  ipa <command> --help"
-msgstr ""
+msgstr "  ipa <指令> --help"
 
 msgid "Command name"
-msgstr ""
+msgstr "指令名稱"
 
 msgid "Positional arguments"
-msgstr ""
+msgstr "位置參數"
 
 #, python-format
 msgid "Same as --%s"
-msgstr ""
+msgstr "與 --%s 相同"
 
 msgid "Deprecated options"
-msgstr ""
+msgstr "已廢棄選項"
 
 msgid "No file to read"
-msgstr ""
+msgstr "無檔案可讀取"
 
 msgid "Results are truncated, try a more specific search"
-msgstr ""
+msgstr "搜尋結果已截斷，請嘗試進行更具體的搜尋"
 
 #, python-format
 msgid "Unknown option: %(option)s"
-msgstr ""
+msgstr "未知選項: %(option)s"
 
 msgid "Client version. Used to determine if server will accept request."
-msgstr ""
+msgstr "客戶端版本。用於判斷伺服器是否會接受該請求。"
 
 msgid "any of the configured servers"
-msgstr ""
+msgstr "任何已設定的伺服器"
 
 msgid "Exceeded number of tries to forward a request."
-msgstr ""
+msgstr "轉發請求的嘗試次數已超過上限。"
 
 #, python-format
 msgid "Retrieving CA cert chain failed: %s"
-msgstr ""
+msgstr "檢索 CA 憑證鏈無法取得：%s"
 
 #, python-format
 msgid "request failed with HTTP status %d"
-msgstr ""
+msgstr "請求失敗 HTTP 狀態碼為 %d"
 
 #, python-format
 msgid "Retrieving CA status failed: %s"
-msgstr ""
+msgstr "檢索 CA 狀態失敗：%s"
 
 #, python-format
 msgid "Retrieving CA status failed with status %d"
-msgstr ""
+msgstr "檢索 CA 狀態失敗，狀態代碼為 %d"
 
 #, python-format
 msgid "objectclass %s not found"
-msgstr ""
+msgstr "物件類別 %s 找不到"
 
 #, python-format
 msgid "Replication agreement for %(hostname)s not found"
-msgstr ""
+msgstr "找不到 %(hostname)s 的複製協定"
 
 #, python-format
 msgid "Unable to communicate with CMS (status %d)"
-msgstr ""
+msgstr "無法與 CMS 建立連線（狀態 %d）"
 
 msgid "Failed to authenticate to CA REST API"
-msgstr ""
+msgstr "無法對 CA REST API 進行身份驗證"
 
 msgid "delegation"
-msgstr ""
+msgstr "授權"
 
 msgid "delegations"
-msgstr ""
+msgstr "授權"
 
 msgid "Delegations"
-msgstr ""
+msgstr "授權"
 
 msgid "Delegation"
-msgstr ""
+msgstr "授權"
 
 msgid "ACI"
-msgstr ""
+msgstr "ACI"
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
-msgstr ""
+msgstr "己新增授權 \"%(value)s\""
 
 #, python-format
 msgid "Deleted delegation \"%(value)s\""
-msgstr ""
+msgstr "已刪除授權 \"%(value)s\""
 
 #, python-format
 msgid "Modified delegation \"%(value)s\""
-msgstr ""
+msgstr "己修改授權 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d delegation matched"
 msgid_plural "%(count)d delegations matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個授權符合條件"
 
 msgid ""
 "\n"
 "DNS server configuration\n"
 msgstr ""
+"\n"
+"DNS 伺服器組態設定\n"
 
 msgid ""
 "\n"
 "Manipulate DNS server configuration\n"
 msgstr ""
+"\n"
+"變更 DNS 伺服器組態設定\n"
 
 msgid ""
 "\n"
 "  Show configuration of a specific DNS server:\n"
 "    ipa dnsserver-show\n"
 msgstr ""
+"\n"
+"  顯示特定 DNS 伺服器的組態設定:\n"
+"    ipa dnsserver-show\n"
 
 msgid ""
 "\n"
 "  Update configuration of a specific DNS server:\n"
 "    ipa dnsserver-mod\n"
 msgstr ""
+"\n"
+"  更新特定 DNS 伺服器的組態設定:\n"
+"    ipa dnsserver-mod\n"
 
 msgid "DNS server"
-msgstr ""
+msgstr "DNS 伺服器"
 
 msgid "DNS servers"
-msgstr ""
+msgstr "DNS 伺服器"
 
 msgid "DNS Servers"
-msgstr ""
+msgstr "DNS 伺服器"
 
 msgid "DNS Server"
-msgstr ""
+msgstr "DNS 伺服器"
 
 msgid "DNS Server name"
-msgstr ""
+msgstr "DNS 伺服器名稱"
 
 msgid "SOA mname override"
-msgstr ""
+msgstr "SOA mname 覆寫"
 
 msgid "SOA mname (authoritative server) override"
-msgstr ""
+msgstr "SOA mname（權威伺服器）覆寫"
 
 msgid "Forwarders"
-msgstr ""
+msgstr "轉發器"
 
 msgid ""
 "Per-server forwarders. A custom port can be specified for each forwarder "
 "using a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
+"Per-server 的轉發器。可針對每個轉發器，使用標準格式「IP_ADDRESS port PORT」指"
+"定自訂埠號"
 
 msgid ""
 "Per-server conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
+"Per-server 的條件轉發政策。若設定為「none」，將停用此區域轉發至全域轉發器的功"
+"能。在此情況下，條件區域轉發器將不予考慮。"
 
 msgid "DNS is not configured"
-msgstr ""
+msgstr "DNS 尚未進行設定"
 
 msgid "Modify DNS server configuration"
-msgstr ""
+msgstr "修改 DNS 伺服器組態設定"
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
-msgstr ""
+msgstr "已修改的 DNS 伺服器 \"%(value)s\""
 
 msgid "Search for DNS servers."
-msgstr ""
+msgstr "搜尋 DNS 伺服器。"
 
 #, python-format
 msgid "%(count)d DNS server matched"
 msgid_plural "%(count)d DNS servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個 DNS 伺服器符合條件"
 
 msgid "IPA DNS Server is not installed"
-msgstr ""
+msgstr "IPA DNS 伺服器未安裝"
 
 msgid "Display configuration of a DNS server."
-msgstr ""
+msgstr "顯示 DNS 伺服器的組態設定。"
 
 msgid "Add a new DNS server."
-msgstr ""
+msgstr "新增一個 DNS 伺服器。"
 
 #, python-format
 msgid "Added new DNS server \"%(value)s\""
-msgstr ""
+msgstr "已新增 DNS 伺服器 \"%(value)s\""
 
 msgid "Delete a DNS server"
-msgstr ""
+msgstr "刪除 DNS 伺服器"
 
 #, python-format
 msgid "Deleted DNS server \"%(value)s\""
-msgstr ""
+msgstr "已刪除 DNS 伺服器 \"%(value)s\""
 
 msgid "Host-based access control commands"
-msgstr ""
+msgstr "基於主機的存取控制指令"
 
 msgid ""
 "\n"
@@ -13229,111 +13241,129 @@ msgid ""
 "   ipa hbacsvc-del tftp\n"
 "\n"
 msgstr ""
+"\n"
+"HBAC 服務\n"
+"\n"
+"HBAC 可控制存取權限的 PAM 服務。此處使用的名稱\n"
+"必須與 PAM 正在評估的服務名稱相符。\n"
+"\n"
+"範例：\n"
+"\n"
+" 新增一個 HBAC 服務：\n"
+"   ipa hbacsvc-add tftp\n"
+"\n"
+" 修改現有的 HBAC 服務：\n"
+"   ipa hbacsvc-mod --desc=\"TFTP 服務\" tftp\n"
+"\n"
+" 搜尋 HBAC 服務。此範例將回傳兩項結果，分別是 FTP\n"
+" 服務與新新增的 tftp 服務：\n"
+"   ipa hbacsvc-find ftp\n"
+"\n"
+" 刪除 HBAC 服務：\n"
+"   ipa hbacsvc-del tftp\n"
+"\n"
 
 msgid "HBAC services"
-msgstr ""
+msgstr "HBAC 服務"
 
 msgid "HBAC Services"
-msgstr ""
+msgstr "HBAC 服務"
 
 msgid "HBAC Service"
-msgstr ""
+msgstr "HBAC 服務"
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
-msgstr ""
+msgstr "己新增 HBAC 服務 \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr ""
+msgstr "已刪除 HBAC 服務 \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr ""
+msgstr "己修改 HBAC 服務 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service matched"
 msgid_plural "%(count)d HBAC services matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 項符合條件的 HBAC 服務"
 
 msgid "HBAC service group"
-msgstr ""
+msgstr "HBAC 服務群組"
 
 msgid "HBAC service groups"
-msgstr ""
+msgstr "HBAC 服務群組"
 
 msgid "HBAC Service Groups"
-msgstr ""
+msgstr "HBAC 服務群組"
 
 msgid "HBAC Service Group"
-msgstr ""
+msgstr "HBAC 服務群組"
 
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "己新增 HBAC 服務群組 \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "已刪除 HBAC 服務群組 \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "己修改 HBAC 服務群組 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service group matched"
 msgid_plural "%(count)d HBAC service groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個 HBAC 服務群組符合條件"
 
 msgid "netgroups"
-msgstr ""
+msgstr "網路群組"
 
 msgid "Netgroups"
-msgstr ""
+msgstr "網路群組"
 
 msgid "Netgroup"
-msgstr ""
+msgstr "網路群組"
 
 #, python-format
 msgid "Added netgroup \"%(value)s\""
-msgstr ""
+msgstr "己新增網路群組 \"%(value)s\""
 
 #, python-format
 msgid ""
 "hostgroup with name \"%s\" already exists. Hostgroups and netgroups share a "
 "common namespace"
-msgstr ""
+msgstr "名稱為 \"%s\" 的主機群組已存在。主機群組與網路群組共用同一個命名空間"
 
 #, python-format
 msgid "Deleted netgroup \"%(value)s\""
-msgstr ""
+msgstr "已刪除網路群組 \"%(value)s\""
 
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
-msgstr ""
+msgstr "己修改網路群組 \"%(value)s\""
 
 msgid "user category cannot be set to 'all' while there are allowed users"
-msgstr ""
+msgstr "只要存在已授權的使用者，使用者類別便無法設定為「全部」"
 
 msgid "host category cannot be set to 'all' while there are allowed hosts"
-msgstr ""
+msgstr "只要存在已允許的主機，就無法將主機類別設定為「全部」"
 
 #, python-format
 msgid "%(count)d netgroup matched"
 msgid_plural "%(count)d netgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個符合條件的網組"
 
 msgid "One time password commands"
-msgstr ""
+msgstr "一次性密碼指令"
 
 msgid "OTP configuration options"
-msgstr ""
+msgstr "OTP 組態設定選項"
 
 msgid "OTP Configuration"
-msgstr ""
+msgstr "OTP 組態設定"
 
 msgid ""
 "\n"
@@ -13355,37 +13385,58 @@ msgid ""
 "\n"
 "https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
 msgstr ""
+"\n"
+"Kerberos PKINIT 功能狀態報告工具。\n"
+"\n"
+"報告哪些 IPA 主伺服器已啟用或停用 Kerberos PKINIT\n"
+"\n"
+"範例：\n"
+" 列出所有主伺服器的 PKINIT 狀態：\n"
+"   ipa pkinit-status\n"
+"\n"
+" 檢查 `ipa.example.com` 上的 PKINIT 狀態：\n"
+"   ipa pkinit-status --server ipa.example.com\n"
+"\n"
+" 列出所有 PKINIT 已停用的 IPA 主伺服器：\n"
+"   ipa pkinit-status --status='disabled'\n"
+"\n"
+"有關 PKINIT 支援的更多資訊，請參閱：\n"
+"\n"
+"https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
 
 msgid "pkinit"
-msgstr ""
+msgstr "pkinit"
 
 msgid "PKINIT"
-msgstr ""
+msgstr "PKINIT"
 
 msgid "PKINIT status"
-msgstr ""
+msgstr "PKINIT 狀態"
 
 msgid "Whether PKINIT is enabled or disabled"
-msgstr ""
+msgstr "PKINIT 是否已啟用或停用"
 
 msgid "Report PKINIT status on the IPA masters"
-msgstr ""
+msgstr "在 IPA 主伺服器上回報 PKINIT 狀態"
 
 #, python-format
 msgid "%(count)s server matched"
 msgid_plural "%(count)s servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "有 %(count)s 台伺服器符合條件"
 
 msgid ""
 "\n"
 "RADIUS Proxy Servers\n"
 msgstr ""
+"\n"
+"RADIUS 代理伺服器\n"
 
 msgid ""
 "\n"
 "Manage RADIUS Proxy Servers.\n"
 msgstr ""
+"\n"
+"管理 RADIUS代理伺服器.\n"
 
 msgid ""
 "\n"
@@ -13393,105 +13444,122 @@ msgid ""
 "authentications. This permits a great deal of flexibility when\n"
 "integrating with third-party authentication services.\n"
 msgstr ""
+"\n"
+"IPA 支援在 krb5 OTP\n"
+"驗證中使用外部 RADIUS 代理伺服器。這在\n"
+"與第三方驗證服務整合時，提供了極大的靈活性。\n"
 
 msgid ""
 "\n"
 " Add a new server:\n"
 "   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
 msgstr ""
+"\n"
+" 新增伺服器：\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
 
 msgid ""
 "\n"
 " Find all servers whose entries include the string \"example.com\":\n"
 "   ipa radiusproxy-find example.com\n"
 msgstr ""
+"\n"
+" 找出所有條目中包含字串「example.com」的伺服器：\n"
+"   ipa radiusproxy-find example.com\n"
 
 msgid ""
 "\n"
 " Examine the configuration:\n"
 "   ipa radiusproxy-show MyRADIUS\n"
 msgstr ""
+"\n"
+" 檢視組態設定：\n"
+"   ipa radiusproxy-show MyRADIUS\n"
 
 msgid ""
 "\n"
 " Change the secret:\n"
 "   ipa radiusproxy-mod MyRADIUS --secret\n"
 msgstr ""
+"\n"
+" 變更密鑰：\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
 
 msgid ""
 "\n"
 " Delete a configuration:\n"
 "   ipa radiusproxy-del MyRADIUS\n"
 msgstr ""
+"\n"
+" 刪除組態設定：\n"
+"   ipa radiusproxy-del MyRADIUS\n"
 
 msgid "invalid attribute name"
-msgstr ""
+msgstr "無效屬性名稱"
 
 msgid "invalid port number"
-msgstr ""
+msgstr "無效的通訊埠號"
 
 msgid "RADIUS proxy server"
-msgstr ""
+msgstr "RADIUS 代理伺服器"
 
 msgid "RADIUS proxy servers"
-msgstr ""
+msgstr "RADIUS 代理伺服器"
 
 msgid "RADIUS Servers"
-msgstr ""
+msgstr "RADIUS 伺服器"
 
 msgid "RADIUS Server"
-msgstr ""
+msgstr "RADIUS 伺服器"
 
 #, python-format
 msgid "Added RADIUS proxy server \"%(value)s\""
-msgstr ""
+msgstr "已新增 RADIUS 代理伺服器 \"%(value)s\""
 
 #, python-format
 msgid "Deleted RADIUS proxy server \"%(value)s\""
-msgstr ""
+msgstr "已刪除 RADIUS 代理伺服器 \"%(value)s\""
 
 #, python-format
 msgid "Modified RADIUS proxy server \"%(value)s\""
-msgstr ""
+msgstr "已修改的 RADIUS 代理伺服器 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d RADIUS proxy server matched"
 msgid_plural "%(count)d RADIUS proxy servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個 RADIUS 代理伺服器符合條件"
 
 msgid "self service permission"
-msgstr ""
+msgstr "自助服務權限"
 
 msgid "self service permissions"
-msgstr ""
+msgstr "自助服務權限"
 
 msgid "Self Service Permissions"
-msgstr ""
+msgstr "自助服務權限"
 
 msgid "Self Service Permission"
-msgstr ""
+msgstr "自助服務權限"
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr ""
+msgstr "新增自助服務\"%(value)s\""
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "已刪除自助服務 \"%(value)s\""
 
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr ""
+msgstr "己修改自助服務 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d selfservice matched"
 msgid_plural "%(count)d selfservices matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 項自助服務符合條件"
 
 msgid "commands for controlling sudo configuration"
-msgstr ""
+msgstr "用於控制 sudo 設定的指令"
 
 msgid ""
 "\n"
@@ -13519,28 +13587,27 @@ msgid ""
 msgstr ""
 
 msgid "sudo command group"
-msgstr ""
+msgstr "sudo 指令群組"
 
 msgid "sudo command groups"
-msgstr ""
+msgstr "sudo 指令群組"
 
 #, python-format
 msgid "Added Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "新增 Sudo 命令群組 \"%(value)s\""
 
 #, python-format
 msgid "Deleted Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "已刪除 Sudo 指令群組 \"%(value)s\""
 
 #, python-format
 msgid "Modified Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "己修改 Sudo 指令群組 \"%(value)s\""
 
 #, python-format
 msgid "%(count)d Sudo Command Group matched"
 msgid_plural "%(count)d Sudo Command Groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個 Sudo 命令群組符合條件"
 
 msgid ""
 "\n"
@@ -13601,40 +13668,50 @@ msgid ""
 msgstr ""
 
 msgid "Describe currently authenticated identity."
-msgstr ""
+msgstr "請描述目前已驗證的身分。"
 
 msgid "Object class name"
-msgstr ""
+msgstr "物件類别名稱"
 
 msgid "Function to get details"
-msgstr ""
+msgstr "取得詳細資訊的功能"
 
+#, fuzzy
 msgid "Arguments to details function"
-msgstr ""
+msgstr "details 函式的參數"
 
 msgid "Cannot query Directory Manager with API"
-msgstr ""
+msgstr "無法透過 API 查詢目錄管理員"
 
 msgid ""
 "\n"
 "IPA server roles\n"
 msgstr ""
+"\n"
+"IPA 伺服器角色\n"
 
 msgid ""
 "\n"
 "Get status of roles (DNS server, CA, etc.) provided by IPA masters.\n"
 msgstr ""
+"\n"
+"取得由 IPA 主要伺服器提供的角色（DNS 伺服器、CA 等）的狀態。\n"
 
 msgid ""
 "\n"
 "The status of a role is either enabled, configured, or absent.\n"
 msgstr ""
+"\n"
+"角色的狀態可分為「已啟用」、「已設定」或「不存在」。\n"
 
 msgid ""
 "\n"
 "  Show status of 'DNS server' role on a server:\n"
 "    ipa server-role-show ipa.example.com \"DNS server\"\n"
 msgstr ""
+"\n"
+"  在伺服器上顯示「DNS 伺服器」角色的狀態：\n"
+"    ipa server-role-show ipa.example.com \"DNS 伺服器\"\n"
 
 msgid ""
 "\n"
@@ -13642,135 +13719,144 @@ msgid ""
 "    ipa server-role-find --server ipa.example.com --role=\"AD trust "
 "controller\"\n"
 msgstr ""
+"\n"
+"  顯示伺服器上所有包含「AD」的角色狀態：\n"
+"    ipa server-role-find --server ipa.example.com --role=\"AD 信任控制器\"\n"
 
 msgid ""
 "\n"
 "  Show status of all configured roles on a server:\n"
 "    ipa server-role-find ipa.example.com\n"
 msgstr ""
+"\n"
+"  顯示伺服器上所有已設定角色的狀態：\n"
+"    ipa server-role-find ipa.example.com\n"
 
 msgid ""
 "\n"
 "  Show implicit IPA master role:\n"
 "    ipa server-role-find --include-master\n"
 msgstr ""
+"\n"
+"  顯示隱含的 IPA 主伺服器角色：\n"
+"    ipa server-role-find --include-master\n"
 
 msgid "server role"
-msgstr ""
+msgstr "伺服器角色"
 
 msgid "server roles"
-msgstr ""
+msgstr "伺服器角色"
 
 msgid "IPA Server Roles"
-msgstr ""
+msgstr "IPA 伺服器角色"
 
 msgid "IPA Server Role"
-msgstr ""
+msgstr "IPA 伺服器角色"
 
 msgid "IPA server role name"
-msgstr ""
+msgstr "IPA 伺服器角色名稱"
 
 msgid "Role status"
-msgstr ""
+msgstr "角色狀態"
 
 msgid "Status of the role"
-msgstr ""
+msgstr "角色狀態"
 
 msgid "Show role status on a server"
-msgstr ""
+msgstr "在伺服器上顯示角色狀態"
 
 msgid "Find a server role on a server(s)"
-msgstr ""
+msgstr "在伺服器上尋找伺服器角色"
 
 #, python-format
 msgid "%(count)s server role matched"
 msgid_plural "%(count)s server roles matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s 個伺服器角色符合條件"
 
 msgid "Include IPA master entries"
-msgstr ""
+msgstr "包含 IPA 主條目"
 
 msgid "roles"
-msgstr ""
+msgstr "角色"
 
 msgid "IPA role name"
-msgstr ""
+msgstr "IPA 角色名稱"
 
 msgid "A list of ACI values"
-msgstr ""
+msgstr "ACI 數值一覽表"
 
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
+msgstr "類型、篩選、子樹 和 目標群組 彼此互斥"
 
 msgid "ACI prefix is required"
-msgstr ""
+msgstr "必須包含 ACI 前綴"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
 "required"
-msgstr ""
+msgstr "必須至少包含以下其中一項：類型、篩選、子樹、目標群組、attrs 或 隸屬於"
 
 msgid "filter and memberof are mutually exclusive"
-msgstr ""
+msgstr "篩選與隸屬於是互斥的"
 
 msgid "group, permission and self are mutually exclusive"
-msgstr ""
+msgstr "「群組」、「權限」與「自身」是互斥的"
 
 msgid "One of group, permission or self is required"
-msgstr ""
+msgstr "必須選擇「群組」、「權限」或「自己」其中一項"
 
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr ""
+msgstr "群組 \"%s\" 不存在"
 
 msgid "empty filter"
-msgstr ""
+msgstr "清空篩選條件"
 
 #, python-format
 msgid "Syntax Error: %(error)s"
-msgstr ""
+msgstr "語法錯誤：%(error)s"
 
 #, python-format
 msgid "invalid DN (%s)"
-msgstr ""
+msgstr "無效的 DN (%s)"
 
 #, python-format
 msgid "ACI with name \"%s\" not found"
-msgstr ""
+msgstr "找不到名稱為 \"%s\" 的 ACI"
 
 msgid "ACI object."
-msgstr ""
+msgstr "ACI 物件。"
 
 msgid "ACIs"
-msgstr ""
+msgstr "ACIs"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "已建立 ACI \"%(value)s\""
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "已刪除 ACI \"%(value)s\""
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr ""
+msgstr "修改後的 ACI \"%(value)s\""
 
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d 個 ACI 匹配"
 
 #, python-format
 msgid "Renamed ACI to \"%(value)s\""
-msgstr ""
+msgstr "將 ACI 重新命名為 \"%(value)s\""
 
 msgid ""
 "\n"
 "Auto Membership Rule.\n"
 msgstr ""
+"\n"
+"自動成員規則。\n"
 
 msgid ""
 "\n"
@@ -13779,6 +13865,10 @@ msgid ""
 "into\n"
 "a group or hostgroup based upon attribute information.\n"
 msgstr ""
+"\n"
+"透過設定包含式\n"
+"或排除式正規表達式模式，可明確界定主機與使用者的歸屬關係，\n"
+"並能根據屬性資訊，將新條目自動指派至特定群組或主機群組中。\n"
 
 msgid ""
 "\n"
