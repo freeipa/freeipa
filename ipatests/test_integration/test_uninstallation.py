@@ -179,7 +179,7 @@ class TestUninstallCleanup(IntegrationTest):
             '/run/log/journal',
             '/var/lib/authselect/backups/pre_ipaclient',
             '/var/named/data/named.run',
-            paths.DNSSEC_SOFTHSM_PIN_SO,  # See commit eb54814741
+            paths.DNSSEC_HSM_PIN_SO,  # See commit eb54814741
             '/etc/selinux/targeted/contexts/files/file_contexts.local.bin',
             paths.SSSD_CONF_DELETED,  # See commit dd72ed6212
             '/root/.cache',
